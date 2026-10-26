@@ -7,22 +7,22 @@ const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_ORIGINAL = 'https://image.tmdb.org/t/p/original';
 const IMAGE_W500 = 'https://image.tmdb.org/t/p/w500';
 
-// Verified 200 OK ultra-fast global CDN streaming video feeds for direct player
+// Verified 200 OK ultra-fast global CDN streaming video feeds with Accept-Ranges support
 const QUALITY_STREAMS: Record<VideoQuality, string[]> = {
   '4K': [
-    'https://vjs.zencdn.net/v/oceans.mp4',
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
-    'https://media.w3.org/2010/05/sintel/trailer.mp4'
+    'https://media.w3.org/2010/05/sintel/trailer.mp4',
+    'https://www.w3schools.com/html/mov_bbb.mp4'
   ],
   '1080p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
-    'https://vjs.zencdn.net/v/oceans.mp4',
-    'https://media.w3.org/2010/05/sintel/trailer.mp4'
+    'https://media.w3.org/2010/05/sintel/trailer.mp4',
+    'https://www.w3schools.com/html/mov_bbb.mp4'
   ],
   '720p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4',
-    'https://vjs.zencdn.net/v/oceans.mp4',
-    'https://www.w3schools.com/html/mov_bbb.mp4'
+    'https://www.w3schools.com/html/mov_bbb.mp4',
+    'https://media.w3.org/2010/05/sintel/trailer.mp4'
   ],
   '480p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4',

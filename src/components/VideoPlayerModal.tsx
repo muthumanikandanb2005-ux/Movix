@@ -146,27 +146,25 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       } catch {}
     }
 
-    // Watchdog: Clear buffering after 1.5s max so user is never stuck
+    // Watchdog: Clear buffering quickly so user is never stuck on black loader
     const watchdog = setTimeout(() => {
       setIsBuffering(false);
-    }, 1500);
+    }, 800);
 
     const tryAutoPlay = async () => {
       if (videoRef.current && currentSource.type === 'video') {
         try {
-          if (startSecond > 0) {
+          if (startSecond > 0 && videoRef.current.readyState >= 1) {
             videoRef.current.currentTime = startSecond;
             setGestureOsd({ type: 'seek', value: `Resumed from ${formatTime(startSecond)}`, icon: '⏱️' });
             setTimeout(() => setGestureOsd(null), 2000);
-          } else {
-            videoRef.current.currentTime = 0;
           }
           await videoRef.current.play();
           setIsPlaying(true);
           setHasStartedPlaying(true);
           setIsBuffering(false);
         } catch {
-          // Autoplay blocked by WebView policy - show prominent tap-to-play
+          // Autoplay blocked by WebView gesture policy - reveal center play button
           setIsPlaying(false);
           setIsBuffering(false);
           setShowControls(true);
@@ -611,6 +609,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
       {/* 9. VIDEO CANVAS */}
       <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black">
+        {/* Backdrop poster preview (prevents empty pitch-black screen) */}
+        {!hasStartedPlaying && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <img 
+              src={movie.backdrop || movie.poster} 
+              alt="" 
+              className="w-full h-full object-cover opacity-30 blur-sm scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/70" />
+          </div>
+        )}
+
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
             src={currentSource.url}
@@ -646,8 +656,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         )}
 
         {/* 3D Movix Buffering Screen with New User Logo */}
-        {isBuffering && (
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center z-30 pointer-events-none animate-in fade-in duration-200">
+        {isBuffering && !hasStartedPlaying && (
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center z-30 pointer-events-none animate-in fade-in duration-200">
             <div className="relative flex items-center justify-center mb-4">
               <div className="absolute -inset-4 rounded-full border-2 border-transparent border-t-purple-500 border-r-pink-500 border-b-[#E50914] animate-spin" />
               <div className="absolute -inset-2 bg-gradient-to-tr from-purple-600/30 via-pink-600/30 to-amber-500/30 blur-xl rounded-full" />
@@ -686,15 +696,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         )}
 
         {/* CENTER PROMINENT TAP-TO-PLAY BUTTON (Eliminates Black Screen completely!) */}
-        {!isPlaying && !isBuffering && !hasError && currentSource.type === 'video' && (
+        {!isPlaying && !hasError && (
           <div 
             onClick={togglePlay}
             className="absolute z-40 flex flex-col items-center justify-center cursor-pointer group"
           >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#E50914] to-[#FF4154] text-white flex items-center justify-center shadow-2xl shadow-red-900/60 group-hover:scale-110 active:scale-95 transition-all mb-3 ring-4 ring-white/10">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#E50914] to-[#FF4154] text-white flex items-center justify-center shadow-2xl shadow-red-900/60 group-hover:scale-110 active:scale-95 transition-all mb-3 ring-4 ring-white/20 animate-pulse">
               <Play className="w-10 h-10 fill-white ml-1.5" />
             </div>
-            <span className="px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-xs font-bold tracking-wider uppercase border border-white/20">
+            <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-xs font-bold tracking-wider uppercase border border-white/20">
               Tap to Play Movie
             </span>
           </div>

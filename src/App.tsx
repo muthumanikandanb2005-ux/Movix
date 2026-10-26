@@ -476,8 +476,10 @@ export const App: React.FC = () => {
       {/* AdMob Interstitial Ad (Native SDK + Web fallback, triggers on movie play) */}
       {interstitialTarget && (
         <AdMobInterstitial
+          onDismiss={handleDismissAd}
           onAdDismissed={handleDismissAd}
           onAdFailed={handleDismissAd}
+          movieTitle={interstitialTarget.title}
         />
       )}
 

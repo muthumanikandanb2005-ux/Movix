@@ -1,47 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play } from 'lucide-react';
 
 interface AdMobInterstitialProps {
-  onDismiss: () => void;
-  movieTitle: string;
+  onDismiss?: () => void;
+  onAdDismissed?: () => void;
+  onAdFailed?: () => void;
+  movieTitle?: string;
 }
 
-export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({ onDismiss, movieTitle }) => {
-  const [secondsLeft, setSecondsLeft] = useState(3);
+export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
+  onDismiss,
+  onAdDismissed,
+  onAdFailed,
+  movieTitle = 'Movie'
+}) => {
+  const [secondsLeft, setSecondsLeft] = useState(2);
+  const dismissedRef = useRef(false);
+
+  // Safe dismissal that calls any provided dismissal callback exactly once
+  const triggerDismiss = () => {
+    if (dismissedRef.current) return;
+    dismissedRef.current = true;
+
+    try {
+      if (typeof onDismiss === 'function') onDismiss();
+      if (typeof onAdDismissed === 'function') onAdDismissed();
+      if (typeof onAdFailed === 'function') onAdFailed();
+    } catch (err) {
+      console.error('Error during ad dismissal:', err);
+    }
+  };
 
   useEffect(() => {
     // 1. Try Native Android AdMob SDK
     const androidAdMob = (window as any).AndroidAdMob;
     if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
-      const handleAdDismissed = () => {
-        onDismiss();
+      const handleNativeAdDismissed = () => {
+        triggerDismiss();
       };
-      window.addEventListener('admob:dismissed', handleAdDismissed, { once: true });
+
+      window.addEventListener('admob:dismissed', handleNativeAdDismissed, { once: true });
       androidAdMob.showInterstitialAd();
       
-      // Fallback timeout in case ad takes too long or fails silently
+      // Fallback timeout: If native ad takes longer than 3.5s, dismiss automatically to prevent black screen
       const fallbackTimer = setTimeout(() => {
-        window.removeEventListener('admob:dismissed', handleAdDismissed);
-        onDismiss();
-      }, 6000);
+        window.removeEventListener('admob:dismissed', handleNativeAdDismissed);
+        triggerDismiss();
+      }, 3500);
 
       return () => {
-        window.removeEventListener('admob:dismissed', handleAdDismissed);
+        window.removeEventListener('admob:dismissed', handleNativeAdDismissed);
         clearTimeout(fallbackTimer);
       };
     }
 
-    // 2. Web Fallback 3-Second Pre-roll Countdown
-    if (secondsLeft <= 0) return;
+    // 2. Web Fallback 2-Second Countdown
     const timer = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+          triggerDismiss();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
 
@@ -57,15 +81,10 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({ onDismiss,
 
         {/* Skip Button */}
         <button
-          onClick={onDismiss}
-          disabled={secondsLeft > 0}
-          className={`absolute top-3.5 right-4 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-            secondsLeft > 0
-              ? 'bg-white/10 text-white/50 cursor-not-allowed'
-              : 'bg-white text-black hover:bg-white/90 active:scale-95 shadow-md'
-          }`}
+          onClick={triggerDismiss}
+          className="absolute top-3.5 right-4 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-white text-black hover:bg-white/90 active:scale-95 shadow-md"
         >
-          {secondsLeft > 0 ? `Skip in ${secondsLeft}s` : 'Skip Ad ✕'}
+          {secondsLeft > 0 ? `Skip (${secondsLeft}s)` : 'Skip Ad ✕'}
         </button>
 
         {/* Animated Brand Emblem with 3D Movix Logo */}
@@ -82,12 +101,12 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({ onDismiss,
           Movix Cinema
         </h3>
         <p className="text-xs text-white/70 mb-5 px-3 leading-relaxed">
-          Connecting high-speed 4K streaming server for <span className="text-white font-bold">"{movieTitle}"</span>.
+          Connecting high-speed streaming server for <span className="text-white font-bold">"{movieTitle}"</span>.
         </p>
 
         {/* Action Button */}
         <button
-          onClick={onDismiss}
+          onClick={triggerDismiss}
           className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FF4154] to-[#E50914] text-white font-bold text-sm shadow-lg shadow-red-600/30 active:scale-95 transition-transform flex items-center justify-center space-x-2"
         >
           <Play className="w-4 h-4 fill-white" />
