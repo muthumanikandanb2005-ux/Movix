@@ -1,12 +1,13 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, Sparkles } from 'lucide-react';
 
 interface HeaderProps {
   onSearchClick: () => void;
   onProfileClick: () => void;
+  onVipClick?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onSearchClick, onProfileClick }) => {
+export const Header: React.FC<HeaderProps> = ({ onSearchClick, onProfileClick, onVipClick }) => {
   return (
     <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 pt-3 pb-3 bg-gradient-to-b from-[#080A0F]/95 via-[#080A0F]/70 to-transparent backdrop-blur-[2px]">
       {/* Brand Logo with 3D M Icon */}
@@ -23,8 +24,17 @@ export const Header: React.FC<HeaderProps> = ({ onSearchClick, onProfileClick })
         </span>
       </div>
 
-      {/* Action Icons */}
-      <div className="flex items-center space-x-4">
+      {/* Action Icons & VIP Monetization Pill */}
+      <div className="flex items-center space-x-2.5 sm:space-x-3.5">
+        <button
+          onClick={onVipClick}
+          className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-red-500/20 border border-amber-500/40 text-amber-300 hover:border-amber-400 active:scale-95 transition-all text-[11px] font-bold shadow-sm"
+          title="Watch Ad & Unlock VIP 4K"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <span>VIP 4K</span>
+        </button>
+
         <button 
           onClick={onSearchClick}
           aria-label="Search"

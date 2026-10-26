@@ -90,8 +90,30 @@ export const App: React.FC = () => {
     };
     updateResumeList();
     window.addEventListener('movix:resume_updated', updateResumeList);
-    return () => window.removeEventListener('movix:resume_updated', updateResumeList);
+
+    const handleRewarded = () => {
+      showToast('🎉 VIP 4K Pass Activated for 24h! Enjoy ultra streaming.');
+    };
+    window.addEventListener('admob:rewarded', handleRewarded);
+
+    return () => {
+      window.removeEventListener('movix:resume_updated', updateResumeList);
+      window.removeEventListener('admob:rewarded', handleRewarded);
+    };
   }, []);
+
+  const handleWatchAdVip = () => {
+    const androidAdMob = (window as any).AndroidAdMob;
+    if (androidAdMob && typeof androidAdMob.showRewardedAd === 'function') {
+      androidAdMob.showRewardedAd();
+      showToast('Loading VIP Pass sponsored ad...');
+    } else if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
+      androidAdMob.showInterstitialAd();
+      showToast('Loading sponsored video...');
+    } else {
+      showToast('💎 VIP 4K Pass Active! Unlimited ultra streaming.');
+    }
+  };
 
   useEffect(() => {
     const loadAllTmdbFeeds = async () => {
@@ -229,6 +251,7 @@ export const App: React.FC = () => {
       <Header
         onSearchClick={() => setActiveTab('search')}
         onProfileClick={() => showToast('Movix VIP Pass Active')}
+        onVipClick={handleWatchAdVip}
       />
 
       {/* Main Tab Content */}

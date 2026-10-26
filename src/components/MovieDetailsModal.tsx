@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Movie, CastMember } from '../types';
 import { fetchFullMovieDetails } from '../services/tmdb';
+import { AdMobBanner } from './AdMobBanner';
 
 interface MovieDetailsModalProps {
   movie: Movie;
@@ -411,6 +412,11 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               )}
             </div>
           )}
+
+          {/* Sponsored Ad Placement */}
+          <div className="-mx-5">
+            <AdMobBanner />
+          </div>
 
           {/* "MORE LIKE THIS" / RELATED MOVIES CAROUSEL */}
           {similarMovies.length > 0 && (

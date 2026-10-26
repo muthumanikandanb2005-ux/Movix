@@ -144,7 +144,14 @@ public class MainActivity extends BridgeActivity {
                 );
                 params.gravity = Gravity.BOTTOM;
                 mAdView.setLayoutParams(params);
-                mAdView.setVisibility(View.GONE);
+
+                mAdView.setAdListener(new com.google.android.gms.ads.AdListener() {
+                    @Override
+                    public void onAdLoaded() {
+                        super.onAdLoaded();
+                        mAdView.setVisibility(View.VISIBLE);
+                    }
+                });
 
                 ViewGroup root = findViewById(android.R.id.content);
                 if (root != null) {
@@ -176,6 +183,27 @@ public class MainActivity extends BridgeActivity {
                 } else if (mRewardedAd != null) {
                     mRewardedAd.show(MainActivity.this, rewardItem -> {});
                 } else {
+                    loadInterstitialAd();
+                    notifyWebAdDismissed();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void showRewardedAd() {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (mRewardedAd != null) {
+                    mRewardedAd.show(MainActivity.this, rewardItem -> {
+                        if (getBridge() != null && getBridge().getWebView() != null) {
+                            getBridge().getWebView().evaluateJavascript("window.dispatchEvent(new CustomEvent('admob:rewarded'));", null);
+                        }
+                    });
+                    mRewardedAd = null;
+                    loadRewardedAd();
+                } else if (mInterstitialAd != null) {
+                    mInterstitialAd.show(MainActivity.this);
+                } else {
+                    loadRewardedAd();
                     loadInterstitialAd();
                     notifyWebAdDismissed();
                 }

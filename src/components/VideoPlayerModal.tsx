@@ -100,6 +100,19 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     };
   }, [resetControlsTimeout]);
 
+  // Manage native bottom banner visibility during cinema player
+  useEffect(() => {
+    const androidAdMob = (window as any).AndroidAdMob;
+    if (androidAdMob && typeof androidAdMob.hideBannerAd === 'function') {
+      androidAdMob.hideBannerAd();
+    }
+    return () => {
+      if (androidAdMob && typeof androidAdMob.showBannerAd === 'function') {
+        androidAdMob.showBannerAd();
+      }
+    };
+  }, []);
+
   // Listen for PvrPlay player postMessage events (pvr:close, pvr:resume)
   useEffect(() => {
     const handlePlayerMessage = (e: MessageEvent) => {
