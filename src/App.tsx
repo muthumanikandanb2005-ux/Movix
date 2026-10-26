@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { MovieCarousel } from './components/MovieCarousel';
@@ -12,6 +12,7 @@ import { SearchView } from './components/SearchView';
 import { DownloadsView } from './components/DownloadsView';
 import { MyListView } from './components/MyListView';
 import { featuredMovie, trendingMovies, sciFiPicks } from './data/movies';
+import { fetchTrendingFromTMDB, fetchPopularFromTMDB } from './services/tmdb';
 import { Movie, TabType } from './types';
 
 export const App: React.FC = () => {
@@ -22,6 +23,8 @@ export const App: React.FC = () => {
   const [interstitialTarget, setInterstitialTarget] = useState<Movie | null>(null);
   const [myList, setMyList] = useState<Movie[]>([featuredMovie, trendingMovies[0]]);
   const [downloads, setDownloads] = useState<Movie[]>([trendingMovies[0]]);
+  const [tmdbTrending, setTmdbTrending] = useState<Movie[]>([]);
+  const [tmdbPopular, setTmdbPopular] = useState<Movie[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -29,7 +32,23 @@ export const App: React.FC = () => {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  const allMovies = [featuredMovie, ...trendingMovies, ...sciFiPicks];
+  useEffect(() => {
+    const loadLiveMovies = async () => {
+      try {
+        const [trending, popular] = await Promise.all([
+          fetchTrendingFromTMDB(),
+          fetchPopularFromTMDB()
+        ]);
+        if (trending.length > 0) setTmdbTrending(trending);
+        if (popular.length > 0) setTmdbPopular(popular);
+      } catch (e) {
+        console.error('Error loading TMDB content:', e);
+      }
+    };
+    loadLiveMovies();
+  }, []);
+
+  const allMovies = [featuredMovie, ...trendingMovies, ...tmdbTrending, ...tmdbPopular, ...sciFiPicks];
 
   const handleToggleList = (movie: Movie) => {
     if (myList.some((m) => m.id === movie.id)) {
@@ -51,7 +70,7 @@ export const App: React.FC = () => {
   };
 
   const handleStartPlay = (movie: Movie) => {
-    // Show AdMob Interstitial first (as configured with user AdMob Unit ID)
+    // Trigger AdMob Interstitial first
     setInterstitialTarget(movie);
   };
 
@@ -86,7 +105,7 @@ export const App: React.FC = () => {
               onToggleList={handleToggleList}
             />
 
-            {/* Trending Now Row from Image */}
+            {/* Trending Now Row from Reference Screenshot */}
             <MovieCarousel
               title="Trending now"
               movies={trendingMovies}
@@ -96,6 +115,26 @@ export const App: React.FC = () => {
 
             {/* Google AdMob Sponsored Banner */}
             <AdMobBanner />
+
+            {/* Live TMDB Trending Movies */}
+            {tmdbTrending.length > 0 && (
+              <MovieCarousel
+                title="Trending on TMDB"
+                movies={tmdbTrending}
+                onSelectMovie={setSelectedMovie}
+                onSeeAll={() => setActiveTab('search')}
+              />
+            )}
+
+            {/* Popular Worldwide (TMDB) */}
+            {tmdbPopular.length > 0 && (
+              <MovieCarousel
+                title="Popular Worldwide"
+                movies={tmdbPopular}
+                onSelectMovie={setSelectedMovie}
+                onSeeAll={() => setActiveTab('search')}
+              />
+            )}
 
             {/* Top Sci-Fi Row */}
             <MovieCarousel
@@ -169,7 +208,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Video Streaming Player */}
+      {/* Video Streaming Player with Server Switcher & 3D Logo Buffer */}
       {playingMovie && (
         <VideoPlayerModal
           movie={playingMovie}
