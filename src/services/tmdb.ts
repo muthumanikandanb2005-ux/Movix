@@ -41,34 +41,31 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 
   const sources: StreamSource[] = [
     {
-      name: 'Server 1 (PvrPlay VIP Core - Fast Stream)',
-      url: `https://embed.reelsdownload.online/player/${tmdbId}?key=k_bf0ab0853bce46e3d90b256b&close=1`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: 'Server 2 (MultiEmbed 4K Stream)',
-      url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: 'Server 3 (AutoEmbed VIP Stream)',
-      url: `https://player.autoembed.cc/embed/movie/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: 'Server 4 (VidSrc Pro Mirror)',
-      url: `https://vidsrc.cc/v2/embed/movie/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 5 (Direct High-Speed CDN ${quality})`,
+      name: `Server 1 (Ultra Fast Direct ${quality})`,
       url: directUrl,
       type: 'video',
       quality
+    },
+    {
+      name: 'Server 2 (VidSrc PM Cloud VIP)',
+      url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: 'Server 3 (2Embed Cinema 4K)',
+      url: `https://www.2embed.cc/embed/${tmdbId}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 4 (VidSrc TO VIP)',
+      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 5 (PvrPlay HD Mirror)',
+      url: `https://ghar-baithe-free-movies-dekho-bina-rukawat-pvrplay-hd.pvrplay.fun/watch/movie/${tmdbId}`,
+      type: 'embed'
     }
   ];
 
@@ -86,23 +83,23 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 export const getTvStreamingSources = (tmdbId: number, season: number = 1, episode: number = 1): StreamSource[] => {
   return [
     {
-      name: 'Server 1 (PvrPlay VIP Core)',
-      url: `https://embed.reelsdownload.online/player/${tmdbId}/${season}/${episode}?key=k_bf0ab0853bce46e3d90b256b&close=1`,
+      name: 'Server 1 (VidSrc PM VIP)',
+      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     },
     {
-      name: 'Server 2 (MultiEmbed VIP)',
-      url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`,
+      name: 'Server 2 (2Embed TV Stream)',
+      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
       type: 'embed'
     },
     {
-      name: 'Server 3 (AutoEmbed VIP)',
-      url: `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 3 (VidSrc TO VIP)',
+      url: `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     },
     {
-      name: 'Server 4 (VidSrc Pro)',
-      url: `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 4 (PvrPlay HD Mirror)',
+      url: `https://ghar-baithe-free-movies-dekho-bina-rukawat-pvrplay-hd.pvrplay.fun/watch/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     }
   ];

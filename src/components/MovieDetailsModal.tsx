@@ -64,11 +64,11 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   }, [movie.tmdbId]);
 
   const sources = movie.streamSources || [
-    { name: 'Server 1 (PvrPlay VIP Core - Fast Stream)', url: `https://embed.reelsdownload.online/player/${movie.tmdbId}?key=k_bf0ab0853bce46e3d90b256b&close=1`, type: 'embed' },
-    { name: 'Server 2 (MultiEmbed 4K Stream)', url: `https://multiembed.mov/?video_id=${movie.tmdbId}&tmdb=1`, type: 'embed' },
-    { name: 'Server 3 (AutoEmbed VIP Stream)', url: `https://player.autoembed.cc/embed/movie/${movie.tmdbId}`, type: 'embed' },
-    { name: 'Server 4 (VidSrc Pro Mirror)', url: `https://vidsrc.cc/v2/embed/movie/${movie.tmdbId}`, type: 'embed' },
-    { name: 'Server 5 (Direct High-Speed CDN 4K)', url: movie.videoUrl || '', type: 'video' }
+    { name: 'Server 1 (Ultra Fast Direct 4K)', url: movie.videoUrl || '', type: 'video' },
+    { name: 'Server 2 (VidSrc PM Cloud VIP)', url: `https://vidsrc.pm/embed/movie/${movie.tmdbId}`, type: 'embed' },
+    { name: 'Server 3 (2Embed Cinema 4K)', url: `https://www.2embed.cc/embed/${movie.tmdbId}`, type: 'embed' },
+    { name: 'Server 4 (VidSrc TO VIP)', url: `https://vidsrc.to/embed/movie/${movie.tmdbId}`, type: 'embed' },
+    { name: 'Server 5 (PvrPlay HD Mirror)', url: `https://ghar-baithe-free-movies-dekho-bina-rukawat-pvrplay-hd.pvrplay.fun/watch/movie/${movie.tmdbId}`, type: 'embed' }
   ];
 
   const formatCurrency = (val?: number) => {

@@ -31,7 +31,8 @@ import {
   fetchHollywoodFromTMDB,
   fetchRomanceFromTMDB,
   fetchThrillerFromTMDB,
-  fetchActionFromTMDB
+  fetchActionFromTMDB,
+  getQualityVideoUrl
 } from './services/tmdb';
 import { getContinueWatchingList } from './services/continueWatching';
 import { Movie, TabType, VideoQuality, AudioLanguage, ContinueWatchingItem } from './types';
@@ -213,7 +214,7 @@ export const App: React.FC = () => {
       description: 'Resuming your high-speed stream on Movix.',
       poster: item.poster,
       backdrop: item.backdrop || item.poster,
-      videoUrl: `https://embed.reelsdownload.online/player/${item.tmdbId}?key=k_bf0ab0853bce46e3d90b256b&close=1`
+      videoUrl: getQualityVideoUrl(item.tmdbId, activeQuality)
     };
     handleRequestPlay(movieTarget);
   };
