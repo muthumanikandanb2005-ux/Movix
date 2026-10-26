@@ -1,4 +1,4 @@
-import { Movie, StreamSource, VideoQuality } from '../types';
+import { Movie, StreamSource, VideoQuality, CastMember } from '../types';
 
 export const TMDB_API_KEY = '4c81439cadcaabd5396f929f7a627830';
 export const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0YzgxNDM5Y2FkY2FhYmQ1Mzk2ZjkyOWY3YTYyNzgzMCIsIm5iZiI6MTc4OTMxNzc2OS4zODUsInN1YiI6IjZhYTZkMjg5NjY5YjAzMmM0NzYwYTE2ZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.YCWur56g4tUkC7yeTVjOyopV3L_OZzpicBlGYmRtwa0';
@@ -7,7 +7,7 @@ const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_ORIGINAL = 'https://image.tmdb.org/t/p/original';
 const IMAGE_W500 = 'https://image.tmdb.org/t/p/w500';
 
-// Verified 200 OK ultra-fast global CDN streaming video feeds
+// Verified 200 OK ultra-fast global CDN streaming video feeds for direct player
 const QUALITY_STREAMS: Record<VideoQuality, string[]> = {
   '4K': [
     'https://vjs.zencdn.net/v/oceans.mp4',
@@ -41,31 +41,34 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 
   const sources: StreamSource[] = [
     {
-      name: `Server 1 (Ultra Fast Direct ${quality})`,
-      url: directUrl,
-      type: 'video',
-      quality
-    },
-    {
-      name: `Server 2 (VidSrc Cloud Mirror)`,
-      url: `https://vidsrc.xyz/embed/movie?tmdb=${tmdbId}`,
+      name: 'Server 1 (PvrPlay VIP Core - Fast Stream)',
+      url: `https://embed.reelsdownload.online/player/${tmdbId}?key=k_bf0ab0853bce46e3d90b256b&close=1`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 3 (MultiEmbed 4K Stream)',
+      name: 'Server 2 (MultiEmbed 4K Stream)',
       url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`,
-      type: 'embed'
+      type: 'embed',
+      quality
     },
     {
-      name: 'Server 4 (AutoEmbed VIP)',
-      url: `https://autoembed.to/movie/tmdb/${tmdbId}`,
-      type: 'embed'
+      name: 'Server 3 (AutoEmbed VIP Stream)',
+      url: `https://player.autoembed.cc/embed/movie/${tmdbId}`,
+      type: 'embed',
+      quality
     },
     {
-      name: 'Server 5 (2Embed Cinema)',
-      url: `https://www.2embed.cc/embed/${tmdbId}`,
-      type: 'embed'
+      name: 'Server 4 (VidSrc Pro Mirror)',
+      url: `https://vidsrc.cc/v2/embed/movie/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 5 (Direct High-Speed CDN ${quality})`,
+      url: directUrl,
+      type: 'video',
+      quality
     }
   ];
 
@@ -78,6 +81,31 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
   }
 
   return sources;
+};
+
+export const getTvStreamingSources = (tmdbId: number, season: number = 1, episode: number = 1): StreamSource[] => {
+  return [
+    {
+      name: 'Server 1 (PvrPlay VIP Core)',
+      url: `https://embed.reelsdownload.online/player/${tmdbId}/${season}/${episode}?key=k_bf0ab0853bce46e3d90b256b&close=1`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 2 (MultiEmbed VIP)',
+      url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 3 (AutoEmbed VIP)',
+      url: `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 4 (VidSrc Pro)',
+      url: `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}`,
+      type: 'embed'
+    }
+  ];
 };
 
 const GENRE_MAP: Record<number, string> = {
@@ -164,6 +192,49 @@ const safeFetch = async (url: string, retries = 2): Promise<any> => {
   return null;
 };
 
+// Fetch full details, cast, director, trailers, and similar movies (for PvrPlay 3-Tab Movie Details)
+export const fetchFullMovieDetails = async (tmdbId: number): Promise<{
+  runtime?: number;
+  budget?: number;
+  revenue?: number;
+  status?: string;
+  releaseDate?: string;
+  productionCompanies?: string[];
+  trailerKey?: string;
+  castMembers?: CastMember[];
+  director?: string;
+  similar?: Movie[];
+}> => {
+  const data = await safeFetch(`${BASE_URL}/movie/${tmdbId}?append_to_response=credits,videos,similar`);
+  if (!data) return {};
+
+  const director = data.credits?.crew?.find((c: any) => c.job === 'Director')?.name;
+  const castMembers: CastMember[] = (data.credits?.cast || []).slice(0, 10).map((c: any) => ({
+    name: c.name,
+    character: c.character,
+    photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : undefined
+  }));
+
+  const trailers = data.videos?.results || [];
+  const officialTrailer = trailers.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube') || trailers[0];
+
+  const productionCompanies = (data.production_companies || []).map((p: any) => p.name);
+  const similar = (data.similar?.results || []).slice(0, 8).map(mapTmdbToMovie);
+
+  return {
+    runtime: data.runtime,
+    budget: data.budget,
+    revenue: data.revenue,
+    status: data.status,
+    releaseDate: data.release_date,
+    productionCompanies,
+    trailerKey: officialTrailer?.key,
+    castMembers,
+    director,
+    similar
+  };
+};
+
 // 0. Trending Movies Worldwide
 export const fetchTrendingFromTMDB = async (): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/trending/movie/week?page=1`);
@@ -176,9 +247,21 @@ export const fetchPopularFromTMDB = async (): Promise<Movie[]> => {
   return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
-// 1. Indian Blockbusters
+// 0.2 In Theatres / Now Playing (PvrPlay "In Theatres" section)
+export const fetchNowPlayingFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/movie/now_playing?page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 1. Indian Blockbusters (Hindi, Tamil, Telugu, Malayalam, Kannada)
 export const fetchIndianMoviesFromTMDB = async (): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/discover/movie?with_origin_country=IN&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 1.1 South Indian / Regional Blockbusters (Tamil, Telugu, Malayalam, Kannada)
+export const fetchSouthIndianFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_original_language=ta|te|ml|kn&sort_by=popularity.desc&page=1`);
   return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
@@ -188,27 +271,45 @@ export const fetchHollywoodFromTMDB = async (): Promise<Movie[]> => {
   return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
-// 3. Romance Movies
+// 3. Platform Specific (Netflix=8, Prime=9, Hotstar=337, Apple=350, Max=1899, Hulu=15)
+export const fetchPlatformMoviesFromTMDB = async (providerId: number): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_watch_providers=${providerId}&watch_region=IN&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 4. Romance Movies
 export const fetchRomanceFromTMDB = async (): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=10749&sort_by=popularity.desc&page=1`);
   return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
-// 4. Thriller & Mystery Movies
+// 5. Thriller & Mystery Movies
 export const fetchThrillerFromTMDB = async (): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=53&sort_by=popularity.desc&page=1`);
   return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
-// 5. Action Movies
+// 6. Action Movies
 export const fetchActionFromTMDB = async (): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=28&sort_by=popularity.desc&page=1`);
   return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
-// 6. Horror Movies
+// 7. Horror Movies
 export const fetchHorrorFromTMDB = async (): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=27&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 8. Comedy Movies
+export const fetchComedyFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=35&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 9. Sci-Fi Movies
+export const fetchSciFiFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=878&sort_by=popularity.desc&page=1`);
   return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 

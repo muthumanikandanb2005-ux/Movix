@@ -7,6 +7,7 @@ import { BottomNav } from './components/BottomNav';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
 import { QualitySelectionModal } from './components/QualitySelectionModal';
+import { ContinueWatchingRow } from './components/ContinueWatchingRow';
 import { AdMobBanner } from './components/AdMobBanner';
 import { AdMobInterstitial } from './components/AdMobInterstitial';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -25,12 +26,15 @@ import {
 import {
   fetchTrendingFromTMDB,
   fetchIndianMoviesFromTMDB,
+  fetchSouthIndianFromTMDB,
+  fetchNowPlayingFromTMDB,
   fetchHollywoodFromTMDB,
   fetchRomanceFromTMDB,
   fetchThrillerFromTMDB,
   fetchActionFromTMDB
 } from './services/tmdb';
-import { Movie, TabType, VideoQuality, AudioLanguage } from './types';
+import { getContinueWatchingList } from './services/continueWatching';
+import { Movie, TabType, VideoQuality, AudioLanguage, ContinueWatchingItem } from './types';
 
 // Helper to remove duplicates by id
 const dedupeMovies = (movies: Movie[]): Movie[] => {
@@ -48,6 +52,9 @@ export const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   
+  // Continue Watching state (PvrPlay Signature Feature)
+  const [continueWatching, setContinueWatching] = useState<ContinueWatchingItem[]>([]);
+
   // Resolution & Language selection states
   const [qualityTargetMovie, setQualityTargetMovie] = useState<Movie | null>(null);
   const [activeQuality, setActiveQuality] = useState<VideoQuality>('1080p');
@@ -60,7 +67,9 @@ export const App: React.FC = () => {
   
   // Live TMDB Content states
   const [liveTrending, setLiveTrending] = useState<Movie[]>([]);
+  const [liveNowPlaying, setLiveNowPlaying] = useState<Movie[]>([]);
   const [liveIndian, setLiveIndian] = useState<Movie[]>([]);
+  const [liveSouthIndian, setLiveSouthIndian] = useState<Movie[]>([]);
   const [liveHollywood, setLiveHollywood] = useState<Movie[]>([]);
   const [liveRomance, setLiveRomance] = useState<Movie[]>([]);
   const [liveThriller, setLiveThriller] = useState<Movie[]>([]);
@@ -73,19 +82,33 @@ export const App: React.FC = () => {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
+  // Subscribe to Continue Watching updates from localStorage & player
+  useEffect(() => {
+    const updateResumeList = () => {
+      setContinueWatching(getContinueWatchingList());
+    };
+    updateResumeList();
+    window.addEventListener('movix:resume_updated', updateResumeList);
+    return () => window.removeEventListener('movix:resume_updated', updateResumeList);
+  }, []);
+
   useEffect(() => {
     const loadAllTmdbFeeds = async () => {
       try {
-        const [trending, indian, hollywood, romance, thriller, action] = await Promise.all([
+        const [trending, nowPlaying, indian, southIndian, hollywood, romance, thriller, action] = await Promise.all([
           fetchTrendingFromTMDB(),
+          fetchNowPlayingFromTMDB(),
           fetchIndianMoviesFromTMDB(),
+          fetchSouthIndianFromTMDB(),
           fetchHollywoodFromTMDB(),
           fetchRomanceFromTMDB(),
           fetchThrillerFromTMDB(),
           fetchActionFromTMDB()
         ]);
         if (trending?.length) setLiveTrending(trending);
+        if (nowPlaying?.length) setLiveNowPlaying(nowPlaying);
         if (indian?.length) setLiveIndian(indian);
+        if (southIndian?.length) setLiveSouthIndian(southIndian);
         if (hollywood?.length) setLiveHollywood(hollywood);
         if (romance?.length) setLiveRomance(romance);
         if (thriller?.length) setLiveThriller(thriller);
@@ -99,16 +122,20 @@ export const App: React.FC = () => {
 
   // Combined movie pools
   const combinedIndian = dedupeMovies([...indianBlockbusters, ...liveIndian]);
+  const combinedSouthIndian = dedupeMovies(liveSouthIndian);
   const combinedHollywood = dedupeMovies([...hollywoodBlockbusters, ...liveHollywood]);
   const combinedRomance = dedupeMovies([...romanceMovies, ...liveRomance]);
   const combinedThriller = dedupeMovies([...thrillerMovies, ...liveThriller]);
   const combinedAction = dedupeMovies(liveAction);
+  const combinedNowPlaying = dedupeMovies(liveNowPlaying);
 
   // Global search catalogue
   const allMovies = dedupeMovies([
     featuredIndianMovie,
     ...ottNewReleases,
+    ...combinedNowPlaying,
     ...combinedIndian,
+    ...combinedSouthIndian,
     ...combinedHollywood,
     ...combinedRomance,
     ...combinedThriller,
@@ -165,12 +192,30 @@ export const App: React.FC = () => {
     setInterstitialTarget(movie);
   };
 
-  // 3. Ad finishes/dismissed -> Launch XPlayer
+  // 3. Ad finishes/dismissed -> Launch Player
   const handleDismissAd = () => {
     if (interstitialTarget) {
       setPlayingMovie(interstitialTarget);
       setInterstitialTarget(null);
     }
+  };
+
+  // Resume movie from Continue Watching card
+  const handleResumePlayback = (item: ContinueWatchingItem) => {
+    const movieTarget: Movie = item.movie || {
+      id: `tmdb-${item.tmdbId}`,
+      tmdbId: item.tmdbId,
+      title: item.title,
+      year: 2026,
+      genre: 'Cinema',
+      duration: '2h 15m',
+      rating: 8.5,
+      description: 'Resuming your high-speed stream on Movix.',
+      poster: item.poster,
+      backdrop: item.backdrop || item.poster,
+      videoUrl: `https://embed.reelsdownload.online/player/${item.tmdbId}?key=k_bf0ab0853bce46e3d90b256b&close=1`
+    };
+    handleRequestPlay(movieTarget);
   };
 
   if (loading) {
@@ -201,6 +246,12 @@ export const App: React.FC = () => {
             <OttProviderBar
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
+            />
+
+            {/* 3. Continue Watching Row (PvrPlay Feature) */}
+            <ContinueWatchingRow
+              items={continueWatching}
+              onResume={handleResumePlayback}
             />
 
             {/* When a Category Hub is selected */}
@@ -248,6 +299,7 @@ export const App: React.FC = () => {
                           ★ {movie.rating.toFixed(1)}
                         </div>
                       </div>
+
                       <div className="p-2.5">
                         <h4 className="text-xs font-bold text-white truncate">{movie.title}</h4>
                         <p className="text-[10px] text-white/50">{movie.year} • {movie.genre.split('/')[0]}</p>
@@ -259,7 +311,17 @@ export const App: React.FC = () => {
             ) : (
               /* All Content Sections when 'All' is selected */
               <>
-                {/* 1. New Releases & Premieres */}
+                {/* 1. In Theatres & Now Playing (Matching PvrPlay) */}
+                {combinedNowPlaying.length > 0 && (
+                  <MovieCarousel
+                    title="🍿 In Theatres & Now Playing"
+                    movies={combinedNowPlaying}
+                    onSelectMovie={setSelectedMovie}
+                    onSeeAll={() => setActiveTab('search')}
+                  />
+                )}
+
+                {/* 2. New Releases & Premieres */}
                 <MovieCarousel
                   title="🔥 New Releases"
                   movies={ottNewReleases}
@@ -267,7 +329,7 @@ export const App: React.FC = () => {
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 2. Trending Indian Blockbusters */}
+                {/* 3. Trending Indian Blockbusters */}
                 <MovieCarousel
                   title="🇮🇳 Trending Indian Blockbusters"
                   movies={combinedIndian}
@@ -278,15 +340,25 @@ export const App: React.FC = () => {
                 {/* AdMob Sponsored Card (IDs strictly hidden) */}
                 <AdMobBanner />
 
-                {/* 3. Hollywood Blockbusters */}
+                {/* 4. Tamil / Telugu / Regional Cinema (PvrPlay Tamil Blasters) */}
+                {combinedSouthIndian.length > 0 && (
+                  <MovieCarousel
+                    title="🎬 Tamil, Telugu & Regional Hits"
+                    movies={combinedSouthIndian}
+                    onSelectMovie={setSelectedMovie}
+                    onSeeAll={() => setActiveTab('search')}
+                  />
+                )}
+
+                {/* 5. Hollywood Blockbusters */}
                 <MovieCarousel
-                  title="🎬 Hollywood Blockbusters"
+                  title="🌟 Hollywood Blockbusters"
                   movies={combinedHollywood}
                   onSelectMovie={setSelectedMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 4. Romance & Heartfelt Cinema */}
+                {/* 6. Romance & Heartfelt Cinema */}
                 <MovieCarousel
                   title="💖 Romance & Drama"
                   movies={combinedRomance}
@@ -294,7 +366,7 @@ export const App: React.FC = () => {
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 5. Thriller, Crime & Mystery */}
+                {/* 7. Thriller, Crime & Mystery */}
                 <MovieCarousel
                   title="⚡ Thriller & Mystery"
                   movies={combinedThriller}
@@ -302,7 +374,7 @@ export const App: React.FC = () => {
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 6. Action Movies */}
+                {/* 8. Action Movies */}
                 {combinedAction.length > 0 && (
                   <MovieCarousel
                     title="💥 High-Octane Action"
@@ -312,7 +384,7 @@ export const App: React.FC = () => {
                   />
                 )}
 
-                {/* 7. Sci-Fi Universe */}
+                {/* 9. Sci-Fi Universe */}
                 <MovieCarousel
                   title="🚀 Sci-Fi Universe"
                   movies={sciFiPicks}
@@ -320,7 +392,7 @@ export const App: React.FC = () => {
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 8. Trending Worldwide */}
+                {/* 10. Trending Worldwide */}
                 {liveTrending.length > 0 && (
                   <MovieCarousel
                     title="🏆 Trending Worldwide"
@@ -373,7 +445,7 @@ export const App: React.FC = () => {
         myListCount={myList.length}
       />
 
-      {/* Movie Details Modal Drawer (ONLY Play & Stream options) */}
+      {/* Movie Details Modal (PvrPlay 3-Tab System: Overview, Details, Trailer + Similar Movies) */}
       {selectedMovie && (
         <MovieDetailsModal
           movie={selectedMovie}
@@ -385,6 +457,9 @@ export const App: React.FC = () => {
           }}
           onToggleList={handleToggleList}
           onDownload={handleDownload}
+          onSelectSimilar={(sim) => {
+            setSelectedMovie(sim);
+          }}
         />
       )}
 
@@ -400,12 +475,12 @@ export const App: React.FC = () => {
       {/* AdMob Interstitial Ad (Native SDK + Web fallback, triggers on movie play) */}
       {interstitialTarget && (
         <AdMobInterstitial
-          movieTitle={interstitialTarget.title}
-          onDismiss={handleDismissAd}
+          onAdDismissed={handleDismissAd}
+          onAdFailed={handleDismissAd}
         />
       )}
 
-      {/* XPLAYER (Video Player All Format style with Gestures, Lock, Aspect Mode, Buffering 3D Logo) */}
+      {/* Fullscreen Video Player (Connected to PvrPlay VIP Core Server 1 + Mirrors) */}
       {playingMovie && (
         <VideoPlayerModal
           movie={playingMovie}
@@ -415,9 +490,9 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Notification Toast */}
+      {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-none">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-black/85 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-2xl animate-in fade-in slide-in-from-top-3 duration-200">
           {toastMessage}
         </div>
       )}

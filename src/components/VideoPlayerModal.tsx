@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Movie, StreamSource, VideoQuality, AudioLanguage } from '../types';
 import { getStreamingSources } from '../services/tmdb';
+import { saveResumeProgress } from '../services/continueWatching';
 
 interface VideoPlayerModalProps {
   movie: Movie;
@@ -101,10 +102,49 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     };
   }, [resetControlsTimeout]);
 
+  // Listen for PvrPlay player postMessage events (pvr:close, pvr:resume)
+  useEffect(() => {
+    const handlePlayerMessage = (e: MessageEvent) => {
+      const data = e.data;
+      if (!data) return;
+
+      if (data.type === 'pvr:close') {
+        onClose();
+        return;
+      }
+
+      if (data.type === 'pvr:resume' && data.value) {
+        const { t, d } = data.value;
+        if (Number(t) >= 0 && Number(d) > 0 && movie.tmdbId) {
+          saveResumeProgress(movie.tmdbId, Number(t), Number(d), movie);
+        }
+      }
+    };
+
+    window.addEventListener('message', handlePlayerMessage);
+    return () => window.removeEventListener('message', handlePlayerMessage);
+  }, [movie, onClose]);
+
+  const lastSavedTimeRef = useRef<number>(0);
+
   // Attempt initial playback immediately on mount and source switch
   useEffect(() => {
     setIsBuffering(true);
     setHasError(false);
+
+    // Check if there is saved resume progress
+    let startSecond = 0;
+    if (movie.tmdbId) {
+      try {
+        const raw = localStorage.getItem(`player:resume:${movie.tmdbId}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.t > 10 && parsed.t < (parsed.d || 99999) - 15) {
+            startSecond = parsed.t;
+          }
+        }
+      } catch {}
+    }
 
     // Watchdog: Clear buffering after 1.5s max so user is never stuck
     const watchdog = setTimeout(() => {
@@ -114,7 +154,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const tryAutoPlay = async () => {
       if (videoRef.current && currentSource.type === 'video') {
         try {
-          videoRef.current.currentTime = 0;
+          if (startSecond > 0) {
+            videoRef.current.currentTime = startSecond;
+            setGestureOsd({ type: 'seek', value: `Resumed from ${formatTime(startSecond)}`, icon: '⏱️' });
+            setTimeout(() => setGestureOsd(null), 2000);
+          } else {
+            videoRef.current.currentTime = 0;
+          }
           await videoRef.current.play();
           setIsPlaying(true);
           setHasStartedPlaying(true);
@@ -131,7 +177,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     tryAutoPlay();
 
     return () => clearTimeout(watchdog);
-  }, [activeSourceIndex, currentQuality]);
+  }, [activeSourceIndex, currentQuality, movie.tmdbId]);
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -168,6 +214,12 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     if (curr > 0.1 && !hasStartedPlaying) {
       setHasStartedPlaying(true);
       setIsBuffering(false);
+    }
+
+    // Save resume progress every 5s
+    if (movie.tmdbId && Math.abs(curr - lastSavedTimeRef.current) > 5) {
+      lastSavedTimeRef.current = curr;
+      saveResumeProgress(movie.tmdbId, curr, dur, movie);
     }
   };
 

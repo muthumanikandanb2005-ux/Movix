@@ -10,6 +10,12 @@ export interface StreamSource {
 
 export type OttPlatform = 'Netflix' | 'Prime Video' | 'JioHotstar' | 'Lionsgate' | 'SonyLIV' | 'Zee5' | 'Apple TV+';
 
+export interface CastMember {
+  name: string;
+  character: string;
+  photo?: string;
+}
+
 export interface Movie {
   id: string;
   tmdbId?: number;
@@ -28,7 +34,29 @@ export interface Movie {
   videoUrl?: string;
   streamSources?: StreamSource[];
   cast?: string[];
+  castMembers?: CastMember[];
   director?: string;
+  budget?: number;
+  revenue?: number;
+  status?: string;
+  releaseDate?: string;
+  productionCompanies?: string[];
+  trailerKey?: string;
 }
 
-export type TabType = 'home' | 'search' | 'downloads' | 'mylist';
+export interface ContinueWatchingItem {
+  id: string;
+  tmdbId: number;
+  title: string;
+  poster: string;
+  backdrop?: string;
+  currentTime: number;
+  duration: number;
+  timestamp: number;
+  progress: number;
+  season?: number;
+  episode?: number;
+  movie?: Movie;
+}
+
+export type TabType = 'home' | 'trending' | 'sports' | 'search' | 'downloads' | 'mylist';
