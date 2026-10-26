@@ -152,6 +152,21 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               <span>•</span>
               <span className="text-white/60">{movie.genre}</span>
             </div>
+            {movie.availableLanguages && movie.availableLanguages.length > 0 && (
+              <div className="flex items-center space-x-1.5 mt-2 flex-wrap gap-y-1">
+                <span className="text-[11px] font-bold text-emerald-400 flex items-center space-x-1 mr-1">
+                  <span>Languages:</span>
+                </span>
+                {movie.availableLanguages.map((lang) => (
+                  <span
+                    key={lang}
+                    className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/10 text-white/90 border border-white/10"
+                  >
+                    {lang}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Action Row: Watch Now & Stream Server Picker */}

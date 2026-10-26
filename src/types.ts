@@ -36,6 +36,7 @@ export interface Movie {
   cast?: string[];
   castMembers?: CastMember[];
   director?: string;
+  availableLanguages?: AudioLanguage[];
   budget?: number;
   revenue?: number;
   status?: string;

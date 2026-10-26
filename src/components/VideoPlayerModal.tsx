@@ -144,10 +144,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       } catch {}
     }
 
-    // Watchdog: Clear buffering quickly so user is never stuck on black loader
+    // Fast watchdog: Clear buffering quickly (350ms) so user gets instant playback
     const watchdog = setTimeout(() => {
       setIsBuffering(false);
-    }, 800);
+    }, 350);
 
     const tryAutoPlay = async () => {
       if (videoRef.current && currentSource.type === 'video') {
@@ -444,6 +444,22 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <Languages className="w-4 h-4 text-emerald-400" />
           </button>
 
+          {/* Playback Speed Switcher Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSpeedMenu(!showSpeedMenu);
+              setShowQualityMenu(false);
+              setShowServerMenu(false);
+              setShowLanguageMenu(false);
+            }}
+            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95"
+            title="Playback Speed"
+          >
+            <Gauge className="w-3.5 h-3.5 text-amber-400" />
+            <span>{playbackSpeed}x</span>
+          </button>
+
           {/* Server Switcher Button */}
           <button
             onClick={(e) => {
@@ -515,23 +531,40 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <span className="text-[10px] text-emerald-400 font-mono">Dolby Audio</span>
           </div>
           <div className="space-y-1.5 max-h-64 overflow-y-auto scrollbar-none no-scrollbar">
-            {AVAILABLE_LANGUAGES.map((lang) => (
-              <button
-                key={lang.id}
-                onClick={() => handleLanguageChange(lang.id)}
-                className={`w-full py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
-                  currentLanguage === lang.id
-                    ? 'bg-[#E50914] text-white shadow-md'
-                    : 'bg-white/5 hover:bg-white/10 text-white/80'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span>{lang.icon}</span>
-                  <span>{lang.label}</span>
-                </div>
-                {currentLanguage === lang.id && <Check className="w-3.5 h-3.5" />}
-              </button>
-            ))}
+            {[...AVAILABLE_LANGUAGES]
+              .sort((a, b) => {
+                const aOk = movie.availableLanguages?.includes(a.id) ? 1 : 0;
+                const bOk = movie.availableLanguages?.includes(b.id) ? 1 : 0;
+                return bOk - aOk;
+              })
+              .map((lang) => {
+                const isSelected = currentLanguage === lang.id;
+                const isSupported = movie.availableLanguages?.includes(lang.id);
+                return (
+                  <button
+                    key={lang.id}
+                    onClick={() => handleLanguageChange(lang.id)}
+                    className={`w-full py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
+                      isSelected
+                        ? 'bg-[#E50914] text-white shadow-md'
+                        : isSupported
+                        ? 'bg-emerald-500/15 text-white hover:bg-emerald-500/25 border border-emerald-500/30'
+                        : 'bg-white/5 hover:bg-white/10 text-white/80'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span>{lang.icon}</span>
+                      <span>{lang.label}</span>
+                      {isSupported && !isSelected && (
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/30 text-emerald-300 font-extrabold uppercase">
+                          Ready
+                        </span>
+                      )}
+                    </div>
+                    {isSelected && <Check className="w-3.5 h-3.5" />}
+                  </button>
+                );
+              })}
           </div>
         </div>
       )}
@@ -572,7 +605,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       {showSpeedMenu && (
         <div 
           onClick={(e) => e.stopPropagation()}
-          className="absolute bottom-24 right-16 z-50 w-44 bg-[#121622]/95 backdrop-blur-xl border border-white/20 rounded-2xl p-2.5 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200"
+          className="absolute top-16 right-20 z-50 w-44 bg-[#121622]/95 backdrop-blur-xl border border-white/20 rounded-2xl p-2.5 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
         >
           <div className="text-xs font-bold text-white/70 mb-2 px-1">Playback Speed</div>
           <div className="space-y-1">

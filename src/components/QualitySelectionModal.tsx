@@ -65,7 +65,15 @@ export const QualitySelectionModal: React.FC<QualitySelectionModalProps> = ({
   onConfirm
 }) => {
   const [selectedQuality, setSelectedQuality] = useState<VideoQuality>('1080p');
-  const [selectedLanguage, setSelectedLanguage] = useState<AudioLanguage>('Hindi');
+  const defaultLang = (movie.availableLanguages && movie.availableLanguages[0]) || 'Hindi';
+  const [selectedLanguage, setSelectedLanguage] = useState<AudioLanguage>(defaultLang);
+
+  // Sort languages: movies' available languages first, then others
+  const sortedLanguages = [...LANGUAGES].sort((a, b) => {
+    const aAvailable = movie.availableLanguages?.includes(a.id) ? 1 : 0;
+    const bAvailable = movie.availableLanguages?.includes(b.id) ? 1 : 0;
+    return bAvailable - aAvailable;
+  });
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200 select-none">
@@ -161,8 +169,9 @@ export const QualitySelectionModal: React.FC<QualitySelectionModalProps> = ({
             <span className="text-[10px] text-emerald-400 font-normal">Multi-Dub Ready</span>
           </label>
           <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar -mx-1 px-1">
-            {LANGUAGES.map((lang) => {
+            {sortedLanguages.map((lang) => {
               const isSelected = selectedLanguage === lang.id;
+              const isSupported = movie.availableLanguages?.includes(lang.id);
               return (
                 <button
                   key={lang.id}
@@ -170,11 +179,18 @@ export const QualitySelectionModal: React.FC<QualitySelectionModalProps> = ({
                   className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all border active:scale-95 flex items-center space-x-1.5 ${
                     isSelected
                       ? 'bg-[#E50914] border-transparent text-white shadow-md'
+                      : isSupported
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-white/90 hover:bg-emerald-500/20'
                       : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
                   }`}
                 >
                   <span>{lang.icon}</span>
                   <span>{lang.label}</span>
+                  {isSupported && !isSelected && (
+                    <span className="text-[9px] px-1 rounded bg-emerald-500/30 text-emerald-300 font-extrabold uppercase">
+                      Ready
+                    </span>
+                  )}
                 </button>
               );
             })}
