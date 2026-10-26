@@ -37,15 +37,28 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Configure WebView for uninterrupted video streaming & audio playback
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            android.webkit.WebView webView = getBridge().getWebView();
+            android.webkit.WebSettings webSettings = webView.getSettings();
+            webSettings.setMediaPlaybackRequiresUserGesture(false);
+            webSettings.setJavaScriptEnabled(true);
+            webSettings.setDomStorageEnabled(true);
+            webSettings.setDatabaseEnabled(true);
+            webSettings.setAllowFileAccess(true);
+            webSettings.setAllowContentAccess(true);
+            webSettings.setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            
+            // Expose JavaScript bridge for web layer
+            webView.addJavascriptInterface(new AdMobBridge(), "AndroidAdMob");
+        }
+
         // Initialize Google Mobile Ads SDK for monetization
         MobileAds.initialize(this, initializationStatus -> {
             loadInterstitialAd();
             loadRewardedAd();
             setupBannerAd();
         });
-
-        // Expose JavaScript bridge for web layer
-        getBridge().getWebView().addJavascriptInterface(new AdMobBridge(), "AndroidAdMob");
     }
 
     private void loadInterstitialAd() {

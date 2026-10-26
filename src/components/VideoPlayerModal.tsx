@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { 
   X, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, 
-  Server, Lock, Unlock, Sun, Gauge, Scan, Check, Languages, Globe, Sliders 
+  Server, Lock, Unlock, Sun, Gauge, Scan, Check, Languages, Globe, AlertCircle 
 } from 'lucide-react';
 import { Movie, StreamSource, VideoQuality, AudioLanguage } from '../types';
-import { getStreamingSources, getQualityVideoUrl } from '../services/tmdb';
+import { getStreamingSources } from '../services/tmdb';
 
 interface VideoPlayerModalProps {
   movie: Movie;
@@ -40,8 +40,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [currentLanguage, setCurrentLanguage] = useState<AudioLanguage>(initialLanguage);
 
   // Player state
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
+  const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState('0:00');
   const [duration, setDuration] = useState('0:00');
   const [progress, setProgress] = useState(0);
@@ -51,6 +52,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [aspectMode, setAspectMode] = useState<AspectMode>('contain');
   const [isLocked, setIsLocked] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [hasError, setHasError] = useState(false);
   
   // Drawers
   const [showServerMenu, setShowServerMenu] = useState(false);
@@ -76,10 +78,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const currentSource = sources[activeSourceIndex] || sources[0];
 
-  // Auto-hide controls timer
+  // Auto-hide controls: ONLY hide if video is actively playing!
   const resetControlsTimeout = useCallback(() => {
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    if (!isLocked && isPlaying) {
+    if (!isLocked && isPlaying && hasStartedPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
         setShowServerMenu(false);
@@ -87,8 +89,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         setShowQualityMenu(false);
         setShowLanguageMenu(false);
       }, 3500);
+    } else {
+      setShowControls(true);
     }
-  }, [isLocked, isPlaying]);
+  }, [isLocked, isPlaying, hasStartedPlaying]);
 
   useEffect(() => {
     resetControlsTimeout();
@@ -97,14 +101,36 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     };
   }, [resetControlsTimeout]);
 
-  // Buffer handling & watchdog timer (guarantees fast loading)
+  // Attempt initial playback immediately on mount and source switch
   useEffect(() => {
     setIsBuffering(true);
-    const bufferWatchdog = setTimeout(() => {
-      setIsBuffering(false);
-    }, 1200);
+    setHasError(false);
 
-    return () => clearTimeout(bufferWatchdog);
+    // Watchdog: Clear buffering after 1.5s max so user is never stuck
+    const watchdog = setTimeout(() => {
+      setIsBuffering(false);
+    }, 1500);
+
+    const tryAutoPlay = async () => {
+      if (videoRef.current && currentSource.type === 'video') {
+        try {
+          videoRef.current.currentTime = 0;
+          await videoRef.current.play();
+          setIsPlaying(true);
+          setHasStartedPlaying(true);
+          setIsBuffering(false);
+        } catch {
+          // Autoplay blocked by WebView policy - show prominent tap-to-play
+          setIsPlaying(false);
+          setIsBuffering(false);
+          setShowControls(true);
+        }
+      }
+    };
+
+    tryAutoPlay();
+
+    return () => clearTimeout(watchdog);
   }, [activeSourceIndex, currentQuality]);
 
   const formatTime = (secs: number) => {
@@ -121,9 +147,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       setIsPlaying(false);
       setShowControls(true);
     } else {
-      videoRef.current.play().catch(() => {});
-      setIsPlaying(true);
-      resetControlsTimeout();
+      videoRef.current.play().then(() => {
+        setIsPlaying(true);
+        setHasStartedPlaying(true);
+        setIsBuffering(false);
+        resetControlsTimeout();
+      }).catch(() => {
+        setIsPlaying(false);
+        setShowControls(true);
+      });
     }
   };
 
@@ -133,13 +165,20 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const dur = videoRef.current.duration || 1;
     setProgress((curr / dur) * 100);
     setCurrentTime(formatTime(curr));
+    if (curr > 0.1 && !hasStartedPlaying) {
+      setHasStartedPlaying(true);
+      setIsBuffering(false);
+    }
   };
 
   const handleLoadedMetadata = () => {
     if (!videoRef.current) return;
     setDuration(formatTime(videoRef.current.duration));
     setIsBuffering(false);
-    videoRef.current.play().catch(() => {});
+    videoRef.current.play().then(() => {
+      setIsPlaying(true);
+      setHasStartedPlaying(true);
+    }).catch(() => {});
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,14 +200,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const savedTime = videoRef.current?.currentTime || 0;
     setCurrentQuality(q);
     setShowQualityMenu(false);
-    setGestureOsd({ type: 'info', value: `Quality set to ${q}`, icon: '⚡' });
+    setGestureOsd({ type: 'info', value: `Quality: ${q}`, icon: '⚡' });
     setTimeout(() => setGestureOsd(null), 1500);
 
-    // Resume from same timestamp
     setTimeout(() => {
       if (videoRef.current) {
         videoRef.current.currentTime = savedTime;
-        videoRef.current.play().catch(() => {});
+        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
       }
     }, 200);
     resetControlsTimeout();
@@ -178,9 +216,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const handleLanguageChange = (lang: AudioLanguage) => {
     setCurrentLanguage(lang);
     setShowLanguageMenu(false);
-    setGestureOsd({ type: 'info', value: `Audio: ${lang}`, icon: '🌐' });
+    setGestureOsd({ type: 'info', value: `Audio Track: ${lang}`, icon: '🌐' });
     setTimeout(() => setGestureOsd(null), 1500);
     resetControlsTimeout();
+  };
+
+  // Next server mirror
+  const handleNextServer = () => {
+    const nextIdx = (activeSourceIndex + 1) % sources.length;
+    setActiveSourceIndex(nextIdx);
+    setHasError(false);
+    setGestureOsd({ type: 'info', value: `Switched to ${sources[nextIdx].name.split(' ')[1]}`, icon: '🔄' });
+    setTimeout(() => setGestureOsd(null), 1500);
   };
 
   // Double tap gesture
@@ -264,7 +311,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onTouchStart={handleTouchStart}
     >
       {/* 1. TOP CONTROL BAR */}
-      <div className={`z-40 px-5 py-4 bg-gradient-to-b from-black/95 via-black/70 to-transparent flex items-center justify-between transition-opacity duration-300 ${
+      <div className={`z-40 px-5 py-4 bg-gradient-to-b from-black/95 via-black/80 to-transparent flex items-center justify-between transition-opacity duration-300 ${
         showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         <div className="flex items-center space-x-3 min-w-0">
@@ -276,7 +323,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
               <span className="text-[#E50914] text-[10px] font-bold uppercase tracking-wider">
-                XPlayer Fast
+                Movix Cinema
               </span>
               <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-extrabold uppercase">
                 {currentQuality}
@@ -301,7 +348,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setShowSpeedMenu(false);
               setShowLanguageMenu(false);
             }}
-            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10"
+            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95"
           >
             <span>{currentQuality}</span>
           </button>
@@ -315,7 +362,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setShowServerMenu(false);
               setShowSpeedMenu(false);
             }}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10"
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95"
             title="Audio Language"
           >
             <Languages className="w-4 h-4 text-emerald-400" />
@@ -330,7 +377,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setShowSpeedMenu(false);
               setShowLanguageMenu(false);
             }}
-            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center space-x-1 border border-white/10"
+            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center space-x-1 border border-white/10 active:scale-95"
           >
             <Server className="w-3.5 h-3.5 text-red-500" />
             <span className="hidden sm:inline">Server</span>
@@ -510,13 +557,12 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
       )}
 
-      {/* 9. VIDEO CANVAS & 3D LOGO BUFFERING */}
+      {/* 9. VIDEO CANVAS */}
       <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black">
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
             src={currentSource.url}
             title={movie.title}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-top-navigation"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
             onLoad={() => setIsBuffering(false)}
@@ -532,19 +578,24 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onWaiting={() => setIsBuffering(true)}
-            onPlaying={() => setIsBuffering(false)}
+            onPlaying={() => {
+              setIsBuffering(false);
+              setIsPlaying(true);
+              setHasStartedPlaying(true);
+            }}
             onCanPlay={() => setIsBuffering(false)}
             onError={() => {
-              // Automatic failover to next high-speed server mirror
-              setActiveSourceIndex((prev) => (prev + 1) % sources.length);
+              setHasError(true);
+              setIsBuffering(false);
             }}
+            onClick={togglePlay}
             className={`w-full h-full cursor-pointer ${getObjectFitClass()}`}
           />
         )}
 
         {/* 3D Movix Buffering Screen with New User Logo */}
         {isBuffering && (
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center z-30 pointer-events-none animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center z-30 pointer-events-none animate-in fade-in duration-200">
             <div className="relative flex items-center justify-center mb-4">
               <div className="absolute -inset-4 rounded-full border-2 border-transparent border-t-purple-500 border-r-pink-500 border-b-[#E50914] animate-spin" />
               <div className="absolute -inset-2 bg-gradient-to-tr from-purple-600/30 via-pink-600/30 to-amber-500/30 blur-xl rounded-full" />
@@ -567,26 +618,39 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </div>
         )}
 
-        {/* CENTER PLAY/PAUSE BIG BUTTON */}
-        {showControls && !isLocked && currentSource.type === 'video' && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              togglePlay();
-            }}
-            className="absolute z-40 w-16 h-16 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform hover:bg-[#E50914]"
+        {/* ERROR RECOVERY BANNER */}
+        {hasError && (
+          <div className="absolute z-40 p-4 rounded-2xl bg-red-950/80 border border-red-500/40 text-center max-w-xs animate-in zoom-in-95">
+            <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+            <h4 className="text-white font-bold text-xs mb-1">Stream Interrupted</h4>
+            <p className="text-[11px] text-white/70 mb-3">Connecting alternative high-speed mirror...</p>
+            <button
+              onClick={handleNextServer}
+              className="px-4 py-2 rounded-xl bg-[#E50914] text-white text-xs font-bold shadow-lg"
+            >
+              Switch to Mirror Server
+            </button>
+          </div>
+        )}
+
+        {/* CENTER PROMINENT TAP-TO-PLAY BUTTON (Eliminates Black Screen completely!) */}
+        {!isPlaying && !isBuffering && !hasError && currentSource.type === 'video' && (
+          <div 
+            onClick={togglePlay}
+            className="absolute z-40 flex flex-col items-center justify-center cursor-pointer group"
           >
-            {isPlaying ? (
-              <Pause className="w-8 h-8 fill-white" />
-            ) : (
-              <Play className="w-8 h-8 fill-white ml-1" />
-            )}
-          </button>
+            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#E50914] to-[#FF4154] text-white flex items-center justify-center shadow-2xl shadow-red-900/60 group-hover:scale-110 active:scale-95 transition-all mb-3 ring-4 ring-white/10">
+              <Play className="w-10 h-10 fill-white ml-1.5" />
+            </div>
+            <span className="px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-xs font-bold tracking-wider uppercase border border-white/20">
+              Tap to Play Movie
+            </span>
+          </div>
         )}
       </div>
 
       {/* 10. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
-      <div className={`z-40 px-5 py-4 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex flex-col space-y-2.5 transition-opacity duration-300 ${
+      <div className={`z-40 px-5 py-4 bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2.5 transition-opacity duration-300 ${
         showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         {/* Progress Timeline Scrubber */}
@@ -613,7 +677,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 e.stopPropagation();
                 togglePlay();
               }}
-              className="text-white hover:text-[#E50914] transition-colors"
+              className="text-white hover:text-[#E50914] transition-colors p-1"
             >
               {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
             </button>
@@ -623,7 +687,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 e.stopPropagation();
                 skipSeconds(-10);
               }}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-white/80 hover:text-white transition-colors p-1"
               title="Rewind 10s"
             >
               <RotateCcw className="w-4 h-4" />
@@ -634,7 +698,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 e.stopPropagation();
                 skipSeconds(10);
               }}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-white/80 hover:text-white transition-colors p-1"
               title="Fast Forward 10s"
             >
               <RotateCw className="w-4 h-4" />
@@ -648,7 +712,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 videoRef.current.muted = !isMuted;
                 setIsMuted(!isMuted);
               }}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-white/80 hover:text-white transition-colors p-1"
             >
               {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
             </button>
