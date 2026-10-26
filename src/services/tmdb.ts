@@ -1,4 +1,4 @@
-import { Movie, StreamSource } from '../types';
+import { Movie, StreamSource, VideoQuality } from '../types';
 
 export const TMDB_API_KEY = '4c81439cadcaabd5396f929f7a627830';
 export const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0YzgxNDM5Y2FkY2FhYmQ1Mzk2ZjkyOWY3YTYyNzgzMCIsIm5iZiI6MTc4OTMxNzc2OS4zODUsInN1YiI6IjZhYTZkMjg5NjY5YjAzMmM0NzYwYTE2ZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.YCWur56g4tUkC7yeTVjOyopV3L_OZzpicBlGYmRtwa0';
@@ -34,32 +34,49 @@ const getHeaders = () => ({
   'Accept': 'application/json'
 });
 
-const RELIABLE_CDN_VIDEOS = [
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4'
-];
+const QUALITY_STREAMS: Record<VideoQuality, string[]> = {
+  '4K': [
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4'
+  ],
+  '1080p': [
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
+  ],
+  '720p': [
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4'
+  ],
+  '480p': [
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackSeeTheWorld.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4'
+  ]
+};
 
-export const getStreamingSources = (tmdbId: number, trailerKey?: string): StreamSource[] => {
-  const directUrl = RELIABLE_CDN_VIDEOS[Math.abs(tmdbId) % RELIABLE_CDN_VIDEOS.length];
+export const getQualityVideoUrl = (tmdbId: number, quality: VideoQuality = '1080p'): string => {
+  const pool = QUALITY_STREAMS[quality] || QUALITY_STREAMS['1080p'];
+  return pool[Math.abs(tmdbId) % pool.length];
+};
+
+export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality: VideoQuality = '1080p'): StreamSource[] => {
+  const directUrl = getQualityVideoUrl(tmdbId, quality);
 
   const sources: StreamSource[] = [
     {
-      name: 'Server 1 (XPlayer Fast 4K Direct)',
+      name: `Server 1 (Fast Direct ${quality})`,
       url: directUrl,
-      type: 'video'
+      type: 'video',
+      quality
     },
     {
-      name: 'Server 2 (VidSrc Cloud 4K)',
+      name: `Server 2 (VidSrc Cloud ${quality})`,
       url: `https://vidsrc.xyz/embed/movie?tmdb=${tmdbId}`,
-      type: 'embed'
+      type: 'embed',
+      quality
     },
     {
       name: 'Server 3 (MultiEmbed Ultra)',

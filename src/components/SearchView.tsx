@@ -117,6 +117,10 @@ export const SearchView: React.FC<SearchViewProps> = ({ allMovies, onSelectMovie
                 src={movie.poster} 
                 alt={movie.title}
                 loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/assets/poster_silent_deep.png';
+                }}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
               />
               {movie.ottProvider && (

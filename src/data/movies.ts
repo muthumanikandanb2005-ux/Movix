@@ -17,7 +17,7 @@ export const featuredIndianMovie: Movie = {
   description: 'In the post-apocalyptic dystopian city of Kasi in the year 2898 AD, an immortal warrior, a rogue bounty hunter, and a fierce rebel army clash over a miraculous child prophesied to restore light to a fractured world.',
   poster: 'https://image.tmdb.org/t/p/w500/rstcAnBeCkxNQjNp3YXrF6IP1tW.jpg',
   backdrop: 'https://image.tmdb.org/t/p/original/o8XSR1SONnjcsv84NRu6Mwsl5io.jpg',
-  videoUrl: getStreamingSources()[0].url,
+  videoUrl: getStreamingSources(801688)[0].url,
   streamSources: getStreamingSources(801688),
   cast: ['Prabhas', 'Amitabh Bachchan', 'Kamal Haasan', 'Deepika Padukone'],
   director: 'Nag Ashwin'
@@ -40,7 +40,7 @@ export const ottNewReleases: Movie[] = [
     description: 'The town of Chanderi is haunted once again, this time by a headless entity named Sarkata. Vicky and friends must join forces with Stree to defeat him.',
     poster: 'https://image.tmdb.org/t/p/w500/rstcAnBeCkxNQjNp3YXrF6IP1tW.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/o8XSR1SONnjcsv84NRu6Mwsl5io.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(1143019)[0].url,
     streamSources: getStreamingSources(1143019),
     cast: ['Shraddha Kapoor', 'Rajkummar Rao', 'Pankaj Tripathi'],
     director: 'Amar Kaushik'
@@ -59,9 +59,9 @@ export const ottNewReleases: Movie[] = [
     ottUrl: 'https://www.netflix.com',
     isOttRelease: true,
     description: 'An epic coastal mass drama following an invincible seafaring warrior who takes a stand against illegal smuggling along the Red Sea coast.',
-    poster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0yeMu1QXO.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/6PCnxKZZIVRanWb710pNpYVkCSw.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(970347)[0].url,
     streamSources: getStreamingSources(970347),
     cast: ['N.T. Rama Rao Jr.', 'Janhvi Kapoor', 'Saif Ali Khan'],
     director: 'Koratala Siva'
@@ -81,7 +81,7 @@ export const ottNewReleases: Movie[] = [
     description: 'A listless Wade Wilson toils away in civilian life with his days as the morally flexible mercenary, Deadpool, behind him. When his homeworld faces threat, he teams up with Wolverine.',
     poster: 'https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/yDHYTjA3R0jFYba16jBB1ef8oIt.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(533535)[0].url,
     streamSources: getStreamingSources(533535),
     cast: ['Ryan Reynolds', 'Hugh Jackman', 'Emma Corrin'],
     director: 'Shawn Levy'
@@ -99,9 +99,9 @@ export const ottNewReleases: Movie[] = [
     ottUrl: 'https://www.hotstar.com',
     isOttRelease: true,
     description: 'While scavenging the deep ends of a derelict space station, a group of young space colonizers come face to face with the most terrifying life form in the universe.',
-    poster: 'https://image.tmdb.org/t/p/w500/b33nnKl1vUnivers8G27d.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/2uSWRTtCG336nuBiG8jOTEUKSy8.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/9SSEUrSqhl1W6iQ48rG0K730101.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(945961)[0].url,
     streamSources: getStreamingSources(945961),
     cast: ['Cailee Spaeny', 'David Jonsson', 'Archie Renaux'],
     director: 'Fede Álvarez'
@@ -119,9 +119,9 @@ export const ottNewReleases: Movie[] = [
     ottUrl: 'https://www.lionsgateplay.com',
     isOttRelease: true,
     description: 'With the price on his head ever increasing, John Wick uncovers a path to defeating The High Table, facing a new enemy with powerful alliances across the globe.',
-    poster: 'https://image.tmdb.org/t/p/w500/vZloFAK7NKnMGKEHvYGRMuZw4.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/h8gHn0OzBoaefW0Dxy2k96P7f1E.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(603692)[0].url,
     streamSources: getStreamingSources(603692),
     cast: ['Keanu Reeves', 'Donnie Yen', 'Bill Skarsgård'],
     director: 'Chad Stahelski'
@@ -142,9 +142,9 @@ export const indianBlockbusters: Movie[] = [
     ottProvider: 'Netflix',
     ottUrl: 'https://www.netflix.com',
     description: 'A fearless revolutionary and an officer in the British force decide to join hands and wage war against the British empire.',
-    poster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0yeMu1QXO.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/6PCnxKZZIVRanWb710pNpYVkCSw.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(579974)[0].url,
     streamSources: getStreamingSources(579974),
     cast: ['N.T. Rama Rao Jr.', 'Ram Charan', 'Alia Bhatt'],
     director: 'S.S. Rajamouli'
@@ -160,9 +160,9 @@ export const indianBlockbusters: Movie[] = [
     ottProvider: 'Netflix',
     ottUrl: 'https://www.netflix.com',
     description: 'A high-octane action thriller outlining the emotional journey of a prison warden who sets out to rectify societal wrongs with a team of skilled women.',
-    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4XysRhKAE2v9y7eTzLgqK.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4BGHlK8xt76Y81Alp4dbt.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/5LtSjMNw6j3LkG29Oa4O0iY5U8.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(872906)[0].url,
     streamSources: getStreamingSources(872906),
     cast: ['Shah Rukh Khan', 'Nayanthara', 'Vijay Sethupathi'],
     director: 'Atlee'
@@ -180,7 +180,7 @@ export const indianBlockbusters: Movie[] = [
     description: 'The blood-soaked land of Kolar Gold Fields now has a new overlord: Rocky, whose name strikes fear into the heart of his foes and the government.',
     poster: 'https://image.tmdb.org/t/p/w500/rstcAnBeCkxNQjNp3YXrF6IP1tW.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/o8XSR1SONnjcsv84NRu6Mwsl5io.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(614933)[0].url,
     streamSources: getStreamingSources(614933),
     cast: ['Yash', 'Sanjay Dutt', 'Raveena Tandon'],
     director: 'Prashanth Neel'
@@ -196,9 +196,9 @@ export const indianBlockbusters: Movie[] = [
     ottProvider: 'Netflix',
     ottUrl: 'https://www.netflix.com',
     description: 'A peaceful café owner in Himachal Pradesh is thrust into a violent past when drug cartels suspect him of being a legendary syndicate enforcer.',
-    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4XysRhKAE2v9y7eTzLgqK.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4BGHlK8xt76Y81Alp4dbt.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/5LtSjMNw6j3LkG29Oa4O0iY5U8.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(1072790)[0].url,
     streamSources: getStreamingSources(1072790),
     cast: ['Thalapathy Vijay', 'Trisha Krishnan', 'Sanjay Dutt'],
     director: 'Lokesh Kanagaraj'
@@ -214,9 +214,9 @@ export const indianBlockbusters: Movie[] = [
     ottProvider: 'JioHotstar',
     ottUrl: 'https://www.hotstar.com',
     description: 'A gang leader makes a promise to a dying friend and takes on other criminal gangs in the dystopian city-state of Khansaar.',
-    poster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0yeMu1QXO.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/6PCnxKZZIVRanWb710pNpYVkCSw.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(828898)[0].url,
     streamSources: getStreamingSources(828898),
     cast: ['Prabhas', 'Prithviraj Sukumaran', 'Shruti Haasan'],
     director: 'Prashanth Neel'
@@ -238,7 +238,7 @@ export const hollywoodBlockbusters: Movie[] = [
     description: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
     poster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s520QIq.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(693134)[0].url,
     streamSources: getStreamingSources(693134)
   },
   {
@@ -254,7 +254,7 @@ export const hollywoodBlockbusters: Movie[] = [
     description: 'The story of J. Robert Oppenheimer’s role in the development of the atomic bomb during World War II.',
     poster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/fm6K9vYQ79FGzOKMvgflGCFRLBH.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(872585)[0].url,
     streamSources: getStreamingSources(872585)
   },
   {
@@ -270,7 +270,7 @@ export const hollywoodBlockbusters: Movie[] = [
     description: 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity’s survival.',
     poster: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/xJHokMbljvjADYdit5fK5VQsXEG.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(157336)[0].url,
     streamSources: getStreamingSources(157336)
   },
   {
@@ -286,7 +286,7 @@ export const hollywoodBlockbusters: Movie[] = [
     description: 'Batman raises the stakes in his war on crime with the help of Lt. Jim Gordon and District Attorney Harvey Dent against the Joker.',
     poster: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(155)[0].url,
     streamSources: getStreamingSources(155)
   }
 ];
@@ -304,9 +304,9 @@ export const romanceMovies: Movie[] = [
     ottProvider: 'Prime Video',
     ottUrl: 'https://www.primevideo.com',
     description: 'An orphan soldier receives a letter from a girl named Sita. He sets out to find her and love blooms between them against all odds.',
-    poster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0yeMu1QXO.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/6PCnxKZZIVRanWb710pNpYVkCSw.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(926393)[0].url,
     streamSources: getStreamingSources(926393)
   },
   {
@@ -320,9 +320,9 @@ export const romanceMovies: Movie[] = [
     ottProvider: 'JioHotstar',
     ottUrl: 'https://www.hotstar.com',
     description: 'A seventeen-year-old aristocrat falls in love with a kind but poor artist aboard the luxurious, ill-fated R.M.S. Titanic.',
-    poster: 'https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/9NDbonxEBNyRKsvVrz6dv51wl9.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/yDI6D5ZQh67YU4r2ms8qcSbAviZ.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(597)[0].url,
     streamSources: getStreamingSources(597)
   },
   {
@@ -336,9 +336,9 @@ export const romanceMovies: Movie[] = [
     ottProvider: 'Lionsgate',
     ottUrl: 'https://www.lionsgateplay.com',
     description: 'While navigating their careers in Los Angeles, a pianist and an actress fall in love while attempting to reconcile their aspirations.',
-    poster: 'https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkVJt0Rf0.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/qJeU7KM4pR70hJv0j4wY0X0.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(313369)[0].url,
     streamSources: getStreamingSources(313369)
   },
   {
@@ -354,7 +354,7 @@ export const romanceMovies: Movie[] = [
     description: 'Kabir and Naina bond during a trekking trip. Before Naina can express her feelings, Kabir leaves to pursue his career overseas.',
     poster: 'https://image.tmdb.org/t/p/w500/rstcAnBeCkxNQjNp3YXrF6IP1tW.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/o8XSR1SONnjcsv84NRu6Mwsl5io.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(181533)[0].url,
     streamSources: getStreamingSources(181533)
   }
 ];
@@ -372,9 +372,9 @@ export const thrillerMovies: Movie[] = [
     ottProvider: 'Prime Video',
     ottUrl: 'https://www.primevideo.com',
     description: 'Seven years after the case related to Vijay and his family was closed, a series of unexpected events turns his family’s lives upside down.',
-    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4XysRhKAE2v9y7eTzLgqK.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4BGHlK8xt76Y81Alp4dbt.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/5LtSjMNw6j3LkG29Oa4O0iY5U8.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(827038)[0].url,
     streamSources: getStreamingSources(827038)
   },
   {
@@ -390,7 +390,7 @@ export const thrillerMovies: Movie[] = [
     description: 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea.',
     poster: 'https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/s3TBrRGB1iav7gFOCNx3H31MoES.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(27205)[0].url,
     streamSources: getStreamingSources(27205)
   },
   {
@@ -404,9 +404,9 @@ export const thrillerMovies: Movie[] = [
     ottProvider: 'Lionsgate',
     ottUrl: 'https://www.lionsgateplay.com',
     description: 'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.',
-    poster: 'https://image.tmdb.org/t/p/w500/4BgSWFMW2MJ0dT5oDqLsmU24jA9.jpg',
+    poster: 'https://image.tmdb.org/t/p/w500/nrmXQ0zcZUL8jFLrakWc90IR8z9.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/xJHokMbljvjADYdit5fK5VQsXEG.jpg',
-    videoUrl: getStreamingSources()[0].url,
+    videoUrl: getStreamingSources(11324)[0].url,
     streamSources: getStreamingSources(11324)
   }
 ];

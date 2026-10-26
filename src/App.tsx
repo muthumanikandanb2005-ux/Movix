@@ -6,6 +6,7 @@ import { OttProviderBar, CategoryFilter } from './components/OttProviderBar';
 import { BottomNav } from './components/BottomNav';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
+import { QualitySelectionModal } from './components/QualitySelectionModal';
 import { AdMobBanner } from './components/AdMobBanner';
 import { AdMobInterstitial } from './components/AdMobInterstitial';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -29,7 +30,7 @@ import {
   fetchThrillerFromTMDB,
   fetchActionFromTMDB
 } from './services/tmdb';
-import { Movie, TabType } from './types';
+import { Movie, TabType, VideoQuality, AudioLanguage } from './types';
 
 // Helper to remove duplicates by id
 const dedupeMovies = (movies: Movie[]): Movie[] => {
@@ -46,6 +47,12 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  
+  // Resolution & Language selection states
+  const [qualityTargetMovie, setQualityTargetMovie] = useState<Movie | null>(null);
+  const [activeQuality, setActiveQuality] = useState<VideoQuality>('1080p');
+  const [activeLanguage, setActiveLanguage] = useState<AudioLanguage>('Hindi');
+
   const [playingMovie, setPlayingMovie] = useState<Movie | null>(null);
   const [interstitialTarget, setInterstitialTarget] = useState<Movie | null>(null);
   const [myList, setMyList] = useState<Movie[]>([featuredIndianMovie, ottNewReleases[0]]);
@@ -145,11 +152,20 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleStartPlay = (movie: Movie) => {
-    // Show AdMob Interstitial first (raw IDs hidden)
+  // 1. User taps Play or Stream -> Open Quality & Language Selector
+  const handleRequestPlay = (movie: Movie) => {
+    setQualityTargetMovie(movie);
+  };
+
+  // 2. User confirms Quality (4K, 1080p, 720p, 480p) & Language -> Show AdMob Interstitial
+  const handleQualityConfirmed = (movie: Movie, quality: VideoQuality, language: AudioLanguage) => {
+    setQualityTargetMovie(null);
+    setActiveQuality(quality);
+    setActiveLanguage(language);
     setInterstitialTarget(movie);
   };
 
+  // 3. Ad finishes/dismissed -> Launch XPlayer
   const handleDismissAd = () => {
     if (interstitialTarget) {
       setPlayingMovie(interstitialTarget);
@@ -177,7 +193,7 @@ export const App: React.FC = () => {
             <Hero
               movie={featuredIndianMovie}
               isInList={myList.some((m) => m.id === featuredIndianMovie.id)}
-              onPlay={handleStartPlay}
+              onPlay={handleRequestPlay}
               onToggleList={handleToggleList}
             />
 
@@ -219,6 +235,10 @@ export const App: React.FC = () => {
                           src={movie.poster} 
                           alt={movie.title}
                           loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = '/assets/poster_silent_deep.png';
+                          }}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                         />
                         <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase bg-black/70 text-white border border-white/20">
@@ -326,7 +346,7 @@ export const App: React.FC = () => {
         {activeTab === 'downloads' && (
           <DownloadsView
             downloads={downloads}
-            onPlay={handleStartPlay}
+            onPlay={handleRequestPlay}
             onRemoveDownload={(id) => {
               setDownloads((prev) => prev.filter((m) => m.id !== id));
               showToast('Deleted download');
@@ -361,10 +381,19 @@ export const App: React.FC = () => {
           onClose={() => setSelectedMovie(null)}
           onPlay={(m) => {
             setSelectedMovie(null);
-            handleStartPlay(m);
+            handleRequestPlay(m);
           }}
           onToggleList={handleToggleList}
           onDownload={handleDownload}
+        />
+      )}
+
+      {/* Quality & Multi-Language Selector Modal (4K, 1080p, 720p, 480p) */}
+      {qualityTargetMovie && (
+        <QualitySelectionModal
+          movie={qualityTargetMovie}
+          onClose={() => setQualityTargetMovie(null)}
+          onConfirm={handleQualityConfirmed}
         />
       )}
 
@@ -380,6 +409,8 @@ export const App: React.FC = () => {
       {playingMovie && (
         <VideoPlayerModal
           movie={playingMovie}
+          initialQuality={activeQuality}
+          initialLanguage={activeLanguage}
           onClose={() => setPlayingMovie(null)}
         />
       )}

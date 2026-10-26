@@ -1,7 +1,11 @@
+export type VideoQuality = '4K' | '1080p' | '720p' | '480p';
+export type AudioLanguage = 'Hindi' | 'Tamil' | 'Telugu' | 'Malayalam' | 'Kannada' | 'English' | 'Spanish';
+
 export interface StreamSource {
   name: string;
   url: string;
   type: 'embed' | 'video' | 'trailer';
+  quality?: VideoQuality;
 }
 
 export type OttPlatform = 'Netflix' | 'Prime Video' | 'JioHotstar' | 'Lionsgate' | 'SonyLIV' | 'Zee5' | 'Apple TV+';

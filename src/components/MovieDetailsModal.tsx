@@ -43,6 +43,10 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
           <img 
             src={movie.backdrop || movie.poster} 
             alt={movie.title}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = '/assets/hero_clean.png';
+            }}
             className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#10131B] via-[#10131B]/40 to-transparent" />

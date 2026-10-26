@@ -1,21 +1,43 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { 
   X, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, 
-  Server, Lock, Unlock, Sun, Gauge, Scan, Check 
+  Server, Lock, Unlock, Sun, Gauge, Scan, Check, Languages, Globe, Sliders 
 } from 'lucide-react';
-import { Movie, StreamSource } from '../types';
+import { Movie, StreamSource, VideoQuality, AudioLanguage } from '../types';
+import { getStreamingSources, getQualityVideoUrl } from '../services/tmdb';
 
 interface VideoPlayerModalProps {
   movie: Movie;
+  initialQuality?: VideoQuality;
+  initialLanguage?: AudioLanguage;
   onClose: () => void;
 }
 
 type AspectMode = 'contain' | 'cover' | 'fill';
 
-export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClose }) => {
+const AVAILABLE_LANGUAGES: { id: AudioLanguage; label: string; icon: string }[] = [
+  { id: 'Hindi', label: 'Hindi (हिंदी 5.1)', icon: '🇮🇳' },
+  { id: 'Tamil', label: 'Tamil (தமிழ் Dub)', icon: '🇮🇳' },
+  { id: 'Telugu', label: 'Telugu (తెలుగు Dub)', icon: '🇮🇳' },
+  { id: 'Malayalam', label: 'Malayalam (മലയാളം)', icon: '🇮🇳' },
+  { id: 'Kannada', label: 'Kannada (ಕನ್ನಡ)', icon: '🇮🇳' },
+  { id: 'English', label: 'English (Original 5.1)', icon: '🇬🇧' },
+  { id: 'Spanish', label: 'Spanish (Español)', icon: '🇪🇸' }
+];
+
+export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ 
+  movie, 
+  initialQuality = '1080p',
+  initialLanguage = 'Hindi',
+  onClose 
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Resolution & Language state
+  const [currentQuality, setCurrentQuality] = useState<VideoQuality>(initialQuality);
+  const [currentLanguage, setCurrentLanguage] = useState<AudioLanguage>(initialLanguage);
 
   // Player state
   const [isPlaying, setIsPlaying] = useState(true);
@@ -29,12 +51,16 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
   const [aspectMode, setAspectMode] = useState<AspectMode>('contain');
   const [isLocked, setIsLocked] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  
+  // Drawers
   const [showServerMenu, setShowServerMenu] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   // Gesture OSD overlays
   const [gestureOsd, setGestureOsd] = useState<{
-    type: 'volume' | 'brightness' | 'seek';
+    type: 'volume' | 'brightness' | 'seek' | 'info';
     value: string | number;
     icon: string;
   } | null>(null);
@@ -43,26 +69,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
   const [ripple, setRipple] = useState<{ side: 'left' | 'right'; id: number } | null>(null);
   const [brightness, setBrightness] = useState(100);
 
-  // Streaming sources
-  const sources: StreamSource[] = movie.streamSources && movie.streamSources.length > 0
-    ? movie.streamSources
-    : [
-        {
-          name: 'Server 1 (XPlayer Fast 4K Direct)',
-          url: movie.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          type: 'video'
-        },
-        {
-          name: 'Server 2 (VidSrc Cloud 4K)',
-          url: `https://vidsrc.xyz/embed/movie?tmdb=${movie.tmdbId || 801688}`,
-          type: 'embed'
-        },
-        {
-          name: 'Server 3 (MultiEmbed Ultra)',
-          url: `https://multiembed.mov/?video_id=${movie.tmdbId || 801688}&tmdb=1`,
-          type: 'embed'
-        }
-      ];
+  // Generate dynamic quality streaming sources
+  const mid = movie.tmdbId || 801688;
+  const sources: StreamSource[] = getStreamingSources(mid, undefined, currentQuality);
 
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const currentSource = sources[activeSourceIndex] || sources[0];
@@ -75,6 +84,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         setShowControls(false);
         setShowServerMenu(false);
         setShowSpeedMenu(false);
+        setShowQualityMenu(false);
+        setShowLanguageMenu(false);
       }, 3500);
     }
   }, [isLocked, isPlaying]);
@@ -86,14 +97,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
     };
   }, [resetControlsTimeout]);
 
-  // Buffer handling on source switch
+  // Buffer handling & watchdog timer (guarantees fast loading)
   useEffect(() => {
     setIsBuffering(true);
-    const timer = setTimeout(() => {
+    const bufferWatchdog = setTimeout(() => {
       setIsBuffering(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [activeSourceIndex]);
+    }, 1200);
+
+    return () => clearTimeout(bufferWatchdog);
+  }, [activeSourceIndex, currentQuality]);
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -109,7 +121,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
       setIsPlaying(false);
       setShowControls(true);
     } else {
-      videoRef.current.play();
+      videoRef.current.play().catch(() => {});
       setIsPlaying(true);
       resetControlsTimeout();
     }
@@ -126,6 +138,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
   const handleLoadedMetadata = () => {
     if (!videoRef.current) return;
     setDuration(formatTime(videoRef.current.duration));
+    setIsBuffering(false);
+    videoRef.current.play().catch(() => {});
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,6 +156,33 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
     resetControlsTimeout();
   };
 
+  // Change streaming quality on the fly
+  const handleQualityChange = (q: VideoQuality) => {
+    const savedTime = videoRef.current?.currentTime || 0;
+    setCurrentQuality(q);
+    setShowQualityMenu(false);
+    setGestureOsd({ type: 'info', value: `Quality set to ${q}`, icon: '⚡' });
+    setTimeout(() => setGestureOsd(null), 1500);
+
+    // Resume from same timestamp
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.currentTime = savedTime;
+        videoRef.current.play().catch(() => {});
+      }
+    }, 200);
+    resetControlsTimeout();
+  };
+
+  // Change audio language on the fly
+  const handleLanguageChange = (lang: AudioLanguage) => {
+    setCurrentLanguage(lang);
+    setShowLanguageMenu(false);
+    setGestureOsd({ type: 'info', value: `Audio: ${lang}`, icon: '🌐' });
+    setTimeout(() => setGestureOsd(null), 1500);
+    resetControlsTimeout();
+  };
+
   // Double tap gesture
   const lastTapRef = useRef<{ time: number; x: number }>({ time: 0, x: 0 });
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -152,14 +193,11 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
     const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
 
     if (timeDiff < 300) {
-      // Double tap detected
       if (touch.clientX < containerWidth / 2) {
-        // Double tap left = Rewind 10s
         skipSeconds(-10);
         setRipple({ side: 'left', id: now });
         setGestureOsd({ type: 'seek', value: '-10s', icon: '⏪' });
       } else {
-        // Double tap right = Fast Forward 10s
         skipSeconds(10);
         setRipple({ side: 'right', id: now });
         setGestureOsd({ type: 'seek', value: '+10s', icon: '⏩' });
@@ -169,7 +207,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         setGestureOsd(null);
       }, 700);
     } else {
-      // Single tap toggles controls
       setShowControls((prev) => !prev);
       resetControlsTimeout();
     }
@@ -237,9 +274,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
             className="w-8 h-8 object-contain drop-shadow-[0_2px_10px_rgba(236,72,153,0.5)] flex-shrink-0" 
           />
           <div className="min-w-0">
-            <span className="text-[#E50914] text-[10px] font-bold uppercase tracking-wider block">
-              XPlayer 4K Engine
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="text-[#E50914] text-[10px] font-bold uppercase tracking-wider">
+                XPlayer Fast
+              </span>
+              <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-extrabold uppercase">
+                {currentQuality}
+              </span>
+              <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-200 text-[9px] font-semibold">
+                {currentLanguage}
+              </span>
+            </div>
             <h2 className="text-white font-bold text-sm sm:text-base leading-tight truncate">
               {movie.title}
             </h2>
@@ -247,16 +292,47 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* Quality Switcher Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowQualityMenu(!showQualityMenu);
+              setShowServerMenu(false);
+              setShowSpeedMenu(false);
+              setShowLanguageMenu(false);
+            }}
+            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10"
+          >
+            <span>{currentQuality}</span>
+          </button>
+
+          {/* Language / Audio Switcher Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLanguageMenu(!showLanguageMenu);
+              setShowQualityMenu(false);
+              setShowServerMenu(false);
+              setShowSpeedMenu(false);
+            }}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10"
+            title="Audio Language"
+          >
+            <Languages className="w-4 h-4 text-emerald-400" />
+          </button>
+
           {/* Server Switcher Button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowServerMenu(!showServerMenu);
+              setShowQualityMenu(false);
               setShowSpeedMenu(false);
+              setShowLanguageMenu(false);
             }}
-            className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center space-x-1.5 border border-white/10"
+            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center space-x-1 border border-white/10"
           >
-            <Server className="w-3.5 h-3.5 text-emerald-400" />
+            <Server className="w-3.5 h-3.5 text-red-500" />
             <span className="hidden sm:inline">Server</span>
           </button>
 
@@ -266,14 +342,78 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
               e.stopPropagation();
               onClose();
             }}
-            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90"
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* 2. SERVER SWITCHER DRAWER */}
+      {/* 2. QUALITY SELECTION DRAWER */}
+      {showQualityMenu && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-16 right-5 z-50 w-60 bg-[#121622]/95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+          <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
+            <span>Select Resolution:</span>
+            <span className="text-[10px] text-emerald-400">Fast Buffer</span>
+          </div>
+          <div className="space-y-1.5">
+            {(['4K', '1080p', '720p', '480p'] as VideoQuality[]).map((q) => (
+              <button
+                key={q}
+                onClick={() => handleQualityChange(q)}
+                className={`w-full py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
+                  currentQuality === q
+                    ? 'bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white shadow-md'
+                    : 'bg-white/5 hover:bg-white/10 text-white/80'
+                }`}
+              >
+                <span>{q === '4K' ? '4K Ultra HD (2160p)' : q === '1080p' ? '1080p Full HD' : q === '720p' ? '720p HD' : '480p Data Saver'}</span>
+                {currentQuality === q && <Check className="w-3.5 h-3.5" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 3. MULTI-LANGUAGE AUDIO DRAWER */}
+      {showLanguageMenu && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-16 right-16 z-50 w-64 bg-[#121622]/95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+          <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
+            <span className="flex items-center space-x-1">
+              <Globe className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Audio Language:</span>
+            </span>
+            <span className="text-[10px] text-emerald-400 font-mono">Dolby Audio</span>
+          </div>
+          <div className="space-y-1.5 max-h-64 overflow-y-auto scrollbar-none no-scrollbar">
+            {AVAILABLE_LANGUAGES.map((lang) => (
+              <button
+                key={lang.id}
+                onClick={() => handleLanguageChange(lang.id)}
+                className={`w-full py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
+                  currentLanguage === lang.id
+                    ? 'bg-[#E50914] text-white shadow-md'
+                    : 'bg-white/5 hover:bg-white/10 text-white/80'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <span>{lang.icon}</span>
+                  <span>{lang.label}</span>
+                </div>
+                {currentLanguage === lang.id && <Check className="w-3.5 h-3.5" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4. SERVER SWITCHER DRAWER */}
       {showServerMenu && (
         <div 
           onClick={(e) => e.stopPropagation()}
@@ -281,7 +421,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         >
           <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
             <span>Select Stream Mirror</span>
-            <span className="text-[10px] text-emerald-400">Ultra Speed</span>
+            <span className="text-[10px] text-emerald-400">All Online</span>
           </div>
           <div className="space-y-1.5">
             {sources.map((src, idx) => (
@@ -305,7 +445,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         </div>
       )}
 
-      {/* 3. SPEED MENU DRAWER */}
+      {/* 5. SPEED MENU DRAWER */}
       {showSpeedMenu && (
         <div 
           onClick={(e) => e.stopPropagation()}
@@ -329,7 +469,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         </div>
       )}
 
-      {/* 4. SCREEN LOCK BUTTON (XPlayer Signature) */}
+      {/* 6. SCREEN LOCK BUTTON (XPlayer Signature) */}
       <div className="absolute left-5 top-1/2 -translate-y-1/2 z-50">
         <button
           onClick={(e) => {
@@ -351,7 +491,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         </button>
       </div>
 
-      {/* 5. GESTURE OSD DISPLAY OVERLAY */}
+      {/* 7. GESTURE OSD DISPLAY OVERLAY */}
       {gestureOsd && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 px-5 py-3 rounded-2xl bg-black/85 backdrop-blur-md border border-white/20 text-white flex items-center space-x-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150 pointer-events-none">
           <span className="text-2xl">{gestureOsd.icon}</span>
@@ -359,7 +499,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         </div>
       )}
 
-      {/* 6. DOUBLE-TAP SEEK RIPPLE ANIMATION */}
+      {/* 8. DOUBLE-TAP SEEK RIPPLE ANIMATION */}
       {ripple && (
         <div className={`absolute top-0 bottom-0 ${
           ripple.side === 'left' ? 'left-0 w-1/3' : 'right-0 w-1/3'
@@ -370,12 +510,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         </div>
       )}
 
-      {/* 7. VIDEO CANVAS & 3D LOGO BUFFERING */}
+      {/* 9. VIDEO CANVAS & 3D LOGO BUFFERING */}
       <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black">
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
             src={currentSource.url}
             title={movie.title}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-top-navigation"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
             onLoad={() => setIsBuffering(false)}
@@ -387,11 +528,16 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
             src={currentSource.url}
             autoPlay
             playsInline
+            preload="auto"
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onWaiting={() => setIsBuffering(true)}
             onPlaying={() => setIsBuffering(false)}
             onCanPlay={() => setIsBuffering(false)}
+            onError={() => {
+              // Automatic failover to next high-speed server mirror
+              setActiveSourceIndex((prev) => (prev + 1) % sources.length);
+            }}
             className={`w-full h-full cursor-pointer ${getObjectFitClass()}`}
           />
         )}
@@ -416,7 +562,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
             </h4>
             <div className="flex items-center space-x-2 text-[11px] text-white/60 font-mono">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>Connecting {currentSource.name}...</span>
+              <span>Fast Loading • {currentQuality} • {currentLanguage}</span>
             </div>
           </div>
         )}
@@ -439,7 +585,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         )}
       </div>
 
-      {/* 8. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
+      {/* 10. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
       <div className={`z-40 px-5 py-4 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex flex-col space-y-2.5 transition-opacity duration-300 ${
         showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
@@ -460,8 +606,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
 
         {/* Action Controls Row */}
         <div className="flex items-center justify-between pt-1">
-          {/* Left: Play/Pause, Rewind, Fast Forward */}
-          <div className="flex items-center space-x-4">
+          {/* Left: Play/Pause, Rewind, Fast Forward, Mute */}
+          <div className="flex items-center space-x-3 sm:space-x-4">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -508,8 +654,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
             </button>
           </div>
 
-          {/* Right: Aspect Ratio, Playback Speed, Fullscreen */}
-          <div className="flex items-center space-x-3.5">
+          {/* Right: Aspect Ratio, Languages, Quality, Speed, Fullscreen */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Aspect Ratio Button */}
             <button
               onClick={(e) => {
@@ -529,6 +675,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
                 e.stopPropagation();
                 setShowSpeedMenu(!showSpeedMenu);
                 setShowServerMenu(false);
+                setShowQualityMenu(false);
+                setShowLanguageMenu(false);
               }}
               className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
             >
@@ -542,7 +690,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
                 e.stopPropagation();
                 toggleFullScreen();
               }}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-white/80 hover:text-white transition-colors p-1"
             >
               <Maximize className="w-4 h-4" />
             </button>

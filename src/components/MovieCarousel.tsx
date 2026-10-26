@@ -48,6 +48,10 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = ({
               src={movie.poster} 
               alt={movie.title}
               loading="lazy"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/assets/poster_silent_deep.png';
+              }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
 

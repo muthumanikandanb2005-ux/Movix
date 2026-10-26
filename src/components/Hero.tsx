@@ -17,6 +17,10 @@ export const Hero: React.FC<HeroProps> = ({ movie, isInList, onPlay, onToggleLis
         <img 
           src={movie.backdrop} 
           alt={movie.title}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = '/assets/hero_clean.png';
+          }}
           className="w-full h-full object-cover object-top"
         />
         {/* Cinematic dark gradients to blend seamlessly */}
