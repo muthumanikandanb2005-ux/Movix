@@ -83,15 +83,21 @@ export const mapTmdbToMovie = (item: any): Movie => {
 
   const streamSources = getStreamingSources(item.id);
 
+  const OTT_OPTIONS: import('../types').OttPlatform[] = ['Netflix', 'Prime Video', 'JioHotstar', 'Lionsgate', 'SonyLIV', 'Zee5'];
+  const ottProvider = OTT_OPTIONS[item.id % OTT_OPTIONS.length];
+
   return {
     id: `tmdb-${item.id}`,
     tmdbId: item.id,
     title: item.title || item.name || 'Untitled Movie',
     year,
     genre,
-    duration: '2h 05m',
+    duration: '2h 15m',
     rating,
-    description: item.overview || 'No synopsis available for this title.',
+    ottProvider,
+    isOttRelease: true,
+    badge: rating >= 8.0 ? 'TOP RATED' : 'HOT ON OTT',
+    description: item.overview || 'Experience the epic cinematic narrative in uncompressed 4K HDR with Dolby surround on Movix.',
     poster,
     backdrop,
     videoUrl: streamSources[0].url,
@@ -99,73 +105,77 @@ export const mapTmdbToMovie = (item: any): Movie => {
   };
 };
 
+// Safe fetch with 2 retries and timeout
+const safeFetch = async (url: string, retries = 2): Promise<any> => {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch(url, { headers: getHeaders(), signal: controller.signal });
+      clearTimeout(timeout);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      if (i < retries) {
+        await new Promise(r => setTimeout(r, 400));
+      }
+    }
+  }
+  return null;
+};
+
+// 0. Trending Movies Worldwide
 export const fetchTrendingFromTMDB = async (): Promise<Movie[]> => {
-  try {
-    const res = await fetch(`${BASE_URL}/trending/movie/week?language=en-US`, {
-      headers: getHeaders()
-    });
-    if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
-    const data = await res.json();
-    return (data.results || []).map(mapTmdbToMovie);
-  } catch (err) {
-    console.error('Failed to fetch trending from TMDB:', err);
-    return [];
-  }
+  const data = await safeFetch(`${BASE_URL}/trending/movie/week?page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
+// 0.1 Popular Movies
 export const fetchPopularFromTMDB = async (): Promise<Movie[]> => {
-  try {
-    const res = await fetch(`${BASE_URL}/movie/popular?language=en-US&page=1`, {
-      headers: getHeaders()
-    });
-    if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
-    const data = await res.json();
-    return (data.results || []).map(mapTmdbToMovie);
-  } catch (err) {
-    console.error('Failed to fetch popular from TMDB:', err);
-    return [];
-  }
+  const data = await safeFetch(`${BASE_URL}/movie/popular?page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
-export const fetchTopRatedFromTMDB = async (): Promise<Movie[]> => {
-  try {
-    const res = await fetch(`${BASE_URL}/movie/top_rated?language=en-US&page=1`, {
-      headers: getHeaders()
-    });
-    if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
-    const data = await res.json();
-    return (data.results || []).map(mapTmdbToMovie);
-  } catch (err) {
-    console.error('Failed to fetch top rated from TMDB:', err);
-    return [];
-  }
+// 1. Indian Blockbusters
+export const fetchIndianMoviesFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_origin_country=IN&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
+// 2. Hollywood Blockbusters
+export const fetchHollywoodFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_original_language=en&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 3. Romance Movies
+export const fetchRomanceFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=10749&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 4. Thriller & Mystery Movies
+export const fetchThrillerFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=53&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 5. Action Movies
+export const fetchActionFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=28&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// 6. Horror Movies
+export const fetchHorrorFromTMDB = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_genres=27&sort_by=popularity.desc&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+};
+
+// Search across all TMDB movies
 export const searchMoviesFromTMDB = async (query: string): Promise<Movie[]> => {
   if (!query.trim()) return [];
-  try {
-    const res = await fetch(`${BASE_URL}/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`, {
-      headers: getHeaders()
-    });
-    if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
-    const data = await res.json();
-    return (data.results || []).map(mapTmdbToMovie);
-  } catch (err) {
-    console.error('Failed to search TMDB:', err);
-    return [];
-  }
-};
-
-export const fetchMovieVideos = async (tmdbId: number): Promise<string | null> => {
-  try {
-    const res = await fetch(`${BASE_URL}/movie/${tmdbId}/videos?language=en-US`, {
-      headers: getHeaders()
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const trailer = (data.results || []).find((v: any) => v.type === 'Trailer' && v.site === 'YouTube');
-    return trailer ? trailer.key : (data.results?.[0]?.key || null);
-  } catch {
-    return null;
-  }
+  const data = await safeFetch(`${BASE_URL}/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`);
+  return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };

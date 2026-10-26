@@ -1,71 +1,54 @@
 import React, { useState } from 'react';
-import { ExternalLink, Info, X } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 
 export const AdMobBanner: React.FC = () => {
   const [closed, setClosed] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-
-  // AdMob IDs provided by user
-  const ADMOB_APP_ID = "ca-app-pub-5684555136963044~1297480157";
-  const ADMOB_UNIT_ID = "ca-app-pub-5684555136963044/1233900974";
 
   if (closed) return null;
 
   return (
     <div className="w-full px-5 my-4">
-      <div className="relative w-full rounded-xl bg-gradient-to-r from-[#141824] via-[#1b2234] to-[#141824] border border-[#2b354f]/50 p-3 sm:p-4 shadow-lg overflow-hidden">
-        {/* AdMob label badge */}
-        <div className="flex items-center justify-between mb-2">
+      <div className="relative w-full rounded-2xl bg-gradient-to-r from-[#121624] via-[#1a2136] to-[#121624] border border-[#26314f]/60 p-3.5 sm:p-4 shadow-xl overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute -right-8 -top-8 w-28 h-28 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+
+        {/* Ad Header */}
+        <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center space-x-2">
-            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-extrabold text-[9px] uppercase tracking-wider border border-amber-500/30">
-              Ad
+            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-black text-[9px] uppercase tracking-wider border border-amber-500/30">
+              AD
             </span>
-            <span className="text-white/40 text-[10px]">Google AdMob</span>
+            <span className="text-white/40 text-[10px] font-medium">Sponsored Stream</span>
           </div>
 
-          <div className="flex items-center space-x-1">
-            <button 
-              onClick={() => setShowInfo(!showInfo)}
-              className="text-white/40 hover:text-white/80 p-1"
-              title="AdMob Unit Info"
-            >
-              <Info className="w-3.5 h-3.5" />
-            </button>
-            <button 
-              onClick={() => setClosed(true)}
-              className="text-white/40 hover:text-white/80 p-1"
-              title="Close Ad"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Ad Content */}
-        <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white text-base shadow-md flex-shrink-0">
-            MOVIX+
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-white truncate">
-              Movix Ultra 4K HDR Pass
-            </h4>
-            <p className="text-[11px] text-white/60 line-clamp-1">
-              Unlimited downloads, zero buffer & Dolby Atmos audio.
-            </p>
-          </div>
-          <button className="flex-shrink-0 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white text-xs font-bold shadow-md hover:brightness-110 active:scale-95 transition-all">
-            Get 4K
+          <button 
+            onClick={() => setClosed(true)}
+            className="text-white/40 hover:text-white/80 p-1 rounded-full hover:bg-white/5 transition-colors"
+            title="Close"
+          >
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* AdMob Verification Details */}
-        {showInfo && (
-          <div className="mt-2.5 pt-2 border-t border-white/10 text-[10px] text-white/50 font-mono space-y-0.5">
-            <div><span className="text-amber-400">App ID:</span> {ADMOB_APP_ID}</div>
-            <div><span className="text-emerald-400">Unit ID:</span> {ADMOB_UNIT_ID}</div>
+        {/* Ad Body */}
+        <div className="flex items-center space-x-3.5">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#E50914] to-purple-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-red-950/40 flex-shrink-0">
+            <Sparkles className="w-6 h-6 text-white" />
           </div>
-        )}
+
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-bold text-white truncate leading-tight">
+              Movix Ultra 4K Cinema Pass
+            </h4>
+            <p className="text-[11px] text-white/60 line-clamp-1 mt-0.5">
+              Enjoy all OTT premieres with zero latency & Dolby Atmos sound.
+            </p>
+          </div>
+
+          <button className="flex-shrink-0 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white text-xs font-bold shadow-md hover:brightness-110 active:scale-95 transition-all">
+            Unlock
+          </button>
+        </div>
       </div>
     </div>
   );

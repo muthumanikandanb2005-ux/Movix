@@ -26,12 +26,20 @@ export const Hero: React.FC<HeroProps> = ({ movie, isInList, onPlay, onToggleLis
 
       {/* Hero Content Overlays */}
       <div className="relative z-10 px-5 max-w-lg mt-auto">
-        {/* Top 10 Badge Pill */}
-        {movie.badge && (
-          <div className="inline-flex items-center px-2.5 py-1 rounded-[6px] bg-[#E50914] text-white text-[11px] font-bold tracking-wider uppercase mb-2 shadow-lg shadow-red-900/40">
-            {movie.badge}
-          </div>
-        )}
+        {/* Badges */}
+        <div className="flex items-center space-x-2 mb-2 flex-wrap gap-y-1">
+          {movie.badge && (
+            <div className="inline-flex items-center px-2.5 py-1 rounded-[6px] bg-[#E50914] text-white text-[11px] font-bold tracking-wider uppercase shadow-lg shadow-red-900/40">
+              {movie.badge}
+            </div>
+          )}
+          {movie.ottProvider && (
+            <div className="inline-flex items-center px-2.5 py-1 rounded-[6px] bg-black/70 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold tracking-wider uppercase shadow-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
+              STREAMING ON {movie.ottProvider.toUpperCase()}
+            </div>
+          )}
+        </div>
 
         {/* Title */}
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white font-display leading-[1.05] drop-shadow-md mb-2">

@@ -23,6 +23,7 @@ android/*.iml
 android/app/*.iml
 
 # Environment & temporary files
+*.tsbuildinfo
 .env
 .env.local
 .DS_Store

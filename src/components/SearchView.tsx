@@ -119,6 +119,11 @@ export const SearchView: React.FC<SearchViewProps> = ({ allMovies, onSelectMovie
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
               />
+              {movie.ottProvider && (
+                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-wider bg-[#E50914] text-white shadow-md">
+                  {movie.ottProvider === 'Prime Video' ? 'PRIME' : movie.ottProvider === 'JioHotstar' ? 'HOTSTAR' : movie.ottProvider.toUpperCase()}
+                </div>
+              )}
               <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-sm text-amber-400 font-bold text-[10px] flex items-center border border-white/10">
                 <Star className="w-2.5 h-2.5 fill-amber-400 mr-0.5" />
                 {movie.rating}

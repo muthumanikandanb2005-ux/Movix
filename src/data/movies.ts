@@ -1,22 +1,432 @@
 import { Movie } from '../types';
+import { getStreamingSources } from '../services/tmdb';
 
-export const featuredMovie: Movie = {
-  id: 'last-horizon',
-  title: 'THE LAST HORIZON',
-  year: 2026,
-  genre: 'Sci-Fi',
-  duration: '2h 08m',
-  rating: 8.7,
-  badge: 'TOP 10 THIS WEEK',
-  description: 'A lone astronaut ventures beyond the known system and discovers a world that could change everything.',
-  poster: '/assets/hero_clean.png',
-  backdrop: '/assets/hero_clean.png',
-  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-  cast: ['Alexander Vance', 'Elena Rostova', 'Kaelen Thorne'],
-  director: 'Marcus Sterling'
+// 1. Featured Indian Movie on First Home Page
+export const featuredIndianMovie: Movie = {
+  id: 'tmdb-801688',
+  tmdbId: 801688,
+  title: 'KALKI 2898 AD',
+  year: 2024,
+  genre: 'Sci-Fi / Action / Mythology',
+  duration: '3h 01m',
+  rating: 8.8,
+  badge: 'TOP 1 IN INDIA TODAY',
+  ottProvider: 'Netflix',
+  ottUrl: 'https://www.netflix.com/title/81737033',
+  isOttRelease: true,
+  description: 'In the post-apocalyptic dystopian city of Kasi in the year 2898 AD, an immortal warrior, a rogue bounty hunter, and a fierce rebel army clash over a miraculous child prophesied to restore light to a fractured world.',
+  poster: 'https://image.tmdb.org/t/p/w500/rstcAnBeCkxNQjNp3YXrF6IP1tW.jpg',
+  backdrop: 'https://image.tmdb.org/t/p/original/o8XSR1SONnjcsv84NRu6Mwsl5io.jpg',
+  videoUrl: 'https://vidsrc.to/embed/movie/801688',
+  streamSources: getStreamingSources(801688),
+  cast: ['Prabhas', 'Amitabh Bachchan', 'Kamal Haasan', 'Deepika Padukone'],
+  director: 'Nag Ashwin'
 };
 
-export const trendingMovies: Movie[] = [
+// 2. New Releases on OTT (Fresh Digital Premières)
+export const ottNewReleases: Movie[] = [
+  {
+    id: 'tmdb-1143019',
+    tmdbId: 1143019,
+    title: 'STREE 2',
+    year: 2024,
+    genre: 'Horror / Comedy',
+    duration: '2h 27m',
+    rating: 8.3,
+    badge: 'NEW ON OTT',
+    ottProvider: 'Prime Video',
+    ottUrl: 'https://www.primevideo.com',
+    isOttRelease: true,
+    description: 'The town of Chanderi is haunted once again, this time by a headless entity named Sarkata. Vicky and friends must join forces with Stree to defeat him.',
+    poster: 'https://image.tmdb.org/t/p/w500/rstcAnBeCkxNQjNp3YXrF6IP1tW.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/o8XSR1SONnjcsv84NRu6Mwsl5io.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/1143019',
+    streamSources: getStreamingSources(1143019),
+    cast: ['Shraddha Kapoor', 'Rajkummar Rao', 'Pankaj Tripathi'],
+    director: 'Amar Kaushik'
+  },
+  featuredIndianMovie,
+  {
+    id: 'tmdb-970347',
+    tmdbId: 970347,
+    title: 'DEVARA: PART 1',
+    year: 2024,
+    genre: 'Action / Drama',
+    duration: '2h 58m',
+    rating: 8.1,
+    badge: 'JUST ADDED OTT',
+    ottProvider: 'Netflix',
+    ottUrl: 'https://www.netflix.com',
+    isOttRelease: true,
+    description: 'An epic coastal mass drama following an invincible seafaring warrior who takes a stand against illegal smuggling along the Red Sea coast.',
+    poster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0yeMu1QXO.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/970347',
+    streamSources: getStreamingSources(970347),
+    cast: ['N.T. Rama Rao Jr.', 'Janhvi Kapoor', 'Saif Ali Khan'],
+    director: 'Koratala Siva'
+  },
+  {
+    id: 'tmdb-533535',
+    tmdbId: 533535,
+    title: 'DEADPOOL & WOLVERINE',
+    year: 2024,
+    genre: 'Action / Comedy / Sci-Fi',
+    duration: '2h 08m',
+    rating: 8.5,
+    badge: 'OTT PREMIÈRE',
+    ottProvider: 'JioHotstar',
+    ottUrl: 'https://www.hotstar.com',
+    isOttRelease: true,
+    description: 'A listless Wade Wilson toils away in civilian life with his days as the morally flexible mercenary, Deadpool, behind him. When his homeworld faces threat, he teams up with Wolverine.',
+    poster: 'https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/yDHYTjA3R0jFYba16jBB1ef8oIt.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/533535',
+    streamSources: getStreamingSources(533535),
+    cast: ['Ryan Reynolds', 'Hugh Jackman', 'Emma Corrin'],
+    director: 'Shawn Levy'
+  },
+  {
+    id: 'tmdb-945961',
+    tmdbId: 945961,
+    title: 'ALIEN: ROMULUS',
+    year: 2024,
+    genre: 'Horror / Sci-Fi',
+    duration: '1h 59m',
+    rating: 8.2,
+    badge: 'DIGITAL 4K',
+    ottProvider: 'JioHotstar',
+    ottUrl: 'https://www.hotstar.com',
+    isOttRelease: true,
+    description: 'While scavenging the deep ends of a derelict space station, a group of young space colonizers come face to face with the most terrifying life form in the universe.',
+    poster: 'https://image.tmdb.org/t/p/w500/b33nnKl1vUnivers8G27d.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/9SSEUrSqhl1W6iQ48rG0K730101.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/945961',
+    streamSources: getStreamingSources(945961),
+    cast: ['Cailee Spaeny', 'David Jonsson', 'Archie Renaux'],
+    director: 'Fede Álvarez'
+  },
+  {
+    id: 'tmdb-603692',
+    tmdbId: 603692,
+    title: 'JOHN WICK: CHAPTER 4',
+    year: 2023,
+    genre: 'Action / Crime',
+    duration: '2h 49m',
+    rating: 8.7,
+    badge: 'LIONSGATE EXCLUSIVE',
+    ottProvider: 'Lionsgate',
+    ottUrl: 'https://www.lionsgateplay.com',
+    isOttRelease: true,
+    description: 'With the price on his head ever increasing, John Wick uncovers a path to defeating The High Table, facing a new enemy with powerful alliances across the globe.',
+    poster: 'https://image.tmdb.org/t/p/w500/vZloFAK7NKnMGKEHvYGRMuZw4.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/h8gHn0OzBoaefW0Dxy2k96P7f1E.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/603692',
+    streamSources: getStreamingSources(603692),
+    cast: ['Keanu Reeves', 'Donnie Yen', 'Bill Skarsgård'],
+    director: 'Chad Stahelski'
+  }
+];
+
+// 3. Trending Indian Cinema Blockbusters
+export const indianBlockbusters: Movie[] = [
+  featuredIndianMovie,
+  {
+    id: 'tmdb-579974',
+    tmdbId: 579974,
+    title: 'RRR',
+    year: 2022,
+    genre: 'Action / Drama',
+    duration: '3h 07m',
+    rating: 8.9,
+    ottProvider: 'Netflix',
+    ottUrl: 'https://www.netflix.com',
+    description: 'A fearless revolutionary and an officer in the British force decide to join hands and wage war against the British empire.',
+    poster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0yeMu1QXO.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/579974',
+    streamSources: getStreamingSources(579974),
+    cast: ['N.T. Rama Rao Jr.', 'Ram Charan', 'Alia Bhatt'],
+    director: 'S.S. Rajamouli'
+  },
+  {
+    id: 'tmdb-872906',
+    tmdbId: 872906,
+    title: 'JAWAN',
+    year: 2023,
+    genre: 'Action / Thriller',
+    duration: '2h 49m',
+    rating: 8.4,
+    ottProvider: 'Netflix',
+    ottUrl: 'https://www.netflix.com',
+    description: 'A high-octane action thriller outlining the emotional journey of a prison warden who sets out to rectify societal wrongs with a team of skilled women.',
+    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4XysRhKAE2v9y7eTzLgqK.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/5LtSjMNw6j3LkG29Oa4O0iY5U8.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/872906',
+    streamSources: getStreamingSources(872906),
+    cast: ['Shah Rukh Khan', 'Nayanthara', 'Vijay Sethupathi'],
+    director: 'Atlee'
+  },
+  {
+    id: 'tmdb-614933',
+    tmdbId: 614933,
+    title: 'K.G.F: CHAPTER 2',
+    year: 2022,
+    genre: 'Action / Crime',
+    duration: '2h 48m',
+    rating: 8.6,
+    ottProvider: 'Prime Video',
+    ottUrl: 'https://www.primevideo.com',
+    description: 'The blood-soaked land of Kolar Gold Fields now has a new overlord: Rocky, whose name strikes fear into the heart of his foes and the government.',
+    poster: 'https://image.tmdb.org/t/p/w500/rstcAnBeCkxNQjNp3YXrF6IP1tW.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/o8XSR1SONnjcsv84NRu6Mwsl5io.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/614933',
+    streamSources: getStreamingSources(614933),
+    cast: ['Yash', 'Sanjay Dutt', 'Raveena Tandon'],
+    director: 'Prashanth Neel'
+  },
+  {
+    id: 'tmdb-1072790',
+    tmdbId: 1072790,
+    title: 'LEO',
+    year: 2023,
+    genre: 'Action / Thriller',
+    duration: '2h 44m',
+    rating: 8.1,
+    ottProvider: 'Netflix',
+    ottUrl: 'https://www.netflix.com',
+    description: 'A peaceful café owner in Himachal Pradesh is thrust into a violent past when drug cartels suspect him of being a legendary syndicate enforcer.',
+    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4XysRhKAE2v9y7eTzLgqK.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/5LtSjMNw6j3LkG29Oa4O0iY5U8.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/1072790',
+    streamSources: getStreamingSources(1072790),
+    cast: ['Thalapathy Vijay', 'Trisha Krishnan', 'Sanjay Dutt'],
+    director: 'Lokesh Kanagaraj'
+  },
+  {
+    id: 'tmdb-828898',
+    tmdbId: 828898,
+    title: 'SALAAR: PART 1',
+    year: 2023,
+    genre: 'Action / Crime',
+    duration: '2h 55m',
+    rating: 8.3,
+    ottProvider: 'JioHotstar',
+    ottUrl: 'https://www.hotstar.com',
+    description: 'A gang leader makes a promise to a dying friend and takes on other criminal gangs in the dystopian city-state of Khansaar.',
+    poster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0yeMu1QXO.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/828898',
+    streamSources: getStreamingSources(828898),
+    cast: ['Prabhas', 'Prithviraj Sukumaran', 'Shruti Haasan'],
+    director: 'Prashanth Neel'
+  }
+];
+
+// 4. Hollywood Blockbusters Section
+export const hollywoodBlockbusters: Movie[] = [
+  {
+    id: 'tmdb-693134',
+    tmdbId: 693134,
+    title: 'DUNE: PART TWO',
+    year: 2024,
+    genre: 'Sci-Fi / Adventure',
+    duration: '2h 46m',
+    rating: 8.7,
+    ottProvider: 'JioHotstar',
+    ottUrl: 'https://www.hotstar.com',
+    description: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
+    poster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s520QIq.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/693134',
+    streamSources: getStreamingSources(693134)
+  },
+  {
+    id: 'tmdb-872585',
+    tmdbId: 872585,
+    title: 'OPPENHEIMER',
+    year: 2023,
+    genre: 'Drama / History',
+    duration: '3h 01m',
+    rating: 8.9,
+    ottProvider: 'JioHotstar',
+    ottUrl: 'https://www.hotstar.com',
+    description: 'The story of J. Robert Oppenheimer’s role in the development of the atomic bomb during World War II.',
+    poster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/fm6K9vYQ79FGzOKMvgflGCFRLBH.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/872585',
+    streamSources: getStreamingSources(872585)
+  },
+  {
+    id: 'tmdb-157336',
+    tmdbId: 157336,
+    title: 'INTERSTELLAR',
+    year: 2014,
+    genre: 'Sci-Fi / Adventure',
+    duration: '2h 49m',
+    rating: 8.8,
+    ottProvider: 'Prime Video',
+    ottUrl: 'https://www.primevideo.com',
+    description: 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity’s survival.',
+    poster: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/xJHokMbljvjADYdit5fK5VQsXEG.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/157336',
+    streamSources: getStreamingSources(157336)
+  },
+  {
+    id: 'tmdb-155',
+    tmdbId: 155,
+    title: 'THE DARK KNIGHT',
+    year: 2008,
+    genre: 'Action / Crime',
+    duration: '2h 32m',
+    rating: 9.0,
+    ottProvider: 'Netflix',
+    ottUrl: 'https://www.netflix.com',
+    description: 'Batman raises the stakes in his war on crime with the help of Lt. Jim Gordon and District Attorney Harvey Dent against the Joker.',
+    poster: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/155',
+    streamSources: getStreamingSources(155)
+  }
+];
+
+// 5. Romance & Emotional Cinema
+export const romanceMovies: Movie[] = [
+  {
+    id: 'tmdb-926393',
+    tmdbId: 926393,
+    title: 'SITA RAMAM',
+    year: 2022,
+    genre: 'Romance / Drama',
+    duration: '2h 43m',
+    rating: 8.6,
+    ottProvider: 'Prime Video',
+    ottUrl: 'https://www.primevideo.com',
+    description: 'An orphan soldier receives a letter from a girl named Sita. He sets out to find her and love blooms between them against all odds.',
+    poster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0yeMu1QXO.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/926393',
+    streamSources: getStreamingSources(926393)
+  },
+  {
+    id: 'tmdb-597',
+    tmdbId: 597,
+    title: 'TITANIC',
+    year: 1997,
+    genre: 'Romance / Drama',
+    duration: '3h 14m',
+    rating: 8.9,
+    ottProvider: 'JioHotstar',
+    ottUrl: 'https://www.hotstar.com',
+    description: 'A seventeen-year-old aristocrat falls in love with a kind but poor artist aboard the luxurious, ill-fated R.M.S. Titanic.',
+    poster: 'https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/yDI6D5ZQh67YU4r2ms8qcSbAviZ.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/597',
+    streamSources: getStreamingSources(597)
+  },
+  {
+    id: 'tmdb-313369',
+    tmdbId: 313369,
+    title: 'LA LA LAND',
+    year: 2016,
+    genre: 'Romance / Music',
+    duration: '2h 08m',
+    rating: 8.5,
+    ottProvider: 'Lionsgate',
+    ottUrl: 'https://www.lionsgateplay.com',
+    description: 'While navigating their careers in Los Angeles, a pianist and an actress fall in love while attempting to reconcile their aspirations.',
+    poster: 'https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkVJt0Rf0.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/qJeU7KM4pR70hJv0j4wY0X0.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/313369',
+    streamSources: getStreamingSources(313369)
+  },
+  {
+    id: 'tmdb-181533',
+    tmdbId: 181533,
+    title: 'YEH JAWAANI HAI DEEWANI',
+    year: 2013,
+    genre: 'Romance / Comedy',
+    duration: '2h 40m',
+    rating: 8.2,
+    ottProvider: 'Netflix',
+    ottUrl: 'https://www.netflix.com',
+    description: 'Kabir and Naina bond during a trekking trip. Before Naina can express her feelings, Kabir leaves to pursue his career overseas.',
+    poster: 'https://image.tmdb.org/t/p/w500/rstcAnBeCkxNQjNp3YXrF6IP1tW.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/o8XSR1SONnjcsv84NRu6Mwsl5io.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/181533',
+    streamSources: getStreamingSources(181533)
+  }
+];
+
+// 6. Thriller & Mystery Cinema
+export const thrillerMovies: Movie[] = [
+  {
+    id: 'tmdb-827038',
+    tmdbId: 827038,
+    title: 'DRISHYAM 2',
+    year: 2022,
+    genre: 'Thriller / Crime',
+    duration: '2h 20m',
+    rating: 8.6,
+    ottProvider: 'Prime Video',
+    ottUrl: 'https://www.primevideo.com',
+    description: 'Seven years after the case related to Vijay and his family was closed, a series of unexpected events turns his family’s lives upside down.',
+    poster: 'https://image.tmdb.org/t/p/w500/jFt1gS4XysRhKAE2v9y7eTzLgqK.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/5LtSjMNw6j3LkG29Oa4O0iY5U8.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/827038',
+    streamSources: getStreamingSources(827038)
+  },
+  {
+    id: 'tmdb-27205',
+    tmdbId: 27205,
+    title: 'INCEPTION',
+    year: 2010,
+    genre: 'Sci-Fi / Thriller',
+    duration: '2h 28m',
+    rating: 8.8,
+    ottProvider: 'Netflix',
+    ottUrl: 'https://www.netflix.com',
+    description: 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea.',
+    poster: 'https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/s3TBrRGB1iav7gFOCNx3H31MoES.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/27205',
+    streamSources: getStreamingSources(27205)
+  },
+  {
+    id: 'tmdb-11324',
+    tmdbId: 11324,
+    title: 'SHUTTER ISLAND',
+    year: 2010,
+    genre: 'Mystery / Thriller',
+    duration: '2h 18m',
+    rating: 8.4,
+    ottProvider: 'Lionsgate',
+    ottUrl: 'https://www.lionsgateplay.com',
+    description: 'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.',
+    poster: 'https://image.tmdb.org/t/p/w500/4BgSWFMW2MJ0dT5oDqLsmU24jA9.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/xJHokMbljvjADYdit5fK5VQsXEG.jpg',
+    videoUrl: 'https://vidsrc.to/embed/movie/11324',
+    streamSources: getStreamingSources(11324)
+  }
+];
+
+// 7. Original Sci-Fi Masterpieces from Reference Screenshot
+export const sciFiPicks: Movie[] = [
+  {
+    id: 'last-horizon',
+    title: 'THE LAST HORIZON',
+    year: 2026,
+    genre: 'Sci-Fi / Adventure',
+    duration: '2h 08m',
+    rating: 8.7,
+    badge: 'TOP 10 THIS WEEK',
+    ottProvider: 'Netflix',
+    description: 'A lone astronaut ventures beyond the known system and discovers a world that could change everything.',
+    poster: '/assets/hero_clean.png',
+    backdrop: '/assets/hero_clean.png',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+  },
   {
     id: 'silent-deep',
     title: 'THE SILENT DEEP',
@@ -24,12 +434,12 @@ export const trendingMovies: Movie[] = [
     genre: 'Mystery / Sci-Fi',
     duration: '1h 54m',
     rating: 8.4,
+    badge: 'NEW ON OTT',
+    ottProvider: 'Prime Video',
     description: 'In the uncharted depths of the oceanic abyss, an underwater research team encounters an ancient planetary intelligence.',
     poster: '/assets/poster_silent_deep.png',
     backdrop: '/assets/poster_silent_deep.png',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    cast: ['Maya Lin', 'David Chen', 'Sarah Jenkins'],
-    director: 'Guillermo Cruz'
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
   },
   {
     id: 'ember-skies',
@@ -38,12 +448,11 @@ export const trendingMovies: Movie[] = [
     genre: 'Action / Adventure',
     duration: '2h 15m',
     rating: 8.9,
-    description: 'A lone desert nomad journeys across scorched dunes under twin suns to reignite the atmospheric shield before the stellar pulse hits.',
+    ottProvider: 'Lionsgate',
+    description: 'A lone desert nomad journeys across scorched dunes under twin suns to reignite the atmospheric shield.',
     poster: '/assets/poster_ember_skies.png',
     backdrop: '/assets/poster_ember_skies.png',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    cast: ['Christian Cole', 'Aria Stark', 'Kenji Sato'],
-    director: 'Denis Vane'
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
   },
   {
     id: 'null-zone',
@@ -52,12 +461,11 @@ export const trendingMovies: Movie[] = [
     genre: 'Sci-Fi / Thriller',
     duration: '2h 01m',
     rating: 8.6,
-    description: 'When the gravitational boundary of an artificial singularity collapses, an elite pilot must breach the event horizon to rescue her crew.',
+    ottProvider: 'JioHotstar',
+    description: 'When the gravitational boundary of an artificial singularity collapses, an elite pilot must rescue her crew.',
     poster: '/assets/poster_null_zone.png',
     backdrop: '/assets/poster_null_zone.png',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    cast: ['Olivia Wilde', 'Thomas H. Wright', 'Zoe Morales'],
-    director: 'Christopher Nolan'
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
   },
   {
     id: 'orbital-blood',
@@ -66,62 +474,10 @@ export const trendingMovies: Movie[] = [
     genre: 'Action / Sci-Fi',
     duration: '1h 48m',
     rating: 8.2,
-    description: 'High above a contested planetary colony, an orbital defense officer is targeted by rogue bio-synthetic infiltrators.',
+    ottProvider: 'SonyLIV',
+    description: 'High above a contested planetary colony, an orbital defense officer is targeted by rogue infiltrators.',
     poster: '/assets/poster_orbital_blood.png',
     backdrop: '/assets/poster_orbital_blood.png',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-    cast: ['James Mercer', 'Laura Croft', 'Dmitri Volkov'],
-    director: 'Ridley Scott'
-  }
-];
-
-export const sciFiPicks: Movie[] = [
-  {
-    id: 'chronos-paradox',
-    title: 'CHRONOS PARADOX',
-    year: 2025,
-    genre: 'Sci-Fi / Drama',
-    duration: '2h 10m',
-    rating: 8.8,
-    description: 'Time dilation experiment opens a gateway into parallel timelines that threaten to erase reality itself.',
-    poster: '/assets/poster_ember_skies.png',
-    backdrop: '/assets/poster_ember_skies.png',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4'
-  },
-  {
-    id: 'abyss-horizon',
-    title: 'ABYSS HORIZON',
-    year: 2026,
-    genre: 'Sci-Fi / Horror',
-    duration: '1h 50m',
-    rating: 8.1,
-    description: 'Deep space anomaly pulls an exploratory cruiser into an unknown void where physics ceases to apply.',
-    poster: '/assets/poster_silent_deep.png',
-    backdrop: '/assets/poster_silent_deep.png',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
-  },
-  {
-    id: 'singularity-rise',
-    title: 'SINGULARITY RISE',
-    year: 2026,
-    genre: 'Cyberpunk',
-    duration: '2h 20m',
-    rating: 8.5,
-    description: 'The first sentient synthetic mind awakens in neo-Shinjuku, sparking an unprecedented planetary awakening.',
-    poster: '/assets/poster_null_zone.png',
-    backdrop: '/assets/poster_null_zone.png',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4'
-  },
-  {
-    id: 'solar-flare',
-    title: 'SOLAR FLARE',
-    year: 2025,
-    genre: 'Disaster / Sci-Fi',
-    duration: '1h 56m',
-    rating: 7.9,
-    description: 'A catastrophic superflare disables global satellites, leaving mankind in sudden darkness.',
-    poster: '/assets/poster_orbital_blood.png',
-    backdrop: '/assets/poster_orbital_blood.png',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4'
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
   }
 ];

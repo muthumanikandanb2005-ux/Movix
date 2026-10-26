@@ -4,6 +4,8 @@ export interface StreamSource {
   type: 'embed' | 'video' | 'trailer';
 }
 
+export type OttPlatform = 'Netflix' | 'Prime Video' | 'JioHotstar' | 'Lionsgate' | 'SonyLIV' | 'Zee5' | 'Apple TV+';
+
 export interface Movie {
   id: string;
   tmdbId?: number;
@@ -13,6 +15,9 @@ export interface Movie {
   duration: string;
   rating: number;
   badge?: string;
+  ottProvider?: OttPlatform;
+  ottUrl?: string;
+  isOttRelease?: boolean;
   description: string;
   poster: string;
   backdrop: string;
