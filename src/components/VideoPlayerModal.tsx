@@ -79,21 +79,19 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const currentSource = sources[activeSourceIndex] || sources[0];
 
-  // Auto-hide controls: ONLY hide if video is actively playing!
+  // Auto-hide controls after 5 seconds to provide clean unobstructed cinema view
   const resetControlsTimeout = useCallback(() => {
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    if (!isLocked && isPlaying && hasStartedPlaying) {
+    if (!isLocked) {
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
         setShowServerMenu(false);
         setShowSpeedMenu(false);
         setShowQualityMenu(false);
         setShowLanguageMenu(false);
-      }, 3500);
-    } else {
-      setShowControls(true);
+      }, 5000);
     }
-  }, [isLocked, isPlaying, hasStartedPlaying]);
+  }, [isLocked]);
 
   useEffect(() => {
     resetControlsTimeout();
@@ -360,6 +358,34 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       style={{ filter: `brightness(${brightness}%)` }}
       onTouchStart={handleTouchStart}
     >
+      {/* Permanent Mini Floating Action Bar (visible when main header is collapsed) */}
+      {!showControls && !isLocked && (
+        <div className="absolute top-4 right-4 z-50 flex items-center space-x-2 animate-in fade-in duration-200">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowControls(true);
+              setShowServerMenu(true);
+            }}
+            className="px-3 py-1.5 rounded-full bg-black/80 hover:bg-black text-white/90 hover:text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-2xl flex items-center space-x-1.5 active:scale-95 transition-all"
+            title="Switch Streaming Server"
+          >
+            <Server className="w-3.5 h-3.5 text-[#E50914]" />
+            <span>{sources[activeSourceIndex]?.name.split(' ')[1] || 'Server'}</span>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="p-2 rounded-full bg-black/80 hover:bg-black text-white backdrop-blur-md border border-white/20 shadow-2xl active:scale-90 transition-all"
+            title="Exit Player"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* 1. TOP CONTROL BAR */}
       <div className={`z-40 px-5 py-4 bg-gradient-to-b from-black/95 via-black/80 to-transparent flex items-center justify-between transition-opacity duration-300 ${
         showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -623,12 +649,14 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
+            key={`${currentSource.url}-${activeSourceIndex}`}
             src={currentSource.url}
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
             onLoad={() => setIsBuffering(false)}
-            className="w-full h-full border-0"
+            className="w-full h-full border-0 absolute inset-0"
           />
         ) : (
           <video

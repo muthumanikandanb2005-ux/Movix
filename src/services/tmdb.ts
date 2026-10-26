@@ -41,39 +41,35 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 
   const sources: StreamSource[] = [
     {
-      name: 'Server 1 (VidLink VIP - Full Movie 4K/HDR)',
-      url: `https://vidlink.pro/movie/${tmdbId}`,
+      name: 'Server 1 (Filmu VIP Cinema 4K - Indian & Global)',
+      url: `https://embed.filmu.in/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 2 (VidSrc PM Cloud VIP - Full Movie)',
+      name: 'Server 2 (CineSrc Pro Cloud - Full Movie 1080p/4K)',
+      url: `https://cinesrc.st/embed/movie/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: 'Server 3 (VidSrc PM Cloud VIP - Full Movie)',
       url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 3 (2Embed Cinema 4K - Full Movie)',
+      name: 'Server 4 (2Embed Cinema 4K - Full Movie)',
       url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed'
     },
     {
-      name: 'Server 4 (AutoEmbed VIP - Full Movie)',
-      url: `https://autoembed.co/movie/tmdb/${tmdbId}`,
+      name: 'Server 5 (2Embed Skin HD - Full Movie)',
+      url: `https://www.2embed.skin/embed/${tmdbId}`,
       type: 'embed'
     },
     {
-      name: 'Server 5 (VidSrc TO VIP - Full Movie)',
-      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
-      type: 'embed'
-    },
-    {
-      name: 'Server 6 (PvrPlay HD Mirror - Full Movie)',
-      url: `https://ghar-baithe-free-movies-dekho-bina-rukawat-pvrplay-hd.pvrplay.fun/watch/movie/${tmdbId}`,
-      type: 'embed'
-    },
-    {
-      name: `Server 7 (Direct High-Speed Backup ${quality})`,
+      name: `Server 6 (Direct High-Speed Backup ${quality})`,
       url: directUrl,
       type: 'video',
       quality
@@ -82,7 +78,7 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 
   if (trailerKey) {
     sources.push({
-      name: 'Server 8 (Official 4K Trailer)',
+      name: 'Server 7 (Official 4K Trailer)',
       url: `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&playsinline=1&rel=0`,
       type: 'trailer'
     });
@@ -94,28 +90,23 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 export const getTvStreamingSources = (tmdbId: number, season: number = 1, episode: number = 1): StreamSource[] => {
   return [
     {
-      name: 'Server 1 (VidLink VIP - Full Episode)',
-      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 1 (Filmu VIP - Full Episode)',
+      url: `https://embed.filmu.in/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     },
     {
-      name: 'Server 2 (VidSrc PM VIP - Full Episode)',
+      name: 'Server 2 (CineSrc Pro - Full Episode)',
+      url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 3 (VidSrc PM Cloud - Full Episode)',
       url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     },
     {
-      name: 'Server 3 (2Embed TV Stream)',
-      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
-      type: 'embed'
-    },
-    {
-      name: 'Server 4 (AutoEmbed TV)',
-      url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}`,
-      type: 'embed'
-    },
-    {
-      name: 'Server 5 (VidSrc TO VIP)',
-      url: `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 4 (2Embed Cinema - Full Episode)',
+      url: `https://www.2embed.cc/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     }
   ];

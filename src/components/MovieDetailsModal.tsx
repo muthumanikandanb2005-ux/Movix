@@ -63,13 +63,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
     };
   }, [movie.tmdbId]);
 
-  const sources = movie.streamSources || [
-    { name: 'Server 1 (VidLink VIP - Full Movie 4K/HDR)', url: `https://vidlink.pro/movie/${movie.tmdbId}`, type: 'embed' },
-    { name: 'Server 2 (VidSrc PM Cloud VIP - Full Movie)', url: `https://vidsrc.pm/embed/movie/${movie.tmdbId}`, type: 'embed' },
-    { name: 'Server 3 (2Embed Cinema 4K - Full Movie)', url: `https://www.2embed.cc/embed/${movie.tmdbId}`, type: 'embed' },
-    { name: 'Server 4 (VidSrc TO VIP - Full Movie)', url: `https://vidsrc.to/embed/movie/${movie.tmdbId}`, type: 'embed' },
-    { name: 'Server 5 (PvrPlay HD Mirror - Full Movie)', url: `https://ghar-baithe-free-movies-dekho-bina-rukawat-pvrplay-hd.pvrplay.fun/watch/movie/${movie.tmdbId}`, type: 'embed' }
-  ];
+  const sources = movie.streamSources || getStreamingSources(movie.tmdbId || 801688);
 
   const formatCurrency = (val?: number) => {
     if (!val || val <= 0) return 'Undisclosed';
