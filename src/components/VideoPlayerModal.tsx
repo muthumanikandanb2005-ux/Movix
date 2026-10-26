@@ -695,8 +695,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </div>
         )}
 
-        {/* CENTER PROMINENT TAP-TO-PLAY BUTTON (Eliminates Black Screen completely!) */}
-        {!isPlaying && !hasError && (
+        {/* CENTER PROMINENT TAP-TO-PLAY BUTTON (For Direct Video) */}
+        {!isPlaying && !hasError && currentSource.type === 'video' && (
           <div 
             onClick={togglePlay}
             className="absolute z-40 flex flex-col items-center justify-center cursor-pointer group"
@@ -711,118 +711,120 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         )}
       </div>
 
-      {/* 10. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
-      <div className={`z-40 px-5 py-4 bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2.5 transition-opacity duration-300 ${
-        showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      }`}>
-        {/* Progress Timeline Scrubber */}
-        <div className="flex items-center space-x-3 text-xs text-white/70 font-mono">
-          <span className="w-10 text-right">{currentTime}</span>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={progress}
-            onChange={handleSeek}
-            onClick={(e) => e.stopPropagation()}
-            className="flex-1 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#E50914]"
-          />
-          <span className="w-10">{duration}</span>
-        </div>
-
-        {/* Action Controls Row */}
-        <div className="flex items-center justify-between pt-1">
-          {/* Left: Play/Pause, Rewind, Fast Forward, Mute */}
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                togglePlay();
-              }}
-              className="text-white hover:text-[#E50914] transition-colors p-1"
-            >
-              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                skipSeconds(-10);
-              }}
-              className="text-white/80 hover:text-white transition-colors p-1"
-              title="Rewind 10s"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                skipSeconds(10);
-              }}
-              className="text-white/80 hover:text-white transition-colors p-1"
-              title="Fast Forward 10s"
-            >
-              <RotateCw className="w-4 h-4" />
-            </button>
-
-            {/* Mute/Volume Toggle */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!videoRef.current) return;
-                videoRef.current.muted = !isMuted;
-                setIsMuted(!isMuted);
-              }}
-              className="text-white/80 hover:text-white transition-colors p-1"
-            >
-              {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
-            </button>
+      {/* 10. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS FOR DIRECT VIDEO) */}
+      {currentSource.type === 'video' && (
+        <div className={`z-40 px-5 py-4 bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2.5 transition-opacity duration-300 ${
+          showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}>
+          {/* Progress Timeline Scrubber */}
+          <div className="flex items-center space-x-3 text-xs text-white/70 font-mono">
+            <span className="w-10 text-right">{currentTime}</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={progress}
+              onChange={handleSeek}
+              onClick={(e) => e.stopPropagation()}
+              className="flex-1 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#E50914]"
+            />
+            <span className="w-10">{duration}</span>
           </div>
 
-          {/* Right: Aspect Ratio, Languages, Quality, Speed, Fullscreen */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Aspect Ratio Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                cycleAspectRatio();
-              }}
-              className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
-              title="Change Aspect Ratio"
-            >
-              <Scan className="w-3.5 h-3.5" />
-              <span className="uppercase text-[9px]">{aspectMode}</span>
-            </button>
+          {/* Action Controls Row */}
+          <div className="flex items-center justify-between pt-1">
+            {/* Left: Play/Pause, Rewind, Fast Forward, Mute */}
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePlay();
+                }}
+                className="text-white hover:text-[#E50914] transition-colors p-1"
+              >
+                {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+              </button>
 
-            {/* Playback Speed Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowSpeedMenu(!showSpeedMenu);
-                setShowServerMenu(false);
-                setShowQualityMenu(false);
-                setShowLanguageMenu(false);
-              }}
-              className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
-            >
-              <Gauge className="w-3.5 h-3.5" />
-              <span>{playbackSpeed}x</span>
-            </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipSeconds(-10);
+                }}
+                className="text-white/80 hover:text-white transition-colors p-1"
+                title="Rewind 10s"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
 
-            {/* Fullscreen Toggle */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFullScreen();
-              }}
-              className="text-white/80 hover:text-white transition-colors p-1"
-            >
-              <Maximize className="w-4 h-4" />
-            </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipSeconds(10);
+                }}
+                className="text-white/80 hover:text-white transition-colors p-1"
+                title="Fast Forward 10s"
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+
+              {/* Mute/Volume Toggle */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!videoRef.current) return;
+                  videoRef.current.muted = !isMuted;
+                  setIsMuted(!isMuted);
+                }}
+                className="text-white/80 hover:text-white transition-colors p-1"
+              >
+                {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+            </div>
+
+            {/* Right: Aspect Ratio, Languages, Quality, Speed, Fullscreen */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Aspect Ratio Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cycleAspectRatio();
+                }}
+                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
+                title="Change Aspect Ratio"
+              >
+                <Scan className="w-3.5 h-3.5" />
+                <span className="uppercase text-[9px]">{aspectMode}</span>
+              </button>
+
+              {/* Playback Speed Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSpeedMenu(!showSpeedMenu);
+                  setShowServerMenu(false);
+                  setShowQualityMenu(false);
+                  setShowLanguageMenu(false);
+                }}
+                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
+              >
+                <Gauge className="w-3.5 h-3.5" />
+                <span>{playbackSpeed}x</span>
+              </button>
+
+              {/* Fullscreen Toggle */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFullScreen();
+                }}
+                className="text-white/80 hover:text-white transition-colors p-1"
+              >
+                <Maximize className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
