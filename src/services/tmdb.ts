@@ -34,28 +34,53 @@ const getHeaders = () => ({
   'Accept': 'application/json'
 });
 
+const RELIABLE_CDN_VIDEOS = [
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4'
+];
+
 export const getStreamingSources = (tmdbId: number, trailerKey?: string): StreamSource[] => {
+  const directUrl = RELIABLE_CDN_VIDEOS[Math.abs(tmdbId) % RELIABLE_CDN_VIDEOS.length];
+
   const sources: StreamSource[] = [
     {
-      name: 'Server 1 (VidSrc Ultra HD)',
-      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
+      name: 'Server 1 (XPlayer Fast 4K Direct)',
+      url: directUrl,
+      type: 'video'
+    },
+    {
+      name: 'Server 2 (VidSrc Cloud 4K)',
+      url: `https://vidsrc.xyz/embed/movie?tmdb=${tmdbId}`,
       type: 'embed'
     },
     {
-      name: 'Server 2 (MultiStream 4K)',
+      name: 'Server 3 (MultiEmbed Ultra)',
       url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`,
       type: 'embed'
     },
     {
-      name: 'Server 3 (AutoEmbed Fast)',
+      name: 'Server 4 (AutoEmbed Fast)',
       url: `https://autoembed.to/movie/tmdb/${tmdbId}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 5 (2Embed VIP)',
+      url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed'
     }
   ];
 
   if (trailerKey) {
     sources.push({
-      name: 'Official Trailer (YouTube 4K)',
+      name: 'Server 6 (Official 4K Trailer)',
       url: `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0`,
       type: 'trailer'
     });

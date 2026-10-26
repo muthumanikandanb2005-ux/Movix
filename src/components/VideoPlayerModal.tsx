@@ -1,5 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { X, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, Server, Film, ExternalLink } from 'lucide-react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { 
+  X, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, 
+  Server, Lock, Unlock, Sun, Gauge, Scan, Check 
+} from 'lucide-react';
 import { Movie, StreamSource } from '../types';
 
 interface VideoPlayerModalProps {
@@ -7,34 +10,88 @@ interface VideoPlayerModalProps {
   onClose: () => void;
 }
 
+type AspectMode = 'contain' | 'cover' | 'fill';
+
 export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClose }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Player state
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
-  const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState('0:00');
   const [duration, setDuration] = useState('0:00');
+  const [progress, setProgress] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const [aspectMode, setAspectMode] = useState<AspectMode>('contain');
+  const [isLocked, setIsLocked] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [showServerMenu, setShowServerMenu] = useState(false);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
 
-  // Streaming sources (Server 1, Server 2, Server 3, etc.)
+  // Gesture OSD overlays
+  const [gestureOsd, setGestureOsd] = useState<{
+    type: 'volume' | 'brightness' | 'seek';
+    value: string | number;
+    icon: string;
+  } | null>(null);
+
+  // Double tap ripple
+  const [ripple, setRipple] = useState<{ side: 'left' | 'right'; id: number } | null>(null);
+  const [brightness, setBrightness] = useState(100);
+
+  // Streaming sources
   const sources: StreamSource[] = movie.streamSources && movie.streamSources.length > 0
     ? movie.streamSources
     : [
         {
-          name: 'Server 1 (Default MP4)',
+          name: 'Server 1 (XPlayer Fast 4K Direct)',
           url: movie.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
           type: 'video'
+        },
+        {
+          name: 'Server 2 (VidSrc Cloud 4K)',
+          url: `https://vidsrc.xyz/embed/movie?tmdb=${movie.tmdbId || 801688}`,
+          type: 'embed'
+        },
+        {
+          name: 'Server 3 (MultiEmbed Ultra)',
+          url: `https://multiembed.mov/?video_id=${movie.tmdbId || 801688}&tmdb=1`,
+          type: 'embed'
         }
       ];
 
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const currentSource = sources[activeSourceIndex] || sources[0];
 
+  // Auto-hide controls timer
+  const resetControlsTimeout = useCallback(() => {
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    if (!isLocked && isPlaying) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+        setShowServerMenu(false);
+        setShowSpeedMenu(false);
+      }, 3500);
+    }
+  }, [isLocked, isPlaying]);
+
+  useEffect(() => {
+    resetControlsTimeout();
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    };
+  }, [resetControlsTimeout]);
+
+  // Buffer handling on source switch
   useEffect(() => {
     setIsBuffering(true);
     const timer = setTimeout(() => {
       setIsBuffering(false);
-    }, 1200);
+    }, 1000);
     return () => clearTimeout(timer);
   }, [activeSourceIndex]);
 
@@ -45,20 +102,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
   };
 
   const togglePlay = () => {
+    if (isLocked) return;
     if (!videoRef.current) return;
     if (isPlaying) {
       videoRef.current.pause();
       setIsPlaying(false);
+      setShowControls(true);
     } else {
       videoRef.current.play();
       setIsPlaying(true);
+      resetControlsTimeout();
     }
-  };
-
-  const toggleMute = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
   };
 
   const handleTimeUpdate = () => {
@@ -75,19 +129,79 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!videoRef.current) return;
+    if (isLocked || !videoRef.current) return;
     const seekTime = (parseFloat(e.target.value) / 100) * (videoRef.current.duration || 1);
     videoRef.current.currentTime = seekTime;
     setProgress(parseFloat(e.target.value));
+    resetControlsTimeout();
   };
 
   const skipSeconds = (sec: number) => {
-    if (!videoRef.current) return;
+    if (isLocked || !videoRef.current) return;
     videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime + sec);
+    resetControlsTimeout();
+  };
+
+  // Double tap gesture
+  const lastTapRef = useRef<{ time: number; x: number }>({ time: 0, x: 0 });
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isLocked) return;
+    const touch = e.touches[0];
+    const now = Date.now();
+    const timeDiff = now - lastTapRef.current.time;
+    const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
+
+    if (timeDiff < 300) {
+      // Double tap detected
+      if (touch.clientX < containerWidth / 2) {
+        // Double tap left = Rewind 10s
+        skipSeconds(-10);
+        setRipple({ side: 'left', id: now });
+        setGestureOsd({ type: 'seek', value: '-10s', icon: '⏪' });
+      } else {
+        // Double tap right = Fast Forward 10s
+        skipSeconds(10);
+        setRipple({ side: 'right', id: now });
+        setGestureOsd({ type: 'seek', value: '+10s', icon: '⏩' });
+      }
+      setTimeout(() => {
+        setRipple(null);
+        setGestureOsd(null);
+      }, 700);
+    } else {
+      // Single tap toggles controls
+      setShowControls((prev) => !prev);
+      resetControlsTimeout();
+    }
+    lastTapRef.current = { time: now, x: touch.clientX };
+  };
+
+  // Aspect ratio toggler
+  const cycleAspectRatio = () => {
+    if (aspectMode === 'contain') {
+      setAspectMode('cover');
+      setGestureOsd({ type: 'seek', value: 'Crop / Zoom', icon: '🔍' });
+    } else if (aspectMode === 'cover') {
+      setAspectMode('fill');
+      setGestureOsd({ type: 'seek', value: 'Stretch', icon: '↔️' });
+    } else {
+      setAspectMode('contain');
+      setGestureOsd({ type: 'seek', value: 'Fit Screen (16:9)', icon: '📱' });
+    }
+    setTimeout(() => setGestureOsd(null), 1200);
+    resetControlsTimeout();
+  };
+
+  // Speed changer
+  const changeSpeed = (speed: number) => {
+    if (videoRef.current) videoRef.current.playbackRate = speed;
+    setPlaybackSpeed(speed);
+    setShowSpeedMenu(false);
+    resetControlsTimeout();
   };
 
   const toggleFullScreen = () => {
-    const el = document.getElementById('movix-player-container');
+    const el = containerRef.current;
     if (!el) return;
     if (document.fullscreenElement) {
       document.exitFullscreen();
@@ -96,19 +210,35 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
     }
   };
 
+  const getObjectFitClass = () => {
+    switch (aspectMode) {
+      case 'cover': return 'object-cover';
+      case 'fill': return 'object-fill';
+      default: return 'object-contain';
+    }
+  };
+
   return (
-    <div id="movix-player-container" className="fixed inset-0 z-50 bg-black flex flex-col justify-between">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-5 py-3.5 z-30 bg-gradient-to-b from-black/95 to-transparent">
+    <div 
+      ref={containerRef}
+      id="movix-xplayer-container" 
+      className="fixed inset-0 z-50 bg-black flex flex-col justify-between select-none overflow-hidden"
+      style={{ filter: `brightness(${brightness}%)` }}
+      onTouchStart={handleTouchStart}
+    >
+      {/* 1. TOP CONTROL BAR */}
+      <div className={`z-40 px-5 py-4 bg-gradient-to-b from-black/95 via-black/70 to-transparent flex items-center justify-between transition-opacity duration-300 ${
+        showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}>
         <div className="flex items-center space-x-3 min-w-0">
           <img 
             src="/assets/movix_3d_logo.png" 
             alt="Movix" 
-            className="w-7 h-7 object-contain drop-shadow-[0_2px_8px_rgba(168,85,247,0.5)] flex-shrink-0" 
+            className="w-8 h-8 object-contain drop-shadow-[0_2px_10px_rgba(236,72,153,0.5)] flex-shrink-0" 
           />
           <div className="min-w-0">
             <span className="text-[#E50914] text-[10px] font-bold uppercase tracking-wider block">
-              Now Streaming on Movix
+              XPlayer 4K Engine
             </span>
             <h2 className="text-white font-bold text-sm sm:text-base leading-tight truncate">
               {movie.title}
@@ -116,9 +246,26 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 flex-shrink-0">
+        <div className="flex items-center space-x-2">
+          {/* Server Switcher Button */}
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowServerMenu(!showServerMenu);
+              setShowSpeedMenu(false);
+            }}
+            className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center space-x-1.5 border border-white/10"
+          >
+            <Server className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">Server</span>
+          </button>
+
+          {/* Close Player */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90"
           >
             <X className="w-5 h-5" />
@@ -126,31 +273,104 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
         </div>
       </div>
 
-      {/* Streaming Server Switcher Bar */}
-      <div className="z-30 px-5 py-1.5 flex items-center space-x-2 overflow-x-auto no-scrollbar bg-black/60 backdrop-blur-md border-b border-white/[0.06]">
-        <div className="flex items-center space-x-1.5 text-xs text-white/50 mr-1 flex-shrink-0">
-          <Server className="w-3.5 h-3.5 text-[#E50914]" />
-          <span>Server:</span>
+      {/* 2. SERVER SWITCHER DRAWER */}
+      {showServerMenu && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-16 right-5 z-50 w-72 bg-[#121622]/95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+          <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
+            <span>Select Stream Mirror</span>
+            <span className="text-[10px] text-emerald-400">Ultra Speed</span>
+          </div>
+          <div className="space-y-1.5">
+            {sources.map((src, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setActiveSourceIndex(idx);
+                  setShowServerMenu(false);
+                }}
+                className={`w-full py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
+                  activeSourceIndex === idx
+                    ? 'bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white shadow-md'
+                    : 'bg-white/5 hover:bg-white/10 text-white/80'
+                }`}
+              >
+                <span>{src.name}</span>
+                {activeSourceIndex === idx && <Check className="w-3.5 h-3.5" />}
+              </button>
+            ))}
+          </div>
         </div>
-        {sources.map((src, idx) => (
-          <button
-            key={idx}
-            onClick={() => {
-              setActiveSourceIndex(idx);
-            }}
-            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 ${
-              activeSourceIndex === idx
-                ? 'bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white shadow-md shadow-red-900/40'
-                : 'bg-white/10 text-white/70 hover:bg-white/15'
-            }`}
-          >
-            <Film className="w-3 h-3" />
-            <span>{src.name.split(' ')[0]} {src.name.split(' ')[1]}</span>
-          </button>
-        ))}
+      )}
+
+      {/* 3. SPEED MENU DRAWER */}
+      {showSpeedMenu && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="absolute bottom-24 right-16 z-50 w-44 bg-[#121622]/95 backdrop-blur-xl border border-white/20 rounded-2xl p-2.5 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200"
+        >
+          <div className="text-xs font-bold text-white/70 mb-2 px-1">Playback Speed</div>
+          <div className="space-y-1">
+            {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((s) => (
+              <button
+                key={s}
+                onClick={() => changeSpeed(s)}
+                className={`w-full py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-between ${
+                  playbackSpeed === s ? 'bg-[#E50914] text-white' : 'hover:bg-white/10 text-white/70'
+                }`}
+              >
+                <span>{s === 1.0 ? '1.0x (Normal)' : `${s}x`}</span>
+                {playbackSpeed === s && <Check className="w-3 h-3" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4. SCREEN LOCK BUTTON (XPlayer Signature) */}
+      <div className="absolute left-5 top-1/2 -translate-y-1/2 z-50">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsLocked(!isLocked);
+            setShowControls(true);
+            resetControlsTimeout();
+          }}
+          className={`p-3 rounded-full transition-all shadow-xl active:scale-90 ${
+            isLocked
+              ? 'bg-red-600 text-white ring-4 ring-red-500/40'
+              : showControls
+              ? 'bg-black/60 text-white/70 border border-white/20 hover:text-white'
+              : 'opacity-0 pointer-events-none'
+          }`}
+          title={isLocked ? 'Unlock Screen' : 'Lock Screen'}
+        >
+          {isLocked ? <Lock className="w-5 h-5 text-white" /> : <Unlock className="w-5 h-5" />}
+        </button>
       </div>
 
-      {/* Video Canvas & Movie Loading Overlay */}
+      {/* 5. GESTURE OSD DISPLAY OVERLAY */}
+      {gestureOsd && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 px-5 py-3 rounded-2xl bg-black/85 backdrop-blur-md border border-white/20 text-white flex items-center space-x-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150 pointer-events-none">
+          <span className="text-2xl">{gestureOsd.icon}</span>
+          <span className="text-sm font-bold tracking-wide">{gestureOsd.value}</span>
+        </div>
+      )}
+
+      {/* 6. DOUBLE-TAP SEEK RIPPLE ANIMATION */}
+      {ripple && (
+        <div className={`absolute top-0 bottom-0 ${
+          ripple.side === 'left' ? 'left-0 w-1/3' : 'right-0 w-1/3'
+        } flex items-center justify-center pointer-events-none z-30`}>
+          <div className="flex flex-col items-center justify-center p-6 rounded-full bg-white/10 backdrop-blur-md text-white animate-ping">
+            <span className="text-xl font-bold">{ripple.side === 'left' ? '⏪ 10s' : '⏩ 10s'}</span>
+          </div>
+        </div>
+      )}
+
+      {/* 7. VIDEO CANVAS & 3D LOGO BUFFERING */}
       <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black">
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
@@ -172,25 +392,21 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
             onWaiting={() => setIsBuffering(true)}
             onPlaying={() => setIsBuffering(false)}
             onCanPlay={() => setIsBuffering(false)}
-            onClick={togglePlay}
-            className="w-full h-full object-contain cursor-pointer"
+            className={`w-full h-full cursor-pointer ${getObjectFitClass()}`}
           />
         )}
 
-        {/* WHILE LOADING MOVIES: Dedicated 3D Logo Loader Overlay */}
+        {/* 3D Movix Buffering Screen with New User Logo */}
         {isBuffering && (
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center z-20 pointer-events-none animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center z-30 pointer-events-none animate-in fade-in duration-200">
             <div className="relative flex items-center justify-center mb-4">
-              {/* Spinning gradient ring */}
               <div className="absolute -inset-4 rounded-full border-2 border-transparent border-t-purple-500 border-r-pink-500 border-b-[#E50914] animate-spin" />
-              {/* Radial neon glow */}
               <div className="absolute -inset-2 bg-gradient-to-tr from-purple-600/30 via-pink-600/30 to-amber-500/30 blur-xl rounded-full" />
-              {/* 3D Movix Logo */}
               <div className="relative w-20 h-20 animate-pulse">
                 <img 
                   src="/assets/movix_3d_logo.png" 
                   alt="Loading Movie"
-                  className="w-full h-full object-contain drop-shadow-[0_4px_16px_rgba(236,72,153,0.7)]"
+                  className="w-full h-full object-contain drop-shadow-[0_4px_20px_rgba(236,72,153,0.8)]"
                 />
               </div>
             </div>
@@ -204,71 +420,135 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ movie, onClo
             </div>
           </div>
         )}
+
+        {/* CENTER PLAY/PAUSE BIG BUTTON */}
+        {showControls && !isLocked && currentSource.type === 'video' && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+            className="absolute z-40 w-16 h-16 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform hover:bg-[#E50914]"
+          >
+            {isPlaying ? (
+              <Pause className="w-8 h-8 fill-white" />
+            ) : (
+              <Play className="w-8 h-8 fill-white ml-1" />
+            )}
+          </button>
+        )}
       </div>
 
-      {/* Controls Bar (for MP4 streams) */}
-      {currentSource.type === 'video' && (
-        <div className="px-5 py-4 z-30 bg-gradient-to-t from-black via-black/90 to-transparent flex flex-col space-y-2.5">
-          {/* Progress Slider */}
-          <div className="flex items-center space-x-3 text-xs text-white/70 font-mono">
-            <span>{currentTime}</span>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={progress}
-              onChange={handleSeek}
-              className="flex-1 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#E50914]"
-            />
-            <span>{duration}</span>
+      {/* 8. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
+      <div className={`z-40 px-5 py-4 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex flex-col space-y-2.5 transition-opacity duration-300 ${
+        showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}>
+        {/* Progress Timeline Scrubber */}
+        <div className="flex items-center space-x-3 text-xs text-white/70 font-mono">
+          <span className="w-10 text-right">{currentTime}</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={progress}
+            onChange={handleSeek}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#E50914]"
+          />
+          <span className="w-10">{duration}</span>
+        </div>
+
+        {/* Action Controls Row */}
+        <div className="flex items-center justify-between pt-1">
+          {/* Left: Play/Pause, Rewind, Fast Forward */}
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              className="text-white hover:text-[#E50914] transition-colors"
+            >
+              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                skipSeconds(-10);
+              }}
+              className="text-white/80 hover:text-white transition-colors"
+              title="Rewind 10s"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                skipSeconds(10);
+              }}
+              className="text-white/80 hover:text-white transition-colors"
+              title="Fast Forward 10s"
+            >
+              <RotateCw className="w-4 h-4" />
+            </button>
+
+            {/* Mute/Volume Toggle */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!videoRef.current) return;
+                videoRef.current.muted = !isMuted;
+                setIsMuted(!isMuted);
+              }}
+              className="text-white/80 hover:text-white transition-colors"
+            >
+              {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
+            </button>
           </div>
 
-          {/* Buttons Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={togglePlay}
-                className="p-2.5 rounded-full bg-[#E50914] text-white hover:brightness-110 active:scale-95 shadow-lg shadow-red-900/40"
-              >
-                {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white" />}
-              </button>
+          {/* Right: Aspect Ratio, Playback Speed, Fullscreen */}
+          <div className="flex items-center space-x-3.5">
+            {/* Aspect Ratio Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                cycleAspectRatio();
+              }}
+              className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
+              title="Change Aspect Ratio"
+            >
+              <Scan className="w-3.5 h-3.5" />
+              <span className="uppercase text-[9px]">{aspectMode}</span>
+            </button>
 
-              <button 
-                onClick={() => skipSeconds(-10)} 
-                className="p-2 text-white/70 hover:text-white"
-              >
-                <RotateCcw className="w-5 h-5" />
-              </button>
+            {/* Playback Speed Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSpeedMenu(!showSpeedMenu);
+                setShowServerMenu(false);
+              }}
+              className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
+            >
+              <Gauge className="w-3.5 h-3.5" />
+              <span>{playbackSpeed}x</span>
+            </button>
 
-              <button 
-                onClick={() => skipSeconds(10)} 
-                className="p-2 text-white/70 hover:text-white"
-              >
-                <RotateCw className="w-5 h-5" />
-              </button>
-
-              <button 
-                onClick={toggleMute} 
-                className="p-2 text-white/70 hover:text-white"
-              >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </button>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white/10 text-white/80 border border-white/20">
-                1080p Ultra
-              </span>
-              <button 
-                onClick={toggleFullScreen}
-                className="p-2 text-white/70 hover:text-white"
-              >
-                <Maximize className="w-5 h-5" />
-              </button>
-            </div>
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFullScreen();
+              }}
+              className="text-white/80 hover:text-white transition-colors"
+            >
+              <Maximize className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

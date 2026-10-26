@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { MovieCarousel } from './components/MovieCarousel';
-import { OttProviderBar } from './components/OttProviderBar';
+import { OttProviderBar, CategoryFilter } from './components/OttProviderBar';
 import { BottomNav } from './components/BottomNav';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
@@ -29,7 +29,7 @@ import {
   fetchThrillerFromTMDB,
   fetchActionFromTMDB
 } from './services/tmdb';
-import { Movie, TabType, OttPlatform } from './types';
+import { Movie, TabType } from './types';
 
 // Helper to remove duplicates by id
 const dedupeMovies = (movies: Movie[]): Movie[] => {
@@ -44,7 +44,7 @@ const dedupeMovies = (movies: Movie[]): Movie[] => {
 export const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('home');
-  const [selectedOtt, setSelectedOtt] = useState<OttPlatform | 'All'>('All');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [playingMovie, setPlayingMovie] = useState<Movie | null>(null);
   const [interstitialTarget, setInterstitialTarget] = useState<Movie | null>(null);
@@ -110,10 +110,21 @@ export const App: React.FC = () => {
     ...liveTrending
   ]);
 
-  // Movies filtered by selected OTT hub
-  const filteredOttMovies = selectedOtt === 'All' 
-    ? [] 
-    : allMovies.filter((m) => m.ottProvider === selectedOtt);
+  // Movies filtered by selected category
+  const getFilteredCategoryMovies = (): Movie[] => {
+    switch (selectedCategory) {
+      case 'Indian': return combinedIndian;
+      case 'Hollywood': return combinedHollywood;
+      case 'OTT Premieres': return ottNewReleases;
+      case 'Action': return combinedAction;
+      case 'Thriller': return combinedThriller;
+      case 'Romance': return combinedRomance;
+      case 'Sci-Fi': return sciFiPicks;
+      default: return [];
+    }
+  };
+
+  const filteredMovies = getFilteredCategoryMovies();
 
   const handleToggleList = (movie: Movie) => {
     if (myList.some((m) => m.id === movie.id)) {
@@ -170,26 +181,26 @@ export const App: React.FC = () => {
               onToggleList={handleToggleList}
             />
 
-            {/* 2. Interactive OTT Platforms Hub (Netflix, Prime, Hotstar, Lionsgate, SonyLIV, ZEE5) */}
+            {/* 2. Cinema Hubs Bar */}
             <OttProviderBar
-              selectedOtt={selectedOtt}
-              onSelectOtt={setSelectedOtt}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
             />
 
-            {/* When an OTT platform is selected: show that provider's catalog */}
-            {selectedOtt !== 'All' ? (
+            {/* When a Category Hub is selected */}
+            {selectedCategory !== 'All' ? (
               <div className="px-5 mb-8 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex items-center justify-between mb-4 p-3 rounded-2xl bg-white/[0.04] border border-white/10">
                   <div>
                     <h2 className="text-base font-black text-white">
-                      Streaming on {selectedOtt}
+                      {selectedCategory} Collection
                     </h2>
                     <p className="text-xs text-white/50">
-                      Showing {filteredOttMovies.length} exclusive movies & series
+                      Showing {filteredMovies.length} 4K streaming titles
                     </p>
                   </div>
                   <button
-                    onClick={() => setSelectedOtt('All')}
+                    onClick={() => setSelectedCategory('All')}
                     className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors"
                   >
                     View All
@@ -197,7 +208,7 @@ export const App: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                  {filteredOttMovies.map((movie) => (
+                  {filteredMovies.map((movie) => (
                     <div
                       key={movie.id}
                       onClick={() => setSelectedMovie(movie)}
@@ -210,8 +221,8 @@ export const App: React.FC = () => {
                           loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                         />
-                        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase bg-[#E50914] text-white">
-                          {selectedOtt}
+                        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase bg-black/70 text-white border border-white/20">
+                          4K UHD
                         </div>
                         <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/60 text-amber-400 font-bold text-[10px]">
                           ★ {movie.rating.toFixed(1)}
@@ -228,9 +239,9 @@ export const App: React.FC = () => {
             ) : (
               /* All Content Sections when 'All' is selected */
               <>
-                {/* 1. New Releases on OTT */}
+                {/* 1. New Releases & Premieres */}
                 <MovieCarousel
-                  title="🔥 New Releases on OTT"
+                  title="🔥 New Releases"
                   movies={ottNewReleases}
                   onSelectMovie={setSelectedMovie}
                   onSeeAll={() => setActiveTab('search')}
@@ -342,7 +353,7 @@ export const App: React.FC = () => {
         myListCount={myList.length}
       />
 
-      {/* Movie Details Modal Drawer with OTT Direct Link & 4K Stream */}
+      {/* Movie Details Modal Drawer (ONLY Play & Stream options) */}
       {selectedMovie && (
         <MovieDetailsModal
           movie={selectedMovie}
@@ -357,7 +368,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* AdMob Interstitial Ad (Triggered on movie play, countdown skip, raw IDs hidden) */}
+      {/* AdMob Interstitial Ad (Native SDK + Web fallback, triggers on movie play) */}
       {interstitialTarget && (
         <AdMobInterstitial
           movieTitle={interstitialTarget.title}
@@ -365,7 +376,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Video Streaming Player with Multi-Server Switcher & 3D Logo Buffer */}
+      {/* XPLAYER (Video Player All Format style with Gestures, Lock, Aspect Mode, Buffering 3D Logo) */}
       {playingMovie && (
         <VideoPlayerModal
           movie={playingMovie}

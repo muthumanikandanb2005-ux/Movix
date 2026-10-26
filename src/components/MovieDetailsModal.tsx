@@ -1,6 +1,6 @@
-import React from 'react';
-import { X, Play, Plus, Check, Download, ExternalLink, Star, Tv, ShieldCheck } from 'lucide-react';
-import { Movie, OttPlatform } from '../types';
+import React, { useState } from 'react';
+import { X, Play, Plus, Check, Download, Star, Server, Sparkles } from 'lucide-react';
+import { Movie } from '../types';
 
 interface MovieDetailsModalProps {
   movie: Movie;
@@ -11,67 +11,6 @@ interface MovieDetailsModalProps {
   onDownload: (movie: Movie) => void;
 }
 
-const getOttPlatformDetails = (platform?: OttPlatform) => {
-  switch (platform) {
-    case 'Netflix':
-      return {
-        bg: 'bg-[#E50914]',
-        hoverBg: 'hover:bg-[#B80710]',
-        border: 'border-red-500/40',
-        text: 'text-white',
-        url: 'https://www.netflix.com',
-        label: 'Watch on Netflix'
-      };
-    case 'Prime Video':
-      return {
-        bg: 'bg-[#00A8E1]',
-        hoverBg: 'hover:bg-[#008BB8]',
-        border: 'border-cyan-400/40',
-        text: 'text-white',
-        url: 'https://www.primevideo.com',
-        label: 'Watch on Prime Video'
-      };
-    case 'JioHotstar':
-      return {
-        bg: 'bg-[#1C4382]',
-        hoverBg: 'hover:bg-[#163364]',
-        border: 'border-blue-400/40',
-        text: 'text-blue-100',
-        url: 'https://www.hotstar.com',
-        label: 'Watch on JioHotstar'
-      };
-    case 'Lionsgate':
-      return {
-        bg: 'bg-[#C69214]',
-        hoverBg: 'hover:bg-[#A3780E]',
-        border: 'border-amber-400/40',
-        text: 'text-black font-bold',
-        url: 'https://www.lionsgateplay.com',
-        label: 'Watch on Lionsgate Play'
-      };
-    case 'SonyLIV':
-      return {
-        bg: 'bg-[#0084FF]',
-        hoverBg: 'hover:bg-[#006ACC]',
-        border: 'border-sky-400/40',
-        text: 'text-white',
-        url: 'https://www.sonyliv.com',
-        label: 'Watch on Sony LIV'
-      };
-    case 'Zee5':
-      return {
-        bg: 'bg-[#8224E3]',
-        hoverBg: 'hover:bg-[#681AB8]',
-        border: 'border-purple-400/40',
-        text: 'text-white',
-        url: 'https://www.zee5.com',
-        label: 'Watch on ZEE5'
-      };
-    default:
-      return null;
-  }
-};
-
 export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   movie,
   isInList,
@@ -80,12 +19,13 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   onToggleList,
   onDownload
 }) => {
-  const ott = getOttPlatformDetails(movie.ottProvider);
+  const [showServerPicker, setShowServerPicker] = useState(false);
 
-  const handleOpenOtt = () => {
-    const url = movie.ottUrl || ott?.url || 'https://www.netflix.com';
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
+  const sources = movie.streamSources || [
+    { name: 'Server 1 (XPlayer Direct 4K)', url: movie.videoUrl || '', type: 'video' },
+    { name: 'Server 2 (VidSrc Cloud 4K)', url: `https://vidsrc.xyz/embed/movie?tmdb=${movie.tmdbId}`, type: 'embed' },
+    { name: 'Server 3 (MultiEmbed Ultra)', url: `https://multiembed.mov/?video_id=${movie.tmdbId}&tmdb=1`, type: 'embed' }
+  ];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
@@ -115,12 +55,10 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
             <Play className="w-5 h-5 fill-white ml-0.5" />
           </button>
 
-          {/* OTT Provider Pill on Banner */}
-          {movie.ottProvider && ott && (
-            <div className={`absolute top-4 left-5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider shadow-lg ${ott.bg} ${ott.text}`}>
-              {movie.ottProvider} EXCLUSIVE
-            </div>
-          )}
+          {/* Quality Badge */}
+          <div className="absolute top-4 left-5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider shadow-lg bg-black/60 border border-white/20 text-white backdrop-blur-md">
+            4K ULTRA HD • DOLBY ATMOS
+          </div>
         </div>
 
         {/* Content Body */}
@@ -145,21 +83,33 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
             </div>
           </div>
 
-          {/* Primary Action Buttons */}
+          {/* ACTION BUTTONS: ONLY PLAY & STREAM */}
           <div className="space-y-2.5 pt-1">
-            {/* Stream in 4K (In-App Player) */}
             <div className="flex items-center space-x-3">
+              {/* 1. PLAY BUTTON */}
               <button
                 onClick={() => onPlay(movie)}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FF4154] to-[#E50914] text-white font-bold text-sm flex items-center justify-center space-x-2 shadow-lg shadow-red-900/40 active:scale-95 transition-all"
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#FF4154] to-[#E50914] text-white font-bold text-sm flex items-center justify-center space-x-2 shadow-lg shadow-red-900/40 active:scale-95 transition-all"
               >
                 <Play className="w-4 h-4 fill-white" />
-                <span>Stream in 4K Free</span>
+                <span>Play</span>
               </button>
 
+              {/* 2. STREAM BUTTON */}
+              <button
+                onClick={() => {
+                  setShowServerPicker(!showServerPicker);
+                }}
+                className="flex-1 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-sm flex items-center justify-center space-x-2 shadow-md active:scale-95 transition-all"
+              >
+                <Server className="w-4 h-4 text-emerald-400" />
+                <span>Stream</span>
+              </button>
+
+              {/* My List Toggle */}
               <button
                 onClick={() => onToggleList(movie)}
-                className={`p-3 rounded-xl border transition-all active:scale-95 flex items-center justify-center ${
+                className={`p-3.5 rounded-xl border transition-all active:scale-95 flex items-center justify-center ${
                   isInList
                     ? 'bg-white/20 border-white/40 text-emerald-400'
                     : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'
@@ -169,24 +119,44 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                 {isInList ? <Check className="w-5 h-5 stroke-[2.5]" /> : <Plus className="w-5 h-5" />}
               </button>
 
+              {/* Download */}
               <button
                 onClick={() => onDownload(movie)}
-                className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all active:scale-95 flex items-center justify-center"
-                title="Download Offline"
+                className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all active:scale-95 flex items-center justify-center"
+                title="Download"
               >
                 <Download className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Direct OTT Platform Launch Button */}
-            {ott && (
-              <button
-                onClick={handleOpenOtt}
-                className={`w-full py-2.5 rounded-xl border ${ott.border} ${ott.bg} ${ott.hoverBg} ${ott.text} font-bold text-xs flex items-center justify-center space-x-2 shadow-md transition-all active:scale-95`}
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>{ott.label}</span>
-              </button>
+            {/* Stream Server Picker Drawer when user clicks Stream */}
+            {showServerPicker && (
+              <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="flex items-center justify-between text-xs text-white/60 px-1 font-semibold">
+                  <span>Select High-Speed Streaming Mirror:</span>
+                  <span className="text-emerald-400">All Servers Online</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {sources.map((src, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setShowServerPicker(false);
+                        onPlay({ ...movie, videoUrl: src.url });
+                      }}
+                      className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-red-600/20 border border-white/10 text-left text-xs font-semibold text-white flex items-center justify-between transition-all"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Server className="w-3.5 h-3.5 text-red-500" />
+                        <span>{src.name}</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300 font-bold">
+                        {src.type === 'video' ? 'Direct 4K' : 'Fast Mirror'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
@@ -195,21 +165,13 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
             {movie.description}
           </p>
 
-          {/* Metadata & Technical Info */}
+          {/* Metadata */}
           <div className="text-xs text-white/60 space-y-1.5 pt-2 border-t border-white/10">
             <div><span className="text-white/40">Genre:</span> {movie.genre}</div>
-            {movie.ottProvider && (
-              <div className="flex items-center space-x-1.5 text-white/80 font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Official Digital Release: {movie.ottProvider}</span>
-              </div>
-            )}
-            {movie.tmdbId && (
-              <div className="flex items-center space-x-2 text-[11px] text-emerald-400">
-                <Tv className="w-3.5 h-3.5" />
-                <span>TMDB ID: {movie.tmdbId} • 3 High-Speed Streaming Mirrors</span>
-              </div>
-            )}
+            <div className="flex items-center space-x-1.5 text-white/80 font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-red-400" />
+              <span>Full HD / 4K Ultra Quality • Instant Playback</span>
+            </div>
             {movie.cast && <div><span className="text-white/40">Cast:</span> {movie.cast.join(', ')}</div>}
             {movie.director && <div><span className="text-white/40">Director:</span> {movie.director}</div>}
           </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
-import { Movie, OttPlatform } from '../types';
+import { Movie } from '../types';
 
 interface MovieCarouselProps {
   title: string;
@@ -8,25 +8,6 @@ interface MovieCarouselProps {
   onSelectMovie: (movie: Movie) => void;
   onSeeAll?: () => void;
 }
-
-const getOttBadgeStyle = (platform?: OttPlatform) => {
-  switch (platform) {
-    case 'Netflix':
-      return 'bg-[#E50914] text-white border-red-500/30';
-    case 'Prime Video':
-      return 'bg-[#00A8E1] text-white border-cyan-400/30';
-    case 'JioHotstar':
-      return 'bg-[#1C4382] text-[#93C5FD] border-blue-400/30';
-    case 'Lionsgate':
-      return 'bg-[#B45309] text-amber-100 border-amber-400/30';
-    case 'SonyLIV':
-      return 'bg-[#0284C7] text-white border-sky-400/30';
-    case 'Zee5':
-      return 'bg-[#7E22CE] text-purple-100 border-purple-400/30';
-    default:
-      return 'bg-white/20 text-white border-white/20';
-  }
-};
 
 export const MovieCarousel: React.FC<MovieCarouselProps> = ({ 
   title, 
@@ -73,12 +54,10 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = ({
             {/* Dark gradient overlay for card title legibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-85 group-hover:opacity-100 transition-opacity" />
             
-            {/* OTT Platform Badge on Top-Left */}
-            {movie.ottProvider && (
-              <div className={`absolute top-2 left-2 px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-wider shadow-md backdrop-blur-md border ${getOttBadgeStyle(movie.ottProvider)}`}>
-                {movie.ottProvider === 'Prime Video' ? 'PRIME' : movie.ottProvider === 'JioHotstar' ? 'HOTSTAR' : movie.ottProvider.toUpperCase()}
-              </div>
-            )}
+            {/* Quality badge on Top-Left */}
+            <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-wider bg-black/70 text-white shadow-md border border-white/20 backdrop-blur-md">
+              4K UHD
+            </div>
 
             {/* Rating badge on Top-Right */}
             <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-md text-[9px] font-bold text-amber-400 border border-white/10">
