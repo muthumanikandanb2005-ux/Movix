@@ -7,13 +7,15 @@ interface MovieCarouselProps {
   movies: Movie[];
   onSelectMovie: (movie: Movie) => void;
   onSeeAll?: () => void;
+  showRank?: boolean;
 }
 
 export const MovieCarousel: React.FC<MovieCarouselProps> = ({ 
   title, 
   movies, 
   onSelectMovie,
-  onSeeAll 
+  onSeeAll,
+  showRank = false
 }) => {
   if (!movies || movies.length === 0) return null;
 
@@ -37,11 +39,11 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = ({
 
       {/* Horizontal Scrolling Card Row */}
       <div className="flex space-x-3.5 overflow-x-auto pb-3 pt-1 scrollbar-none no-scrollbar -mx-5 px-5 snap-x snap-mandatory">
-        {movies.map((movie) => (
+        {movies.map((movie, index) => (
           <div
             key={movie.id}
             onClick={() => onSelectMovie(movie)}
-            className="flex-shrink-0 w-[128px] sm:w-[150px] aspect-[2/3] rounded-xl overflow-hidden relative cursor-pointer group bg-[#151922] transition-transform duration-200 active:scale-95 snap-start shadow-md hover:shadow-xl hover:shadow-red-950/20 border border-white/[0.04]"
+            className={`flex-shrink-0 aspect-[2/3] rounded-xl overflow-hidden relative cursor-pointer group bg-[#151922] transition-transform duration-200 active:scale-95 snap-start shadow-md hover:shadow-xl hover:shadow-red-950/20 border border-white/[0.04] ${showRank ? 'w-[100px] sm:w-[120px]' : 'w-[128px] sm:w-[150px]'}`}
           >
             {/* Poster Image */}
             <img 
@@ -54,6 +56,21 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = ({
               }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
+
+            {/* Netflix-style rank number */}
+            {showRank && (
+              <span
+                className="absolute bottom-8 left-0 text-[72px] font-black leading-none select-none pointer-events-none"
+                style={{
+                  color: 'transparent',
+                  WebkitTextStroke: '2px rgba(255,255,255,0.85)',
+                  textShadow: '2px 4px 12px rgba(0,0,0,0.9)',
+                  fontFamily: '"Arial Black", Impact, sans-serif'
+                }}
+              >
+                {index + 1}
+              </span>
+            )}
 
             {/* Dark gradient overlay for card title legibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-85 group-hover:opacity-100 transition-opacity" />

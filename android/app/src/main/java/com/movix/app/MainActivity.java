@@ -49,6 +49,9 @@ public class MainActivity extends BridgeActivity {
             webSettings.setAllowContentAccess(true);
             webSettings.setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
             
+            // Enable hardware acceleration for butter-smooth video streaming
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            
             // Expose JavaScript bridge for web layer
             webView.addJavascriptInterface(new AdMobBridge(), "AndroidAdMob");
         }
@@ -183,8 +186,9 @@ public class MainActivity extends BridgeActivity {
                 } else if (mRewardedAd != null) {
                     mRewardedAd.show(MainActivity.this, rewardItem -> {});
                 } else {
+                    // Preload next ad for future impressions; allow guaranteed in-app video ad to run
                     loadInterstitialAd();
-                    notifyWebAdDismissed();
+                    loadRewardedAd();
                 }
             });
         }

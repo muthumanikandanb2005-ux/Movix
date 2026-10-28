@@ -21,7 +21,10 @@ import {
   hollywoodBlockbusters,
   romanceMovies,
   thrillerMovies,
-  sciFiPicks
+  sciFiPicks,
+  netflixTop10,
+  netflixTrendingNow,
+  netflixOriginals
 } from './data/movies';
 import {
   fetchTrendingFromTMDB,
@@ -75,6 +78,8 @@ export const App: React.FC = () => {
   const [liveRomance, setLiveRomance] = useState<Movie[]>([]);
   const [liveThriller, setLiveThriller] = useState<Movie[]>([]);
   const [liveAction, setLiveAction] = useState<Movie[]>([]);
+  const [liveNetflix, setLiveNetflix] = useState<Movie[]>([]);
+  const [liveNetflixOriginals, setLiveNetflixOriginals] = useState<Movie[]>([]);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -143,7 +148,7 @@ export const App: React.FC = () => {
     loadAllTmdbFeeds();
   }, []);
 
-  // Combined movie pools
+  // Combined movie pools (seeded with local data, then enriched by live TMDB)
   const combinedIndian = dedupeMovies([...indianBlockbusters, ...liveIndian]);
   const combinedSouthIndian = dedupeMovies(liveSouthIndian);
   const combinedHollywood = dedupeMovies([...hollywoodBlockbusters, ...liveHollywood]);
@@ -335,96 +340,101 @@ export const App: React.FC = () => {
             ) : (
               /* All Content Sections when 'All' is selected */
               <>
-                {/* 1. In Theatres & Now Playing (Matching PvrPlay) */}
-                {combinedNowPlaying.length > 0 && (
-                  <MovieCarousel
-                    title="🍿 In Theatres & Now Playing"
-                    movies={combinedNowPlaying}
-                    onSelectMovie={setSelectedMovie}
-                    onSeeAll={() => setActiveTab('search')}
-                  />
-                )}
-
-                {/* 2. New Releases & Premieres */}
+                {/* 1. Netflix Top 10 in India Today */}
                 <MovieCarousel
-                  title="🔥 New Releases"
+                  title="Top 10 in India Today"
+                  movies={dedupeMovies([...netflixTop10, ...liveTrending])}
+                  onSelectMovie={setSelectedMovie}
+                  onSeeAll={() => setActiveTab('search')}
+                  showRank
+                />
+
+                {/* 2. Trending Now */}
+                <MovieCarousel
+                  title="Trending Now"
+                  movies={dedupeMovies([...netflixTrendingNow, ...liveNowPlaying])}
+                  onSelectMovie={setSelectedMovie}
+                  onSeeAll={() => setActiveTab('search')}
+                />
+
+                {/* 3. New Releases & Premieres */}
+                <MovieCarousel
+                  title="New Releases"
                   movies={ottNewReleases}
                   onSelectMovie={setSelectedMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 3. Trending Indian Blockbusters */}
+                {/* AdMob Sponsored Card */}
+                <AdMobBanner />
+
+                {/* 4. Netflix Originals & Exclusives */}
                 <MovieCarousel
-                  title="🇮🇳 Trending Indian Blockbusters"
+                  title="Only on Netflix"
+                  movies={dedupeMovies([...netflixOriginals])}
+                  onSelectMovie={setSelectedMovie}
+                  onSeeAll={() => setActiveTab('search')}
+                />
+
+                {/* 5. Trending Indian Blockbusters */}
+                <MovieCarousel
+                  title="Indian Blockbusters"
                   movies={combinedIndian}
                   onSelectMovie={setSelectedMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* AdMob Sponsored Card (IDs strictly hidden) */}
-                <AdMobBanner />
-
-                {/* 4. Tamil / Telugu / Regional Cinema (PvrPlay Tamil Blasters) */}
+                {/* 6. Tamil / Telugu / Regional Cinema */}
                 {combinedSouthIndian.length > 0 && (
                   <MovieCarousel
-                    title="🎬 Tamil, Telugu & Regional Hits"
+                    title="Tamil, Telugu & Regional"
                     movies={combinedSouthIndian}
                     onSelectMovie={setSelectedMovie}
                     onSeeAll={() => setActiveTab('search')}
                   />
                 )}
 
-                {/* 5. Hollywood Blockbusters */}
+                {/* 7. Hollywood Blockbusters */}
                 <MovieCarousel
-                  title="🌟 Hollywood Blockbusters"
+                  title="Hollywood Blockbusters"
                   movies={combinedHollywood}
                   onSelectMovie={setSelectedMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 6. Romance & Heartfelt Cinema */}
+                {/* 8. Romance & Drama */}
                 <MovieCarousel
-                  title="💖 Romance & Drama"
+                  title="Romance & Drama"
                   movies={combinedRomance}
                   onSelectMovie={setSelectedMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 7. Thriller, Crime & Mystery */}
+                {/* 9. Thriller & Mystery */}
                 <MovieCarousel
-                  title="⚡ Thriller & Mystery"
+                  title="Thriller & Mystery"
                   movies={combinedThriller}
                   onSelectMovie={setSelectedMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
-                {/* 8. Action Movies */}
+                {/* 10. Action Movies */}
                 {combinedAction.length > 0 && (
                   <MovieCarousel
-                    title="💥 High-Octane Action"
+                    title="High-Octane Action"
                     movies={combinedAction}
                     onSelectMovie={setSelectedMovie}
                     onSeeAll={() => setActiveTab('search')}
                   />
                 )}
 
-                {/* 9. Sci-Fi Universe */}
+                {/* 11. Sci-Fi Universe */}
                 <MovieCarousel
-                  title="🚀 Sci-Fi Universe"
+                  title="Sci-Fi Universe"
                   movies={sciFiPicks}
                   onSelectMovie={setSelectedMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
-
-                {/* 10. Trending Worldwide */}
-                {liveTrending.length > 0 && (
-                  <MovieCarousel
-                    title="🏆 Trending Worldwide"
-                    movies={liveTrending}
-                    onSelectMovie={setSelectedMovie}
-                    onSeeAll={() => setActiveTab('search')}
-                  />
-                )}
               </>
             )}
 

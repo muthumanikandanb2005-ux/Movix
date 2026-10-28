@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Play, Sparkles, Check, Globe, Zap, Film, ShieldCheck } from 'lucide-react';
+import { X, Play, Check } from 'lucide-react';
 import { Movie, VideoQuality, AudioLanguage } from '../types';
 
 interface QualitySelectionModalProps {
@@ -49,15 +49,8 @@ const QUALITY_OPTIONS: QualityOption[] = [
   }
 ];
 
-const LANGUAGES: { id: AudioLanguage; label: string; icon: string }[] = [
-  { id: 'Hindi', label: 'Hindi (हिंदी)', icon: '🇮🇳' },
-  { id: 'Tamil', label: 'Tamil (தமிழ்)', icon: '🇮🇳' },
-  { id: 'Telugu', label: 'Telugu (తెలుగు)', icon: '🇮🇳' },
-  { id: 'Malayalam', label: 'Malayalam (മലയാളം)', icon: '🇮🇳' },
-  { id: 'Kannada', label: 'Kannada (ಕನ್ನಡ)', icon: '🇮🇳' },
-  { id: 'English', label: 'English (Original)', icon: '🇬🇧' },
-  { id: 'Spanish', label: 'Spanish (Español)', icon: '🇪🇸' }
-];
+const LANGUAGES: { id: AudioLanguage; label: string; icon: string }[] = [];
+
 
 export const QualitySelectionModal: React.FC<QualitySelectionModalProps> = ({
   movie,
@@ -65,15 +58,7 @@ export const QualitySelectionModal: React.FC<QualitySelectionModalProps> = ({
   onConfirm
 }) => {
   const [selectedQuality, setSelectedQuality] = useState<VideoQuality>('1080p');
-  const defaultLang = (movie.availableLanguages && movie.availableLanguages[0]) || 'Hindi';
-  const [selectedLanguage, setSelectedLanguage] = useState<AudioLanguage>(defaultLang);
-
-  // Sort languages: movies' available languages first, then others
-  const sortedLanguages = [...LANGUAGES].sort((a, b) => {
-    const aAvailable = movie.availableLanguages?.includes(a.id) ? 1 : 0;
-    const bAvailable = movie.availableLanguages?.includes(b.id) ? 1 : 0;
-    return bAvailable - aAvailable;
-  });
+  const defaultLang: AudioLanguage = (movie.availableLanguages && movie.availableLanguages[0]) || 'Hindi';
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200 select-none">
@@ -122,7 +107,7 @@ export const QualitySelectionModal: React.FC<QualitySelectionModalProps> = ({
                   onClick={() => setSelectedQuality(q.id)}
                   className={`w-full p-3 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-[0.98] ${
                     isSelected
-                      ? 'bg-gradient-to-r from-red-600/20 via-purple-600/10 to-transparent border-[#E50914] shadow-lg shadow-red-950/30 ring-1 ring-[#E50914]'
+                      ? 'bg-red-600/20 border-[#E50914] shadow-lg shadow-red-950/30 ring-1 ring-[#E50914]'
                       : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] text-white/80'
                   }`}
                 >
@@ -159,51 +144,15 @@ export const QualitySelectionModal: React.FC<QualitySelectionModalProps> = ({
           </div>
         </div>
 
-        {/* Audio Language Selection */}
-        <div className="mb-5">
-          <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-2 px-1 flex items-center justify-between">
-            <span className="flex items-center space-x-1.5">
-              <Globe className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Multi-Language Audio Track:</span>
-            </span>
-            <span className="text-[10px] text-emerald-400 font-normal">Multi-Dub Ready</span>
-          </label>
-          <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar -mx-1 px-1">
-            {sortedLanguages.map((lang) => {
-              const isSelected = selectedLanguage === lang.id;
-              const isSupported = movie.availableLanguages?.includes(lang.id);
-              return (
-                <button
-                  key={lang.id}
-                  onClick={() => setSelectedLanguage(lang.id)}
-                  className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all border active:scale-95 flex items-center space-x-1.5 ${
-                    isSelected
-                      ? 'bg-[#E50914] border-transparent text-white shadow-md'
-                      : isSupported
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-white/90 hover:bg-emerald-500/20'
-                      : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
-                  }`}
-                >
-                  <span>{lang.icon}</span>
-                  <span>{lang.label}</span>
-                  {isSupported && !isSelected && (
-                    <span className="text-[9px] px-1 rounded bg-emerald-500/30 text-emerald-300 font-extrabold uppercase">
-                      Ready
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* Audio Language Selection — REMOVED: language is selectable inside the player */}
 
         {/* Action Button: Start Playback */}
         <button
-          onClick={() => onConfirm(movie, selectedQuality, selectedLanguage)}
-          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#FF4154] to-[#E50914] hover:brightness-110 text-white font-black text-sm shadow-xl shadow-red-950/50 flex items-center justify-center space-x-2 transition-all active:scale-95"
+          onClick={() => onConfirm(movie, selectedQuality, defaultLang)}
+          className="w-full py-3.5 rounded-2xl bg-[#E50914] hover:brightness-110 text-white font-black text-sm shadow-xl shadow-red-950/50 flex items-center justify-center space-x-2 transition-all active:scale-95"
         >
           <Play className="w-4 h-4 fill-white" />
-          <span>Start Streaming in {selectedQuality}</span>
+          <span>Stream in {selectedQuality}</span>
         </button>
       </div>
     </div>

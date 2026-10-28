@@ -53,15 +53,15 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
 
   return (
     <div className="w-full px-5 my-4 animate-in fade-in duration-300">
-      <div className="relative w-full rounded-2xl bg-gradient-to-r from-[#141824] via-[#1a2136] to-[#121622] border border-amber-500/30 p-4 shadow-xl overflow-hidden group">
-        {/* Glow */}
-        <div className="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative w-full rounded-2xl bg-[#141824] border border-white/10 p-4 shadow-xl overflow-hidden group">
+        {/* Subtle accent glow */}
+        <div className="absolute -right-8 -top-8 w-32 h-32 bg-[#E50914]/8 rounded-full blur-2xl pointer-events-none" />
 
         {/* Ad Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
-            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-extrabold text-[9px] uppercase tracking-wider border border-amber-500/40">
-              SPONSORED REWARD
+            <span className="px-2 py-0.5 rounded bg-white/10 text-white/70 font-extrabold text-[9px] uppercase tracking-wider border border-white/10">
+              SPONSORED
             </span>
             <span className="text-white/50 text-[10px] font-mono">Google AdMob</span>
           </div>
@@ -77,7 +77,7 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
 
         {/* Ad Content */}
         <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-[#E50914] flex items-center justify-center text-white shadow-lg shadow-red-950/40 flex-shrink-0 animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-[#E50914] flex items-center justify-center text-white shadow-lg shadow-red-950/40 flex-shrink-0 animate-pulse">
             <Gift className="w-6 h-6 text-white" />
           </div>
 
@@ -97,7 +97,7 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
             className={`flex-shrink-0 px-3.5 py-2.5 rounded-xl font-black text-xs shadow-md transition-all active:scale-95 flex items-center space-x-1.5 ${
               rewardClaimed
                 ? 'bg-emerald-600 text-white'
-                : 'bg-gradient-to-r from-amber-500 via-[#E50914] to-[#FF4154] hover:brightness-110 text-white'
+                : 'bg-[#E50914] hover:brightness-110 text-white'
             }`}
           >
             {rewardClaimed ? (

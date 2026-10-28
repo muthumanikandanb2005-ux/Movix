@@ -26,14 +26,14 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onLoaded }) => {
       <div className="flex flex-col items-center max-w-xs w-full">
         {/* Glowing 3D Movix Logo */}
         <div className="relative mb-6">
-          {/* Animated Neon Radial Blur Halo */}
-          <div className="absolute -inset-8 bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-amber-500/20 blur-3xl rounded-full animate-pulse" />
+          {/* Subtle red glow — no neon purple/pink */}
+          <div className="absolute -inset-8 bg-[#E50914]/10 blur-3xl rounded-full animate-pulse" />
           
           <div className="relative w-28 h-28 flex items-center justify-center animate-bounce duration-1000">
             <img 
               src="/assets/movix_3d_logo.png" 
               alt="MOVIX"
-              className="w-full h-full object-contain drop-shadow-[0_8px_24px_rgba(168,85,247,0.5)]"
+              className="w-full h-full object-contain drop-shadow-[0_8px_24px_rgba(229,9,20,0.4)]"
             />
           </div>
         </div>
@@ -46,7 +46,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onLoaded }) => {
         {/* Cinematic Progress Bar */}
         <div className="w-52 h-1 bg-white/10 rounded-full overflow-hidden my-3">
           <div 
-            className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-[#E50914] rounded-full transition-all duration-200 ease-out shadow-[0_0_10px_rgba(236,72,153,0.8)]"
+            className="h-full bg-[#E50914] rounded-full transition-all duration-200 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>

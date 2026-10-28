@@ -407,17 +407,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           <img 
             src="/assets/movix_3d_logo.png" 
             alt="Movix" 
-            className="w-8 h-8 object-contain drop-shadow-[0_2px_10px_rgba(236,72,153,0.5)] flex-shrink-0" 
+            className="w-8 h-8 object-contain flex-shrink-0" 
           />
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className="text-[#E50914] text-[10px] font-bold uppercase tracking-wider">
-                Movix Cinema
+              <span className="text-[#E50914] text-[10px] font-black uppercase tracking-wider">
+                MOVIX CINEMA
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-extrabold uppercase">
+              <span className="px-1.5 py-0.2 rounded bg-white/10 text-white text-[9px] font-bold uppercase">
                 {currentQuality}
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-200 text-[9px] font-semibold">
+              <span className="px-1.5 py-0.2 rounded bg-white/10 text-white/90 text-[9px] font-medium">
                 {currentLanguage}
               </span>
             </div>
@@ -469,7 +469,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95"
             title="Playback Speed"
           >
-            <Gauge className="w-3.5 h-3.5 text-amber-400" />
+            <Gauge className="w-3.5 h-3.5 text-white/80" />
             <span>{playbackSpeed}x</span>
           </button>
 
@@ -700,8 +700,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
             referrerPolicy="no-referrer-when-downgrade"
-            onLoad={() => setIsBuffering(false)}
+            onLoad={() => {
+              setIsBuffering(false);
+              setHasStartedPlaying(true);
+            }}
+            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
             className="w-full h-full border-0 absolute inset-0"
           />
         ) : (
@@ -729,27 +734,23 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           />
         )}
 
-        {/* 3D Movix Buffering Screen with New User Logo */}
+        {/* Clean Netflix-Style Buffering Indicator */}
         {isBuffering && !hasStartedPlaying && (
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center z-30 pointer-events-none animate-in fade-in duration-200">
-            <div className="relative flex items-center justify-center mb-4">
-              <div className="absolute -inset-4 rounded-full border-2 border-transparent border-t-purple-500 border-r-pink-500 border-b-[#E50914] animate-spin" />
-              <div className="absolute -inset-2 bg-gradient-to-tr from-purple-600/30 via-pink-600/30 to-amber-500/30 blur-xl rounded-full" />
-              <div className="relative w-20 h-20 animate-pulse">
-                <img 
-                  src="/assets/movix_3d_logo.png" 
-                  alt="Loading Movie"
-                  className="w-full h-full object-contain drop-shadow-[0_4px_20px_rgba(236,72,153,0.8)]"
-                />
-              </div>
+          <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-30 pointer-events-none animate-in fade-in duration-200">
+            <div className="relative flex items-center justify-center mb-5">
+              <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-[#E50914] animate-spin" />
+              <img 
+                src="/assets/movix_3d_logo.png" 
+                alt="Movix"
+                className="w-8 h-8 object-contain absolute"
+              />
             </div>
-
-            <h4 className="text-white font-bold text-sm tracking-wide mb-1 text-center px-4">
+            <h4 className="text-white font-bold text-sm tracking-wide mb-1 text-center px-4 font-display">
               {movie.title}
             </h4>
-            <div className="flex items-center space-x-2 text-[11px] text-white/60 font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>Fast Loading • {currentQuality} • {currentLanguage}</span>
+            <div className="flex items-center space-x-2 text-xs text-white/50">
+              <span className="w-2 h-2 rounded-full bg-[#E50914] animate-pulse" />
+              <span>Netflix Cloud Stream • {currentQuality}</span>
             </div>
           </div>
         )}

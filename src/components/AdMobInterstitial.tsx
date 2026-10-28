@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Volume2, VolumeX, ShieldCheck } from 'lucide-react';
 
 interface AdMobInterstitialProps {
   onDismiss?: () => void;
@@ -8,16 +8,28 @@ interface AdMobInterstitialProps {
   movieTitle?: string;
 }
 
+// High-speed CDN advertisement commercials
+const AD_VIDEOS = [
+  'https://media.w3.org/2010/05/sintel/trailer.mp4',
+  'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4',
+  'https://www.w3schools.com/html/mov_bbb.mp4'
+];
+
 export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
   onDismiss,
   onAdDismissed,
   onAdFailed,
   movieTitle = 'Movie'
 }) => {
-  const [secondsLeft, setSecondsLeft] = useState(2);
+  const [secondsLeft, setSecondsLeft] = useState(5);
+  const [canSkip, setCanSkip] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const dismissedRef = useRef(false);
 
-  // Safe dismissal that calls any provided dismissal callback exactly once
+  // Pick ad video based on time
+  const adVideoUrl = AD_VIDEOS[Math.floor(Date.now() / 1000) % AD_VIDEOS.length];
+
   const triggerDismiss = () => {
     if (dismissedRef.current) return;
     dismissedRef.current = true;
@@ -32,34 +44,22 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
   };
 
   useEffect(() => {
-    // 1. Try Native Android AdMob SDK
+    // 1. Try native Android AdMob Interstitial
     const androidAdMob = (window as any).AndroidAdMob;
     if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
       const handleNativeAdDismissed = () => {
         triggerDismiss();
       };
-
       window.addEventListener('admob:dismissed', handleNativeAdDismissed, { once: true });
       androidAdMob.showInterstitialAd();
-      
-      // Fallback timeout: If native ad takes longer than 3.5s, dismiss automatically to prevent black screen
-      const fallbackTimer = setTimeout(() => {
-        window.removeEventListener('admob:dismissed', handleNativeAdDismissed);
-        triggerDismiss();
-      }, 3500);
-
-      return () => {
-        window.removeEventListener('admob:dismissed', handleNativeAdDismissed);
-        clearTimeout(fallbackTimer);
-      };
     }
 
-    // 2. Web Fallback 2-Second Countdown
+    // 2. Guaranteed In-App Video Ad countdown (5 seconds mandatory)
     const timer = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          triggerDismiss();
+          setCanSkip(true);
           return 0;
         }
         return prev - 1;
@@ -69,49 +69,84 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
     return () => clearInterval(timer);
   }, []);
 
+  const handleSkipClick = () => {
+    if (!canSkip) return;
+    triggerDismiss();
+  };
+
+  const handleVideoEnded = () => {
+    triggerDismiss();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-200">
-      <div className="w-full max-w-sm rounded-3xl bg-[#111420] border border-white/10 p-6 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-        {/* Ad Tag */}
-        <div className="absolute top-4 left-5 flex items-center space-x-2">
-          <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[10px] uppercase tracking-wider border border-amber-500/30">
-            Sponsored Ad
-          </span>
+    <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-0 select-none animate-in fade-in duration-200">
+      {/* Video Ad Canvas */}
+      <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden">
+        <video
+          ref={videoRef}
+          src={adVideoUrl}
+          autoPlay
+          playsInline
+          muted={isMuted}
+          onEnded={handleVideoEnded}
+          onError={() => {
+            // In case of video error, keep countdown running then allow continue
+            setCanSkip(true);
+          }}
+          className="w-full h-full object-cover sm:object-contain"
+        />
+
+        {/* Top Ad Branding Bar */}
+        <div className="absolute top-0 left-0 right-0 p-4 sm:p-5 flex items-center justify-between bg-gradient-to-b from-black/90 via-black/50 to-transparent z-20">
+          <div className="flex items-center space-x-2.5">
+            <span className="px-2 py-0.5 rounded bg-yellow-500 text-black font-black text-[10px] uppercase tracking-wider">
+              Ad
+            </span>
+            <div className="flex flex-col">
+              <span className="text-white font-bold text-xs tracking-wide">
+                Google AdMob Sponsored
+              </span>
+              <span className="text-white/60 text-[10px]">
+                Ad 1 of 1 • Movie starts after ad
+              </span>
+            </div>
+          </div>
+
+          {/* Sound Toggle */}
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className="p-2.5 rounded-full bg-black/60 border border-white/20 text-white hover:bg-black/80 transition-all active:scale-95"
+            title={isMuted ? 'Unmute' : 'Mute'}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
         </div>
 
-        {/* Skip Button */}
-        <button
-          onClick={triggerDismiss}
-          className="absolute top-3.5 right-4 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-white text-black hover:bg-white/90 active:scale-95 shadow-md"
-        >
-          {secondsLeft > 0 ? `Skip (${secondsLeft}s)` : 'Skip Ad ✕'}
-        </button>
+        {/* Bottom Bar: Skip Button & Movie Notice */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black via-black/70 to-transparent flex items-center justify-between z-20">
+          <div className="flex items-center space-x-2 max-w-[60%]">
+            <div className="w-2 h-2 rounded-full bg-[#E50914] animate-ping" />
+            <p className="text-xs text-white/80 truncate">
+              Up Next: <span className="font-bold text-white">{movieTitle}</span>
+            </p>
+          </div>
 
-        {/* Animated Brand Emblem with 3D Movix Logo */}
-        <div className="relative w-20 h-20 flex items-center justify-center mt-7 mb-4">
-          <div className="absolute -inset-2 bg-gradient-to-tr from-purple-600/40 via-pink-600/40 to-amber-500/40 blur-lg rounded-full animate-pulse" />
-          <img 
-            src="/assets/movix_3d_logo.png" 
-            alt="Movix" 
-            className="w-16 h-16 object-contain relative z-10 drop-shadow-[0_4px_16px_rgba(236,72,153,0.7)]"
-          />
+          {/* Skip Button */}
+          {canSkip ? (
+            <button
+              onClick={handleSkipClick}
+              className="px-5 py-2.5 rounded-xl bg-white text-black font-black text-xs hover:bg-white/90 active:scale-95 shadow-xl transition-all flex items-center space-x-1.5"
+            >
+              <span>Skip Ad</span>
+              <span className="text-black/60 font-mono">✕</span>
+            </button>
+          ) : (
+            <div className="px-4 py-2 rounded-xl bg-black/80 border border-white/20 text-white/80 font-bold text-xs flex items-center space-x-1.5 backdrop-blur-md">
+              <span>Skip in</span>
+              <span className="text-yellow-400 font-mono font-black">{secondsLeft}s</span>
+            </div>
+          )}
         </div>
-
-        <h3 className="text-xl font-black text-white mb-1.5 font-display">
-          Movix Cinema
-        </h3>
-        <p className="text-xs text-white/70 mb-5 px-3 leading-relaxed">
-          Connecting high-speed streaming server for <span className="text-white font-bold">"{movieTitle}"</span>.
-        </p>
-
-        {/* Action Button */}
-        <button
-          onClick={triggerDismiss}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FF4154] to-[#E50914] text-white font-bold text-sm shadow-lg shadow-red-600/30 active:scale-95 transition-transform flex items-center justify-center space-x-2"
-        >
-          <Play className="w-4 h-4 fill-white" />
-          <span>{secondsLeft > 0 ? `Loading Stream (${secondsLeft}s)...` : 'Continue to Movie'}</span>
-        </button>
       </div>
     </div>
   );

@@ -41,35 +41,36 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 
   const sources: StreamSource[] = [
     {
-      name: 'Server 1 (Filmu VIP Cinema 4K - Indian & Global)',
-      url: `https://embed.filmu.in/movie/${tmdbId}`,
+      name: 'Server 1 (Netflix Cloud VIP 4K - Ultra Smooth)',
+      url: `https://vidly.pro/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 2 (CineSrc Pro Cloud - Full Movie 1080p/4K)',
+      name: 'Server 2 (CineSrc Fast Pro - Instant Start)',
       url: `https://cinesrc.st/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 3 (VidSrc PM Cloud VIP - Full Movie)',
+      name: 'Server 3 (VidSrc PM Cloud - Full Movie)',
       url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 4 (2Embed Cinema 4K - Full Movie)',
+      name: 'Server 4 (VidSrc In High-Speed - Full Movie)',
+      url: `https://vidsrc.in/embed/movie/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: 'Server 5 (2Embed VIP Cinema 4K)',
       url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed'
     },
     {
-      name: 'Server 5 (2Embed Skin HD - Full Movie)',
-      url: `https://www.2embed.skin/embed/${tmdbId}`,
-      type: 'embed'
-    },
-    {
-      name: `Server 6 (Direct High-Speed Backup ${quality})`,
+      name: `Server 6 (Direct CDN Buffer ${quality})`,
       url: directUrl,
       type: 'video',
       quality
@@ -90,12 +91,12 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 export const getTvStreamingSources = (tmdbId: number, season: number = 1, episode: number = 1): StreamSource[] => {
   return [
     {
-      name: 'Server 1 (Filmu VIP - Full Episode)',
-      url: `https://embed.filmu.in/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 1 (Netflix Cloud VIP - Full Episode)',
+      url: `https://vidly.pro/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     },
     {
-      name: 'Server 2 (CineSrc Pro - Full Episode)',
+      name: 'Server 2 (CineSrc Fast Pro - Full Episode)',
       url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     },
@@ -105,8 +106,8 @@ export const getTvStreamingSources = (tmdbId: number, season: number = 1, episod
       type: 'embed'
     },
     {
-      name: 'Server 4 (2Embed Cinema - Full Episode)',
-      url: `https://www.2embed.cc/embed/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 4 (VidSrc In - Full Episode)',
+      url: `https://vidsrc.in/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     }
   ];
@@ -276,9 +277,30 @@ export const fetchHollywoodFromTMDB = async (): Promise<Movie[]> => {
 };
 
 // 3. Platform Specific (Netflix=8, Prime=9, Hotstar=337, Apple=350, Max=1899, Hulu=15)
-export const fetchPlatformMoviesFromTMDB = async (providerId: number): Promise<Movie[]> => {
+export const fetchPlatformMoviesFromTMDB = async (providerId: number = 8): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/discover/movie?with_watch_providers=${providerId}&watch_region=IN&sort_by=popularity.desc&page=1`);
-  return data?.results ? data.results.map(mapTmdbToMovie) : [];
+  if (data?.results?.length) return data.results.map(mapTmdbToMovie);
+  const dataFallback = await safeFetch(`${BASE_URL}/discover/movie?with_watch_providers=${providerId}&sort_by=popularity.desc&page=1`);
+  return dataFallback?.results ? dataFallback.results.map(mapTmdbToMovie) : [];
+};
+
+// 3.1 Fetch Real Netflix Trending Movies
+export const fetchNetflixTrending = async (): Promise<Movie[]> => {
+  return fetchPlatformMoviesFromTMDB(8);
+};
+
+// 3.2 Fetch Real Netflix Originals (Network ID 213)
+export const fetchNetflixOriginals = async (): Promise<Movie[]> => {
+  const data = await safeFetch(`${BASE_URL}/discover/movie?with_networks=213&sort_by=popularity.desc&page=1`);
+  if (data?.results?.length) return data.results.map(mapTmdbToMovie);
+  const tvData = await safeFetch(`${BASE_URL}/discover/tv?with_networks=213&sort_by=popularity.desc&page=1`);
+  return tvData?.results ? tvData.results.map(mapTmdbToMovie) : [];
+};
+
+// 3.3 Fetch Netflix Top 10 Today
+export const fetchNetflixTop10 = async (): Promise<Movie[]> => {
+  const movies = await fetchNetflixTrending();
+  return movies.slice(0, 10);
 };
 
 // 4. Romance Movies
