@@ -41,24 +41,22 @@ export const getStreamingSources = (
   quality: VideoQuality = '1080p',
   language: AudioLanguage = 'Hindi'
 ): StreamSource[] => {
-  const directUrl = getQualityVideoUrl(tmdbId, quality);
-
   const sources: StreamSource[] = [
     {
-      name: `Server 1 (Movix Ultra HD VIP - ${quality})`,
-      url: directUrl,
-      type: 'video',
-      quality
-    },
-    {
-      name: `Server 2 (VidLink Cinema Stream - ${quality})`,
+      name: `Server 1 (VidLink Full Cinema 4K)`,
       url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 3 (SuperEmbed Cinema HD)`,
+      name: `Server 2 (SuperEmbed Cinema HD)`,
       url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 3 (VidSrc Ultra HD)`,
+      url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
@@ -75,8 +73,8 @@ export const getStreamingSources = (
       quality
     },
     {
-      name: `Server 6 (VidSrc Me Mirror)`,
-      url: `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`,
+      name: `Server 6 (VidSrc To VIP)`,
+      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     }
@@ -101,18 +99,18 @@ export const getTvStreamingSources = (tmdbId: number, season: number = 1, episod
       type: 'embed'
     },
     {
-      name: 'Server 2 (VidSrc To - Full Episode)',
-      url: `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 2 (SuperEmbed TV)',
+      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}`,
       type: 'embed'
     },
     {
-      name: 'Server 3 (VidSrc Me - Full Episode)',
-      url: `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`,
+      name: 'Server 3 (VidSrc PM TV)',
+      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     },
     {
-      name: 'Server 4 (Netflix Cloud VIP - Full Episode)',
-      url: `https://vidly.pro/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 4 (CineSrc TV Pro)',
+      url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     }
   ];

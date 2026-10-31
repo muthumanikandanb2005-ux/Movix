@@ -511,9 +511,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       id="movix-xplayer-container" 
       className="fixed inset-0 z-50 bg-black flex flex-col justify-between select-none overflow-hidden w-screen h-screen"
       style={{ filter: `brightness(${brightness}%)` }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={currentSource.type === 'video' ? handleTouchStart : undefined}
+      onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
+      onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
       {/* Permanent Mini Floating Action Bar (visible when main header is collapsed) */}
       {!showControls && !isLocked && (
@@ -891,8 +891,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
       {/* 9. VIDEO CANVAS */}
       <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black w-full h-full">
-        {/* Backdrop poster preview */}
-        {!hasStartedPlaying && (
+        {/* Backdrop poster preview (only for direct video before playback begins) */}
+        {!hasStartedPlaying && currentSource.type === 'video' && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <img 
               src={movie.backdrop || movie.poster} 
@@ -906,7 +906,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <>
             <iframe
-              key={`${currentSource.url}-${activeSourceIndex}-${currentQuality}-${currentLanguage}`}
+              key={`${currentSource.url}-${activeSourceIndex}`}
               src={currentSource.url}
               title={movie.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
@@ -919,19 +919,21 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               style={{ transform: 'translateZ(0)', willChange: 'transform' }}
               className="w-full h-full border-0 absolute inset-0 z-10"
             />
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
-              <button
-                onClick={() => {
-                  setActiveSourceIndex(0);
-                  setGestureOsd({ type: 'info', value: 'Switched to Movix VIP Direct Stream', icon: '⚡' });
-                  setTimeout(() => setGestureOsd(null), 1500);
-                }}
-                className="px-3.5 py-1.5 rounded-full bg-black/85 hover:bg-black text-white/90 hover:text-white text-xs font-semibold border border-white/20 backdrop-blur-md shadow-2xl flex items-center space-x-1.5 active:scale-95 transition-all"
-              >
-                <span>{currentSource.name.split(' ')[1] || 'Mirror'}</span>
-                <span className="text-[#E50914] font-bold">• Tap for VIP Stream</span>
-              </button>
-            </div>
+            {showControls && (
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowServerMenu(true);
+                  }}
+                  className="px-4 py-2 rounded-full bg-black/85 hover:bg-black text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-2xl flex items-center space-x-2 active:scale-95 transition-all"
+                >
+                  <Server className="w-3.5 h-3.5 text-[#E50914]" />
+                  <span>{currentSource.name}</span>
+                  <span className="text-[#E50914] text-[11px] font-bold">Switch Server ▾</span>
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <video
@@ -958,8 +960,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           />
         )}
 
-        {/* Clean Netflix-Style Buffering Indicator */}
-        {isBuffering && !hasStartedPlaying && (
+        {/* Clean Netflix-Style Buffering Indicator (only for direct video) */}
+        {isBuffering && !hasStartedPlaying && currentSource.type === 'video' && (
           <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-30 pointer-events-none animate-in fade-in duration-200">
             <div className="relative flex items-center justify-center mb-5">
               <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-[#E50914] animate-spin" />
