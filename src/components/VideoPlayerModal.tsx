@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   X, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, 
-  Server, Lock, Unlock, Sun, Gauge, Scan, Check, Languages, Globe, AlertCircle 
+  Server, Lock, Unlock, Sun, Gauge, Scan, Check, Languages, Globe, AlertCircle, Smartphone 
 } from 'lucide-react';
 import { Movie, StreamSource, VideoQuality, AudioLanguage } from '../types';
 import { getStreamingSources } from '../services/tmdb';
@@ -55,22 +56,37 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [hasError, setHasError] = useState(false);
   
+  // Landscape & Orientation state
+  const [isLandscape, setIsLandscape] = useState(
+    typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false
+  );
+
   // Drawers
   const [showServerMenu, setShowServerMenu] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
-  // Gesture OSD overlays
+  // Gesture OSD overlays (Signature XPlayer Feature)
   const [gestureOsd, setGestureOsd] = useState<{
     type: 'volume' | 'brightness' | 'seek' | 'info';
     value: string | number;
     icon: string;
+    percent?: number;
   } | null>(null);
 
   // Double tap ripple
   const [ripple, setRipple] = useState<{ side: 'left' | 'right'; id: number } | null>(null);
   const [brightness, setBrightness] = useState(100);
+
+  // Touch tracking for XPlayer vertical swipe gestures
+  const touchStartRef = useRef<{ x: number; y: number; time: number; mode: 'none' | 'brightness' | 'volume' | 'seek' }>({
+    x: 0,
+    y: 0,
+    time: 0,
+    mode: 'none'
+  });
+  const lastTapRef = useRef<{ time: number; x: number }>({ time: 0, x: 0 });
 
   // Generate dynamic quality streaming sources
   const mid = movie.tmdbId || 801688;
@@ -79,7 +95,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const currentSource = sources[activeSourceIndex] || sources[0];
 
-  // Auto-hide controls after 5 seconds to provide clean unobstructed cinema view
+  // Auto-hide controls after 4 seconds to provide clean unobstructed cinema view
   const resetControlsTimeout = useCallback(() => {
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     if (!isLocked) {
@@ -89,7 +105,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         setShowSpeedMenu(false);
         setShowQualityMenu(false);
         setShowLanguageMenu(false);
-      }, 5000);
+      }, 4000);
     }
   }, [isLocked]);
 
@@ -100,15 +116,28 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     };
   }, [resetControlsTimeout]);
 
-  // Manage native bottom banner visibility during cinema player
+  // Manage orientation changes and ensure banner is hidden during cinema player
   useEffect(() => {
+    const handleOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleOrientation);
+    window.addEventListener('orientationchange', handleOrientation);
+
     const androidAdMob = (window as any).AndroidAdMob;
     if (androidAdMob && typeof androidAdMob.hideBannerAd === 'function') {
       androidAdMob.hideBannerAd();
     }
+
     return () => {
+      window.removeEventListener('resize', handleOrientation);
+      window.removeEventListener('orientationchange', handleOrientation);
       if (androidAdMob && typeof androidAdMob.showBannerAd === 'function') {
         androidAdMob.showBannerAd();
+      }
+      if (androidAdMob && typeof androidAdMob.setAutoOrientation === 'function') {
+        androidAdMob.setAutoOrientation();
       }
     };
   }, []);
@@ -146,7 +175,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     setIsBuffering(true);
     setHasError(false);
 
-    // Check if there is saved resume progress
     let startSecond = 0;
     if (movie.tmdbId) {
       try {
@@ -178,7 +206,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           setHasStartedPlaying(true);
           setIsBuffering(false);
         } catch {
-          // Autoplay blocked by WebView gesture policy - reveal center play button
           setIsPlaying(false);
           setIsBuffering(false);
           setShowControls(true);
@@ -228,7 +255,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       setIsBuffering(false);
     }
 
-    // Save resume progress every 5s
     if (movie.tmdbId && Math.abs(curr - lastSavedTimeRef.current) > 5) {
       lastSavedTimeRef.current = curr;
       saveResumeProgress(movie.tmdbId, curr, dur, movie);
@@ -294,41 +320,125 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     setTimeout(() => setGestureOsd(null), 1500);
   };
 
-  // Double tap gesture
-  const lastTapRef = useRef<{ time: number; x: number }>({ time: 0, x: 0 });
+  // 1-Tap Landscape / Portrait Screen Rotation (Signature XPlayer Feature)
+  const toggleOrientation = () => {
+    const androidAdMob = (window as any).AndroidAdMob;
+    if (isLandscape) {
+      if (androidAdMob && typeof androidAdMob.setPortrait === 'function') {
+        androidAdMob.setPortrait();
+      } else if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        try { screen.orientation.unlock(); } catch {}
+      }
+      setIsLandscape(false);
+      setGestureOsd({ type: 'info', value: 'Portrait View', icon: '📱' });
+    } else {
+      if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
+        androidAdMob.setLandscape();
+      } else if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
+        try { (screen.orientation as any).lock('landscape'); } catch {}
+      }
+      setIsLandscape(true);
+      setGestureOsd({ type: 'info', value: 'Cinema Landscape (16:9)', icon: '🔄' });
+    }
+    setTimeout(() => setGestureOsd(null), 1500);
+    resetControlsTimeout();
+  };
+
+  // XPlayer Touch Gestures (Brightness on Left, Volume on Right, Double-tap to Seek)
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (isLocked) return;
     const touch = e.touches[0];
-    const now = Date.now();
-    const timeDiff = now - lastTapRef.current.time;
-    const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
-
-    if (timeDiff < 300) {
-      if (touch.clientX < containerWidth / 2) {
-        skipSeconds(-10);
-        setRipple({ side: 'left', id: now });
-        setGestureOsd({ type: 'seek', value: '-10s', icon: '⏪' });
-      } else {
-        skipSeconds(10);
-        setRipple({ side: 'right', id: now });
-        setGestureOsd({ type: 'seek', value: '+10s', icon: '⏩' });
-      }
-      setTimeout(() => {
-        setRipple(null);
-        setGestureOsd(null);
-      }, 700);
-    } else {
-      setShowControls((prev) => !prev);
-      resetControlsTimeout();
-    }
-    lastTapRef.current = { time: now, x: touch.clientX };
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now(),
+      mode: 'none'
+    };
   };
 
-  // Aspect ratio toggler
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isLocked) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touchStartRef.current.y - touch.clientY; // swipe up is positive
+    const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
+    const isLeftHalf = touchStartRef.current.x < containerWidth / 2;
+
+    if (touchStartRef.current.mode === 'none') {
+      if (Math.abs(dy) > 15 && Math.abs(dy) > Math.abs(dx)) {
+        touchStartRef.current.mode = isLeftHalf ? 'brightness' : 'volume';
+      }
+    }
+
+    if (touchStartRef.current.mode === 'brightness') {
+      const delta = (dy / 250) * 40;
+      const newBright = Math.min(150, Math.max(30, Math.round(brightness + delta)));
+      setBrightness(newBright);
+      setGestureOsd({
+        type: 'brightness',
+        value: `${Math.round((newBright / 150) * 100)}%`,
+        icon: '☀️',
+        percent: Math.round((newBright / 150) * 100)
+      });
+    } else if (touchStartRef.current.mode === 'volume') {
+      const delta = dy / 250;
+      const newVol = Math.min(1, Math.max(0, volume + delta));
+      setVolume(newVol);
+      if (videoRef.current) {
+        videoRef.current.volume = newVol;
+        videoRef.current.muted = newVol === 0;
+      }
+      setIsMuted(newVol === 0);
+      setGestureOsd({
+        type: 'volume',
+        value: `${Math.round(newVol * 100)}%`,
+        icon: newVol === 0 ? '🔇' : '🔊',
+        percent: Math.round(newVol * 100)
+      });
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isLocked) return;
+    const now = Date.now();
+    const duration = now - touchStartRef.current.time;
+    const touch = e.changedTouches[0];
+    const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
+
+    if (touchStartRef.current.mode === 'none' && duration < 300) {
+      const timeDiff = now - lastTapRef.current.time;
+      if (timeDiff < 300) {
+        if (touch.clientX < containerWidth / 2) {
+          skipSeconds(-10);
+          setRipple({ side: 'left', id: now });
+          setGestureOsd({ type: 'seek', value: '-10s', icon: '⏪' });
+        } else {
+          skipSeconds(10);
+          setRipple({ side: 'right', id: now });
+          setGestureOsd({ type: 'seek', value: '+10s', icon: '⏩' });
+        }
+        setTimeout(() => {
+          setRipple(null);
+          setGestureOsd(null);
+        }, 700);
+      } else {
+        setShowControls((prev) => !prev);
+        resetControlsTimeout();
+      }
+      lastTapRef.current = { time: now, x: touch.clientX };
+    }
+
+    if (touchStartRef.current.mode !== 'none') {
+      setTimeout(() => setGestureOsd(null), 1000);
+    }
+    touchStartRef.current.mode = 'none';
+  };
+
+  // Aspect ratio toggler (Contain 16:9, Cover Crop, Fill Stretch)
   const cycleAspectRatio = () => {
     if (aspectMode === 'contain') {
       setAspectMode('cover');
-      setGestureOsd({ type: 'seek', value: 'Crop / Zoom', icon: '🔍' });
+      setGestureOsd({ type: 'seek', value: 'Crop / Zoom (100% Fill)', icon: '🔍' });
     } else if (aspectMode === 'cover') {
       setAspectMode('fill');
       setGestureOsd({ type: 'seek', value: 'Stretch', icon: '↔️' });
@@ -354,7 +464,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
-      el.requestFullscreen();
+      el.requestFullscreen().catch(() => {});
     }
   };
 
@@ -366,17 +476,19 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
   };
 
-  return (
+  const playerContent = (
     <div 
       ref={containerRef}
       id="movix-xplayer-container" 
-      className="fixed inset-0 z-50 bg-black flex flex-col justify-between select-none overflow-hidden"
+      className="fixed inset-0 z-50 bg-black flex flex-col justify-between select-none overflow-hidden w-screen h-screen"
       style={{ filter: `brightness(${brightness}%)` }}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Permanent Mini Floating Action Bar (visible when main header is collapsed) */}
       {!showControls && !isLocked && (
-        <div className="absolute top-4 right-4 z-50 flex items-center space-x-1.5 animate-in fade-in duration-200">
+        <div className={`absolute ${isLandscape ? 'top-3 right-4' : 'top-4 right-4'} z-50 flex items-center space-x-1.5 animate-in fade-in duration-200`}>
           {/* Quality Pill */}
           <button
             onClick={(e) => {
@@ -401,7 +513,19 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             title="Audio Language"
           >
             <Globe className="w-3.5 h-3.5 text-white/80" />
-            <span className="max-w-[60px] truncate">{currentLanguage}</span>
+            <span className="max-w-[65px] truncate">{currentLanguage}</span>
+          </button>
+
+          {/* 1-Tap Screen Rotate */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleOrientation();
+            }}
+            className="p-2 rounded-full bg-black/85 hover:bg-black text-white backdrop-blur-md border border-white/20 shadow-2xl active:scale-90 transition-all"
+            title="Rotate Screen"
+          >
+            <RotateCw className="w-3.5 h-3.5 text-white" />
           </button>
 
           {/* Server Pill */}
@@ -433,7 +557,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       )}
 
       {/* 1. TOP CONTROL BAR */}
-      <div className={`z-40 px-5 py-4 bg-gradient-to-b from-black/95 via-black/80 to-transparent flex items-center justify-between transition-opacity duration-300 ${
+      <div className={`z-40 ${isLandscape ? 'px-4 py-2.5' : 'px-5 py-4'} bg-gradient-to-b from-black/95 via-black/80 to-transparent flex items-center justify-between transition-opacity duration-300 ${
         showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         <div className="flex items-center space-x-3 min-w-0">
@@ -471,6 +595,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setShowLanguageMenu(false);
             }}
             className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95"
+            title="Select Quality"
           >
             <span>{currentQuality}</span>
           </button>
@@ -489,6 +614,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           >
             <Globe className="w-3.5 h-3.5 text-white/80" />
             <span className="hidden sm:inline">{currentLanguage}</span>
+          </button>
+
+          {/* 1-Tap Screen Rotate (XPlayer Signature) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleOrientation();
+            }}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95"
+            title={isLandscape ? "Switch to Portrait" : "Rotate to Landscape"}
+          >
+            <RotateCw className="w-4 h-4 text-white" />
           </button>
 
           {/* Playback Speed Switcher Button */}
@@ -694,11 +831,21 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </button>
       </div>
 
-      {/* 7. GESTURE OSD DISPLAY OVERLAY */}
+      {/* 7. XPLAYER GESTURE OSD DISPLAY OVERLAY (Brightness / Volume / Seek Level) */}
       {gestureOsd && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 px-5 py-3 rounded-2xl bg-black/85 backdrop-blur-md border border-white/20 text-white flex items-center space-x-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150 pointer-events-none">
-          <span className="text-2xl">{gestureOsd.icon}</span>
-          <span className="text-sm font-bold tracking-wide">{gestureOsd.value}</span>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 px-5 py-3 rounded-2xl bg-black/85 backdrop-blur-md border border-white/20 text-white flex flex-col items-center shadow-2xl animate-in fade-in zoom-in-95 duration-150 pointer-events-none min-w-[130px]">
+          <div className="flex items-center space-x-2.5 mb-1.5">
+            <span className="text-2xl">{gestureOsd.icon}</span>
+            <span className="text-sm font-bold tracking-wide">{gestureOsd.value}</span>
+          </div>
+          {typeof gestureOsd.percent === 'number' && (
+            <div className="w-full bg-white/20 h-1.5 rounded-full overflow-hidden mt-1">
+              <div 
+                className="bg-[#E50914] h-full transition-all duration-75"
+                style={{ width: `${gestureOsd.percent}%` }}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -714,8 +861,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       )}
 
       {/* 9. VIDEO CANVAS */}
-      <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black">
-        {/* Backdrop poster preview (prevents empty pitch-black screen) */}
+      <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black w-full h-full">
+        {/* Backdrop poster preview */}
         {!hasStartedPlaying && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <img 
@@ -774,7 +921,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-[#E50914] animate-spin" />
               <img 
                 src="/assets/movix_3d_logo.png" 
-                alt="Movix"
+                alt="Movix" 
                 className="w-8 h-8 object-contain absolute"
               />
             </div>
@@ -819,9 +966,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         )}
       </div>
 
-      {/* 10. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS FOR DIRECT VIDEO) */}
+      {/* 10. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
       {currentSource.type === 'video' && (
-        <div className={`z-40 px-5 py-4 bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2.5 transition-opacity duration-300 ${
+        <div className={`z-40 ${isLandscape ? 'px-4 py-2.5' : 'px-5 py-4'} bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2 transition-opacity duration-300 ${
           showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}>
           {/* Progress Timeline Scrubber */}
@@ -840,7 +987,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </div>
 
           {/* Action Controls Row */}
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-0.5">
             {/* Left: Play/Pause, Rewind, Fast Forward, Mute */}
             <div className="flex items-center space-x-3 sm:space-x-4">
               <button
@@ -889,7 +1036,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               </button>
             </div>
 
-            {/* Right: Aspect Ratio, Languages, Quality, Speed, Fullscreen */}
+            {/* Right: Aspect Ratio, Languages, Quality, Speed, Rotate, Fullscreen */}
             <div className="flex items-center space-x-2 sm:space-x-3">
               {/* Aspect Ratio Button */}
               <button
@@ -902,6 +1049,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               >
                 <Scan className="w-3.5 h-3.5" />
                 <span className="uppercase text-[9px]">{aspectMode}</span>
+              </button>
+
+              {/* Screen Rotate Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleOrientation();
+                }}
+                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
+                title="Rotate Screen"
+              >
+                <RotateCw className="w-3.5 h-3.5" />
               </button>
 
               {/* Playback Speed Button */}
@@ -935,4 +1094,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       )}
     </div>
   );
+
+  return createPortal(playerContent, document.body);
 };

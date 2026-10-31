@@ -1,5 +1,7 @@
 package com.movix.app;
 
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -7,6 +9,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 
@@ -37,19 +41,22 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Configure WebView for uninterrupted video streaming & audio playback
+        // Configure WebView for butter-smooth streaming & flawless landscape orientation
         if (getBridge() != null && getBridge().getWebView() != null) {
-            android.webkit.WebView webView = getBridge().getWebView();
-            android.webkit.WebSettings webSettings = webView.getSettings();
+            WebView webView = getBridge().getWebView();
+            WebSettings webSettings = webView.getSettings();
             webSettings.setMediaPlaybackRequiresUserGesture(false);
             webSettings.setJavaScriptEnabled(true);
             webSettings.setDomStorageEnabled(true);
             webSettings.setDatabaseEnabled(true);
             webSettings.setAllowFileAccess(true);
             webSettings.setAllowContentAccess(true);
-            webSettings.setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            webSettings.setUseWideViewPort(true);
+            webSettings.setLoadWithOverviewMode(true);
+            webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
             
-            // Enable hardware acceleration for butter-smooth video streaming
+            // Enable hardware acceleration for butter-smooth 60fps video streaming
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
             
             // Expose JavaScript bridge for web layer
@@ -62,6 +69,17 @@ public class MainActivity extends BridgeActivity {
             loadRewardedAd();
             setupBannerAd();
         });
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // In landscape cinema mode, immediately hide banner ad so movie has full unobstructed screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (mAdView != null) {
+                mAdView.setVisibility(View.GONE);
+            }
+        }
     }
 
     private void loadInterstitialAd() {
@@ -155,7 +173,12 @@ public class MainActivity extends BridgeActivity {
                     @Override
                     public void onAdLoaded() {
                         super.onAdLoaded();
-                        mAdView.setVisibility(View.VISIBLE);
+                        // Only show in portrait orientation
+                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                            mAdView.setVisibility(View.VISIBLE);
+                        } else {
+                            mAdView.setVisibility(View.GONE);
+                        }
                     }
                 });
 
@@ -189,7 +212,6 @@ public class MainActivity extends BridgeActivity {
                 } else if (mRewardedAd != null) {
                     mRewardedAd.show(MainActivity.this, rewardItem -> {});
                 } else {
-                    // Preload next ad for future impressions; allow guaranteed in-app video ad to run
                     loadInterstitialAd();
                     loadRewardedAd();
                 }
@@ -220,7 +242,7 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public void showBannerAd() {
             new Handler(Looper.getMainLooper()).post(() -> {
-                if (mAdView != null) {
+                if (mAdView != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                     mAdView.setVisibility(View.VISIBLE);
                 }
             });
@@ -238,6 +260,27 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public boolean isAdReady() {
             return mInterstitialAd != null || mRewardedAd != null;
+        }
+
+        @JavascriptInterface
+        public void setLandscape() {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            });
+        }
+
+        @JavascriptInterface
+        public void setPortrait() {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            });
+        }
+
+        @JavascriptInterface
+        public void setAutoOrientation() {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            });
         }
     }
 }
