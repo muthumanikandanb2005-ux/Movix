@@ -1,4 +1,4 @@
-import { Movie, StreamSource, VideoQuality, CastMember } from '../types';
+import { Movie, StreamSource, VideoQuality, AudioLanguage, CastMember } from '../types';
 
 export const TMDB_API_KEY = '4c81439cadcaabd5396f929f7a627830';
 export const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0YzgxNDM5Y2FkY2FhYmQ1Mzk2ZjkyOWY3YTYyNzgzMCIsIm5iZiI6MTc4OTMxNzc2OS4zODUsInN1YiI6IjZhYTZkMjg5NjY5YjAzMmM0NzYwYTE2ZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.YCWur56g4tUkC7yeTVjOyopV3L_OZzpicBlGYmRtwa0';
@@ -11,23 +11,19 @@ const IMAGE_W500 = 'https://image.tmdb.org/t/p/w500';
 const QUALITY_STREAMS: Record<VideoQuality, string[]> = {
   '4K': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
-    'https://media.w3.org/2010/05/sintel/trailer.mp4',
-    'https://www.w3schools.com/html/mov_bbb.mp4'
+    'https://vjs.zencdn.net/v/oceans.mp4'
   ],
   '1080p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
-    'https://media.w3.org/2010/05/sintel/trailer.mp4',
-    'https://www.w3schools.com/html/mov_bbb.mp4'
+    'https://media.w3.org/2010/05/sintel/trailer.mp4'
   ],
   '720p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4',
-    'https://www.w3schools.com/html/mov_bbb.mp4',
-    'https://media.w3.org/2010/05/sintel/trailer.mp4'
+    'https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4'
   ],
   '480p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4',
-    'https://www.w3schools.com/html/mov_bbb.mp4',
-    'https://media.w3.org/2010/05/sintel/trailer.mp4'
+    'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
   ]
 };
 
@@ -36,35 +32,53 @@ export const getQualityVideoUrl = (tmdbId: number, quality: VideoQuality = '1080
   return pool[Math.abs(tmdbId) % pool.length];
 };
 
-export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality: VideoQuality = '1080p'): StreamSource[] => {
+export const getStreamingSources = (
+  tmdbId: number, 
+  trailerKey?: string, 
+  quality: VideoQuality = '1080p',
+  language: AudioLanguage = 'Hindi'
+): StreamSource[] => {
   const directUrl = getQualityVideoUrl(tmdbId, quality);
 
   const sources: StreamSource[] = [
     {
-      name: 'Server 1 (VidLink Cloud 4K - Instant Play)',
-      url: `https://vidlink.pro/movie/${tmdbId}`,
+      name: `Server 1 (VidLink Cloud 4K - ${quality})`,
+      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 2 (Netflix Cloud VIP 4K - Ultra Smooth)',
+      name: `Server 2 (VidSrc To VIP - 1080p / Multi-Audio)`,
+      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 3 (VidSrc Me Ultra - Multi-Dub)`,
+      url: `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 4 (Netflix Cloud VIP - 4K)`,
       url: `https://vidly.pro/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 3 (CineSrc Fast Pro - Instant Start)',
+      name: `Server 5 (CineSrc Fast Pro)`,
       url: `https://cinesrc.st/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 4 (2Embed VIP Cinema 4K)',
+      name: `Server 6 (2Embed VIP Cinema 4K)`,
       url: `https://www.2embed.cc/embed/${tmdbId}`,
-      type: 'embed'
+      type: 'embed',
+      quality
     },
     {
-      name: `Server 5 (Direct CDN Buffer ${quality})`,
+      name: `Server 7 (Direct High-Speed Buffer ${quality} - ${language})`,
       url: directUrl,
       type: 'video',
       quality
@@ -73,7 +87,7 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 
   if (trailerKey) {
     sources.push({
-      name: 'Server 7 (Official 4K Trailer)',
+      name: 'Server 8 (Official 4K Trailer)',
       url: `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&playsinline=1&rel=0`,
       type: 'trailer'
     });
@@ -85,23 +99,23 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 export const getTvStreamingSources = (tmdbId: number, season: number = 1, episode: number = 1): StreamSource[] => {
   return [
     {
-      name: 'Server 1 (Netflix Cloud VIP - Full Episode)',
+      name: 'Server 1 (VidLink TV VIP)',
+      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 2 (VidSrc To - Full Episode)',
+      url: `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 3 (VidSrc Me - Full Episode)',
+      url: `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 4 (Netflix Cloud VIP - Full Episode)',
       url: `https://vidly.pro/tv/${tmdbId}/${season}/${episode}`,
-      type: 'embed'
-    },
-    {
-      name: 'Server 2 (CineSrc Fast Pro - Full Episode)',
-      url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}`,
-      type: 'embed'
-    },
-    {
-      name: 'Server 3 (VidSrc PM Cloud - Full Episode)',
-      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}`,
-      type: 'embed'
-    },
-    {
-      name: 'Server 4 (VidSrc In - Full Episode)',
-      url: `https://vidsrc.in/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed'
     }
   ];
@@ -191,7 +205,7 @@ const safeFetch = async (url: string, retries = 2): Promise<any> => {
   return null;
 };
 
-// Fetch full details, cast, director, trailers, and similar movies (for PvrPlay 3-Tab Movie Details)
+// Fetch full details, cast, director, trailers, and similar movies
 export const fetchFullMovieDetails = async (tmdbId: number): Promise<{
   runtime?: number;
   budget?: number;
@@ -246,7 +260,7 @@ export const fetchPopularFromTMDB = async (): Promise<Movie[]> => {
   return data?.results ? data.results.map(mapTmdbToMovie) : [];
 };
 
-// 0.2 In Theatres / Now Playing (PvrPlay "In Theatres" section)
+// 0.2 In Theatres / Now Playing
 export const fetchNowPlayingFromTMDB = async (): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/movie/now_playing?page=1`);
   return data?.results ? data.results.map(mapTmdbToMovie) : [];

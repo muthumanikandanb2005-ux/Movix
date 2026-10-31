@@ -74,7 +74,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   // Generate dynamic quality streaming sources
   const mid = movie.tmdbId || 801688;
-  const sources: StreamSource[] = getStreamingSources(mid, undefined, currentQuality);
+  const sources: StreamSource[] = getStreamingSources(mid, undefined, currentQuality, currentLanguage);
 
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const currentSource = sources[activeSourceIndex] || sources[0];
@@ -189,7 +189,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     tryAutoPlay();
 
     return () => clearTimeout(watchdog);
-  }, [activeSourceIndex, currentQuality, movie.tmdbId]);
+  }, [activeSourceIndex, currentQuality, currentLanguage, movie.tmdbId]);
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -261,18 +261,14 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   // Change streaming quality on the fly
   const handleQualityChange = (q: VideoQuality) => {
-    const savedTime = videoRef.current?.currentTime || 0;
     setCurrentQuality(q);
     setShowQualityMenu(false);
+    setIsBuffering(true);
     setGestureOsd({ type: 'info', value: `Quality: ${q}`, icon: '⚡' });
-    setTimeout(() => setGestureOsd(null), 1500);
-
     setTimeout(() => {
-      if (videoRef.current) {
-        videoRef.current.currentTime = savedTime;
-        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
-      }
-    }, 200);
+      setGestureOsd(null);
+      setIsBuffering(false);
+    }, 1000);
     resetControlsTimeout();
   };
 
@@ -280,8 +276,12 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const handleLanguageChange = (lang: AudioLanguage) => {
     setCurrentLanguage(lang);
     setShowLanguageMenu(false);
-    setGestureOsd({ type: 'info', value: `Audio Track: ${lang}`, icon: '🌐' });
-    setTimeout(() => setGestureOsd(null), 1500);
+    setIsBuffering(true);
+    setGestureOsd({ type: 'info', value: `Audio: ${lang}`, icon: '🌐' });
+    setTimeout(() => {
+      setGestureOsd(null);
+      setIsBuffering(false);
+    }, 1000);
     resetControlsTimeout();
   };
 
@@ -376,25 +376,55 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     >
       {/* Permanent Mini Floating Action Bar (visible when main header is collapsed) */}
       {!showControls && !isLocked && (
-        <div className="absolute top-4 right-4 z-50 flex items-center space-x-2 animate-in fade-in duration-200">
+        <div className="absolute top-4 right-4 z-50 flex items-center space-x-1.5 animate-in fade-in duration-200">
+          {/* Quality Pill */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowControls(true);
+              setShowQualityMenu(true);
+            }}
+            className="px-2.5 py-1.5 rounded-full bg-black/85 hover:bg-black text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-2xl flex items-center space-x-1 active:scale-95 transition-all"
+            title="Select Quality"
+          >
+            <span>{currentQuality}</span>
+          </button>
+
+          {/* Language Pill */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowControls(true);
+              setShowLanguageMenu(true);
+            }}
+            className="px-2.5 py-1.5 rounded-full bg-black/85 hover:bg-black text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-2xl flex items-center space-x-1 active:scale-95 transition-all"
+            title="Audio Language"
+          >
+            <Globe className="w-3.5 h-3.5 text-white/80" />
+            <span className="max-w-[60px] truncate">{currentLanguage}</span>
+          </button>
+
+          {/* Server Pill */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowControls(true);
               setShowServerMenu(true);
             }}
-            className="px-3 py-1.5 rounded-full bg-black/80 hover:bg-black text-white/90 hover:text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-2xl flex items-center space-x-1.5 active:scale-95 transition-all"
+            className="px-2.5 py-1.5 rounded-full bg-black/85 hover:bg-black text-white/90 hover:text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-2xl flex items-center space-x-1 active:scale-95 transition-all"
             title="Switch Streaming Server"
           >
             <Server className="w-3.5 h-3.5 text-[#E50914]" />
-            <span>{sources[activeSourceIndex]?.name.split(' ')[1] || 'Server'}</span>
+            <span className="hidden sm:inline">{sources[activeSourceIndex]?.name.split(' ')[1] || 'Server'}</span>
           </button>
+
+          {/* Exit Button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               onClose();
             }}
-            className="p-2 rounded-full bg-black/80 hover:bg-black text-white backdrop-blur-md border border-white/20 shadow-2xl active:scale-90 transition-all"
+            className="p-2 rounded-full bg-black/85 hover:bg-black text-white backdrop-blur-md border border-white/20 shadow-2xl active:scale-90 transition-all"
             title="Exit Player"
           >
             <X className="w-4 h-4" />
@@ -454,10 +484,11 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setShowServerMenu(false);
               setShowSpeedMenu(false);
             }}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95"
+            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95"
             title="Audio Language"
           >
-            <Languages className="w-4 h-4 text-white/80" />
+            <Globe className="w-3.5 h-3.5 text-white/80" />
+            <span className="hidden sm:inline">{currentLanguage}</span>
           </button>
 
           {/* Playback Speed Switcher Button */}
@@ -698,7 +729,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
-            key={`${currentSource.url}-${activeSourceIndex}`}
+            key={`${currentSource.url}-${activeSourceIndex}-${currentQuality}-${currentLanguage}`}
             src={currentSource.url}
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
