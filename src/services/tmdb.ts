@@ -41,36 +41,30 @@ export const getStreamingSources = (tmdbId: number, trailerKey?: string, quality
 
   const sources: StreamSource[] = [
     {
-      name: 'Server 1 (Netflix Cloud VIP 4K - Ultra Smooth)',
+      name: 'Server 1 (VidLink Cloud 4K - Instant Play)',
+      url: `https://vidlink.pro/movie/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: 'Server 2 (Netflix Cloud VIP 4K - Ultra Smooth)',
       url: `https://vidly.pro/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 2 (CineSrc Fast Pro - Instant Start)',
+      name: 'Server 3 (CineSrc Fast Pro - Instant Start)',
       url: `https://cinesrc.st/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 3 (VidSrc PM Cloud - Full Movie)',
-      url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: 'Server 4 (VidSrc In High-Speed - Full Movie)',
-      url: `https://vidsrc.in/embed/movie/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: 'Server 5 (2Embed VIP Cinema 4K)',
+      name: 'Server 4 (2Embed VIP Cinema 4K)',
       url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed'
     },
     {
-      name: `Server 6 (Direct CDN Buffer ${quality})`,
+      name: `Server 5 (Direct CDN Buffer ${quality})`,
       url: directUrl,
       type: 'video',
       quality

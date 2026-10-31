@@ -133,7 +133,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     };
 
     window.addEventListener('message', handlePlayerMessage);
-    return () => window.removeEventListener('message', handlePlayerMessage);
+    
+    return () => {
+      window.removeEventListener('message', handlePlayerMessage);
+    };
   }, [movie, onClose]);
 
   const lastSavedTimeRef = useRef<number>(0);
@@ -454,7 +457,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95"
             title="Audio Language"
           >
-            <Languages className="w-4 h-4 text-emerald-400" />
+            <Languages className="w-4 h-4 text-white/80" />
           </button>
 
           {/* Playback Speed Switcher Button */}
@@ -509,7 +512,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         >
           <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
             <span>Select Resolution:</span>
-            <span className="text-[10px] text-emerald-400">Fast Buffer</span>
+            <span className="text-[10px] text-white/60">Fast Buffer</span>
           </div>
           <div className="space-y-1.5">
             {(['4K', '1080p', '720p', '480p'] as VideoQuality[]).map((q) => (
@@ -538,10 +541,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         >
           <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
             <span className="flex items-center space-x-1">
-              <Globe className="w-3.5 h-3.5 text-emerald-400" />
+              <Globe className="w-3.5 h-3.5 text-white/70" />
               <span>Audio Language:</span>
             </span>
-            <span className="text-[10px] text-emerald-400 font-mono">Dolby Audio</span>
+            <span className="text-[10px] text-white/60 font-mono">Dolby Audio</span>
           </div>
           <div className="space-y-1.5 max-h-64 overflow-y-auto scrollbar-none no-scrollbar">
             {[...AVAILABLE_LANGUAGES]
@@ -561,7 +564,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                       isSelected
                         ? 'bg-[#E50914] text-white shadow-md'
                         : isSupported
-                        ? 'bg-emerald-500/15 text-white hover:bg-emerald-500/25 border border-emerald-500/30'
+                        ? 'bg-white/10 text-white hover:bg-white/15 border border-white/20'
                         : 'bg-white/5 hover:bg-white/10 text-white/80'
                     }`}
                   >
@@ -569,7 +572,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                       <span>{lang.icon}</span>
                       <span>{lang.label}</span>
                       {isSupported && !isSelected && (
-                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/30 text-emerald-300 font-extrabold uppercase">
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-white/20 text-white/80 font-extrabold uppercase">
                           Ready
                         </span>
                       )}
@@ -590,7 +593,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         >
           <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
             <span>Select Stream Mirror</span>
-            <span className="text-[10px] text-emerald-400">All Online</span>
+            <span className="text-[10px] text-white/60">All Online</span>
           </div>
           <div className="space-y-1.5">
             {sources.map((src, idx) => (
@@ -700,14 +703,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
             referrerPolicy="no-referrer-when-downgrade"
             onLoad={() => {
               setIsBuffering(false);
               setHasStartedPlaying(true);
             }}
             style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-            className="w-full h-full border-0 absolute inset-0"
+            className="w-full h-full border-0 absolute inset-0 z-10"
           />
         ) : (
           <video

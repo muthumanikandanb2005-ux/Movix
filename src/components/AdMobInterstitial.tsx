@@ -30,22 +30,33 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
   // Pick ad video based on time
   const adVideoUrl = AD_VIDEOS[Math.floor(Date.now() / 1000) % AD_VIDEOS.length];
 
-  const triggerDismiss = () => {
+  const triggerDismiss = (failed = false) => {
     if (dismissedRef.current) return;
     dismissedRef.current = true;
 
-    try {
-      if (typeof onDismiss === 'function') onDismiss();
-      if (typeof onAdDismissed === 'function') onAdDismissed();
-      if (typeof onAdFailed === 'function') onAdFailed();
-    } catch (err) {
-      console.error('Error during ad dismissal:', err);
-    }
+    // Small delay so the user sees the skip action before movie starts
+    setTimeout(() => {
+      try {
+        if (failed && typeof onAdFailed === 'function') {
+          onAdFailed();
+        } else {
+          if (typeof onAdDismissed === 'function') onAdDismissed();
+          if (typeof onDismiss === 'function') onDismiss();
+        }
+      } catch (err) {
+        console.error('Error during ad dismissal:', err);
+      }
+    }, 80);
   };
 
   useEffect(() => {
-    // 1. Try native Android AdMob Interstitial
+    // Hide native banner while interstitial video ad is playing
     const androidAdMob = (window as any).AndroidAdMob;
+    if (androidAdMob && typeof androidAdMob.hideBannerAd === 'function') {
+      androidAdMob.hideBannerAd();
+    }
+
+    // 1. Try native Android AdMob Interstitial
     if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
       const handleNativeAdDismissed = () => {
         triggerDismiss();
@@ -71,6 +82,7 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
 
   const handleSkipClick = () => {
     if (!canSkip) return;
+    if (videoRef.current) videoRef.current.pause();
     triggerDismiss();
   };
 

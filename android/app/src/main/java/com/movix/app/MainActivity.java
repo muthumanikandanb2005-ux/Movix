@@ -146,6 +146,9 @@ public class MainActivity extends BridgeActivity {
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
                 params.gravity = Gravity.BOTTOM;
+                // Keep 65dp clearance from bottom so BottomNav (Home, Search, Downloads, My List) is NEVER covered
+                float density = getResources().getDisplayMetrics().density;
+                params.bottomMargin = (int) (65 * density);
                 mAdView.setLayoutParams(params);
 
                 mAdView.setAdListener(new com.google.android.gms.ads.AdListener() {
