@@ -118,22 +118,34 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   // Manage orientation changes and ensure banner is hidden during cinema player
   useEffect(() => {
+    const checkOrientation = () => {
+      const isLand = window.innerWidth > window.innerHeight || (window.screen?.orientation?.type?.includes('landscape') ?? false);
+      setIsLandscape(isLand);
+    };
+    checkOrientation();
+
     const handleOrientation = () => {
-      setIsLandscape(window.innerWidth > window.innerHeight);
+      checkOrientation();
+      setTimeout(checkOrientation, 150);
+      setTimeout(checkOrientation, 350);
     };
 
     window.addEventListener('resize', handleOrientation);
     window.addEventListener('orientationchange', handleOrientation);
 
     const androidAdMob = (window as any).AndroidAdMob;
-    if (androidAdMob && typeof androidAdMob.hideBannerAd === 'function') {
+    if (androidAdMob && typeof androidAdMob.setPlayerActive === 'function') {
+      androidAdMob.setPlayerActive(true);
+    } else if (androidAdMob && typeof androidAdMob.hideBannerAd === 'function') {
       androidAdMob.hideBannerAd();
     }
 
     return () => {
       window.removeEventListener('resize', handleOrientation);
       window.removeEventListener('orientationchange', handleOrientation);
-      if (androidAdMob && typeof androidAdMob.showBannerAd === 'function') {
+      if (androidAdMob && typeof androidAdMob.setPlayerActive === 'function') {
+        androidAdMob.setPlayerActive(false);
+      } else if (androidAdMob && typeof androidAdMob.showBannerAd === 'function') {
         androidAdMob.showBannerAd();
       }
       if (androidAdMob && typeof androidAdMob.setAutoOrientation === 'function') {
@@ -169,14 +181,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   }, [movie, onClose]);
 
   const lastSavedTimeRef = useRef<number>(0);
+  const savedPlaybackTimeRef = useRef<number>(0);
 
   // Attempt initial playback immediately on mount and source switch
   useEffect(() => {
     setIsBuffering(true);
     setHasError(false);
 
-    let startSecond = 0;
-    if (movie.tmdbId) {
+    let startSecond = savedPlaybackTimeRef.current;
+    if (startSecond <= 0 && movie.tmdbId) {
       try {
         const raw = localStorage.getItem(`player:resume:${movie.tmdbId}`);
         if (raw) {
@@ -188,26 +201,29 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       } catch {}
     }
 
-    // Fast watchdog: Clear buffering quickly (350ms) so user gets instant playback
+    // Fast watchdog: Clear buffering quickly (200ms) so user gets instant playback
     const watchdog = setTimeout(() => {
       setIsBuffering(false);
-    }, 350);
+      setHasStartedPlaying(true);
+    }, 200);
 
     const tryAutoPlay = async () => {
       if (videoRef.current && currentSource.type === 'video') {
         try {
-          if (startSecond > 0 && videoRef.current.readyState >= 1) {
+          if (startSecond > 0) {
             videoRef.current.currentTime = startSecond;
             setGestureOsd({ type: 'seek', value: `Resumed from ${formatTime(startSecond)}`, icon: '⏱️' });
-            setTimeout(() => setGestureOsd(null), 2000);
+            setTimeout(() => setGestureOsd(null), 1800);
           }
           await videoRef.current.play();
           setIsPlaying(true);
           setHasStartedPlaying(true);
           setIsBuffering(false);
         } catch {
+          // If browser requires tap to play with sound
           setIsPlaying(false);
           setIsBuffering(false);
+          setHasStartedPlaying(true);
           setShowControls(true);
         }
       }
@@ -250,7 +266,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const dur = videoRef.current.duration || 1;
     setProgress((curr / dur) * 100);
     setCurrentTime(formatTime(curr));
-    if (curr > 0.1 && !hasStartedPlaying) {
+    if (curr > 0.05 && !hasStartedPlaying) {
       setHasStartedPlaying(true);
       setIsBuffering(false);
     }
@@ -263,12 +279,25 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   const handleLoadedMetadata = () => {
     if (!videoRef.current) return;
-    setDuration(formatTime(videoRef.current.duration));
+    const dur = videoRef.current.duration || 1;
+    setDuration(formatTime(dur));
+    
+    // Restore playback position on quality swap
+    if (savedPlaybackTimeRef.current > 0 && savedPlaybackTimeRef.current < dur) {
+      videoRef.current.currentTime = savedPlaybackTimeRef.current;
+      savedPlaybackTimeRef.current = 0;
+    }
+
     setIsBuffering(false);
+    setHasStartedPlaying(true);
+
     videoRef.current.play().then(() => {
       setIsPlaying(true);
-      setHasStartedPlaying(true);
-    }).catch(() => {});
+    }).catch(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch(() => {});
+      }
+    });
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,16 +314,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     resetControlsTimeout();
   };
 
-  // Change streaming quality on the fly
+  // Change streaming quality on the fly (Preserves exact second)
   const handleQualityChange = (q: VideoQuality) => {
+    if (videoRef.current) {
+      savedPlaybackTimeRef.current = videoRef.current.currentTime;
+    }
     setCurrentQuality(q);
     setShowQualityMenu(false);
     setIsBuffering(true);
     setGestureOsd({ type: 'info', value: `Quality: ${q}`, icon: '⚡' });
     setTimeout(() => {
       setGestureOsd(null);
-      setIsBuffering(false);
-    }, 1000);
+    }, 1200);
     resetControlsTimeout();
   };
 
@@ -302,12 +333,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const handleLanguageChange = (lang: AudioLanguage) => {
     setCurrentLanguage(lang);
     setShowLanguageMenu(false);
-    setIsBuffering(true);
-    setGestureOsd({ type: 'info', value: `Audio: ${lang}`, icon: '🌐' });
+    setGestureOsd({ type: 'info', value: `Audio: ${lang} (Dolby 5.1)`, icon: '🌐' });
     setTimeout(() => {
       setGestureOsd(null);
-      setIsBuffering(false);
-    }, 1000);
+    }, 1500);
     resetControlsTimeout();
   };
 
@@ -875,20 +904,35 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         )}
 
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
-          <iframe
-            key={`${currentSource.url}-${activeSourceIndex}-${currentQuality}-${currentLanguage}`}
-            src={currentSource.url}
-            title={movie.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-            allowFullScreen
-            referrerPolicy="no-referrer-when-downgrade"
-            onLoad={() => {
-              setIsBuffering(false);
-              setHasStartedPlaying(true);
-            }}
-            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-            className="w-full h-full border-0 absolute inset-0 z-10"
-          />
+          <>
+            <iframe
+              key={`${currentSource.url}-${activeSourceIndex}-${currentQuality}-${currentLanguage}`}
+              src={currentSource.url}
+              title={movie.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+              allowFullScreen
+              referrerPolicy="no-referrer"
+              onLoad={() => {
+                setIsBuffering(false);
+                setHasStartedPlaying(true);
+              }}
+              style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+              className="w-full h-full border-0 absolute inset-0 z-10"
+            />
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+              <button
+                onClick={() => {
+                  setActiveSourceIndex(0);
+                  setGestureOsd({ type: 'info', value: 'Switched to Movix VIP Direct Stream', icon: '⚡' });
+                  setTimeout(() => setGestureOsd(null), 1500);
+                }}
+                className="px-3.5 py-1.5 rounded-full bg-black/85 hover:bg-black text-white/90 hover:text-white text-xs font-semibold border border-white/20 backdrop-blur-md shadow-2xl flex items-center space-x-1.5 active:scale-95 transition-all"
+              >
+                <span>{currentSource.name.split(' ')[1] || 'Mirror'}</span>
+                <span className="text-[#E50914] font-bold">• Tap for VIP Stream</span>
+              </button>
+            </div>
+          </>
         ) : (
           <video
             ref={videoRef}

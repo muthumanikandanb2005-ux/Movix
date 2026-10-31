@@ -36,6 +36,7 @@ public class MainActivity extends BridgeActivity {
     private RewardedAd mRewardedAd;
     private AdView mAdView;
     private boolean isAdLoading = false;
+    private boolean isVideoPlayerOpen = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +56,14 @@ public class MainActivity extends BridgeActivity {
             webSettings.setLoadWithOverviewMode(true);
             webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
             webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+
+            // Enable third-party cookies for cross-origin media streaming tokens & iframes
+            try {
+                android.webkit.CookieManager cookieManager = android.webkit.CookieManager.getInstance();
+                cookieManager.setAcceptCookie(true);
+                cookieManager.setAcceptThirdPartyCookies(webView, true);
+            } catch (Exception ignored) {}
             
             // Enable hardware acceleration for butter-smooth 60fps video streaming
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -74,11 +83,13 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // In landscape cinema mode, immediately hide banner ad so movie has full unobstructed screen
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        // During landscape cinema mode or when video player is open, hide banner ad
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE || isVideoPlayerOpen) {
             if (mAdView != null) {
                 mAdView.setVisibility(View.GONE);
             }
+        } else if (!isVideoPlayerOpen && mAdView != null) {
+            mAdView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -240,9 +251,23 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
+        public void setPlayerActive(boolean active) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                isVideoPlayerOpen = active;
+                if (mAdView != null) {
+                    if (active) {
+                        mAdView.setVisibility(View.GONE);
+                    } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        mAdView.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void showBannerAd() {
             new Handler(Looper.getMainLooper()).post(() -> {
-                if (mAdView != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                if (mAdView != null && !isVideoPlayerOpen && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                     mAdView.setVisibility(View.VISIBLE);
                 }
             });

@@ -11,15 +11,18 @@ const IMAGE_W500 = 'https://image.tmdb.org/t/p/w500';
 const QUALITY_STREAMS: Record<VideoQuality, string[]> = {
   '4K': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
-    'https://vjs.zencdn.net/v/oceans.mp4'
+    'https://vjs.zencdn.net/v/oceans.mp4',
+    'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_5MB.mp4'
   ],
   '1080p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
-    'https://media.w3.org/2010/05/sintel/trailer.mp4'
+    'https://media.w3.org/2010/05/sintel/trailer.mp4',
+    'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_5MB.mp4'
   ],
   '720p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4',
-    'https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4'
+    'https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4',
+    'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4'
   ],
   '480p': [
     'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4',
@@ -42,52 +45,46 @@ export const getStreamingSources = (
 
   const sources: StreamSource[] = [
     {
-      name: `Server 1 (VidLink Cloud 4K - ${quality})`,
+      name: `Server 1 (Movix Ultra HD VIP - ${quality})`,
+      url: directUrl,
+      type: 'video',
+      quality
+    },
+    {
+      name: `Server 2 (VidLink Cinema Stream - ${quality})`,
       url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 2 (VidSrc To VIP - 1080p / Multi-Audio)`,
-      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
+      name: `Server 3 (SuperEmbed Cinema HD)`,
+      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 3 (VidSrc Me Ultra - Multi-Dub)`,
-      url: `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 4 (Netflix Cloud VIP - 4K)`,
-      url: `https://vidly.pro/movie/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 5 (CineSrc Fast Pro)`,
+      name: `Server 4 (CineSrc Fast Pro)`,
       url: `https://cinesrc.st/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 6 (2Embed VIP Cinema 4K)`,
-      url: `https://www.2embed.cc/embed/${tmdbId}`,
+      name: `Server 5 (VidJoy VIP Multi-Dub)`,
+      url: `https://vidjoy.pro/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 7 (Direct High-Speed Buffer ${quality} - ${language})`,
-      url: directUrl,
-      type: 'video',
+      name: `Server 6 (VidSrc Me Mirror)`,
+      url: `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`,
+      type: 'embed',
       quality
     }
   ];
 
   if (trailerKey) {
     sources.push({
-      name: 'Server 8 (Official 4K Trailer)',
+      name: 'Server 7 (Official 4K Trailer)',
       url: `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&playsinline=1&rel=0`,
       type: 'trailer'
     });

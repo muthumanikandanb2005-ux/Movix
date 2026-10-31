@@ -34,3 +34,6 @@ patch_*.py
 update_*.py
 
 .vercel
+*.apk
+movix-app-*.apk
+
