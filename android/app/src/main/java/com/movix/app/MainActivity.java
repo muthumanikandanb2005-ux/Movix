@@ -80,16 +80,49 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
+    private void enableImmersiveMode() {
+        runOnUiThread(() -> {
+            try {
+                View decorView = getWindow().getDecorView();
+                decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                );
+            } catch (Exception ignored) {}
+        });
+    }
+
+    private void disableImmersiveMode() {
+        runOnUiThread(() -> {
+            try {
+                View decorView = getWindow().getDecorView();
+                decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            } catch (Exception ignored) {}
+        });
+    }
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // During landscape cinema mode or when video player is open, hide banner ad
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE || isVideoPlayerOpen) {
+        // During landscape cinema mode or when video player is open, hide banner ad and adapt screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             if (mAdView != null) {
                 mAdView.setVisibility(View.GONE);
             }
-        } else if (!isVideoPlayerOpen && mAdView != null) {
-            mAdView.setVisibility(View.VISIBLE);
+            if (isVideoPlayerOpen) {
+                enableImmersiveMode();
+            }
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (isVideoPlayerOpen) {
+                disableImmersiveMode();
+                if (mAdView != null) mAdView.setVisibility(View.GONE);
+            } else if (mAdView != null) {
+                mAdView.setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -254,10 +287,15 @@ public class MainActivity extends BridgeActivity {
         public void setPlayerActive(boolean active) {
             new Handler(Looper.getMainLooper()).post(() -> {
                 isVideoPlayerOpen = active;
-                if (mAdView != null) {
-                    if (active) {
-                        mAdView.setVisibility(View.GONE);
-                    } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                if (active) {
+                    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        enableImmersiveMode();
+                    }
+                    if (mAdView != null) mAdView.setVisibility(View.GONE);
+                } else {
+                    disableImmersiveMode();
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                    if (mAdView != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                         mAdView.setVisibility(View.VISIBLE);
                     }
                 }
@@ -291,6 +329,7 @@ public class MainActivity extends BridgeActivity {
         public void setLandscape() {
             new Handler(Looper.getMainLooper()).post(() -> {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                enableImmersiveMode();
             });
         }
 
@@ -298,13 +337,15 @@ public class MainActivity extends BridgeActivity {
         public void setPortrait() {
             new Handler(Looper.getMainLooper()).post(() -> {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                disableImmersiveMode();
             });
         }
 
         @JavascriptInterface
         public void setAutoOrientation() {
             new Handler(Looper.getMainLooper()).post(() -> {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+                disableImmersiveMode();
             });
         }
     }

@@ -358,6 +358,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       } else if (screen.orientation && typeof screen.orientation.unlock === 'function') {
         try { screen.orientation.unlock(); } catch {}
       }
+      if (document.fullscreenElement) {
+        try { document.exitFullscreen(); } catch {}
+      }
       setIsLandscape(false);
       setGestureOsd({ type: 'info', value: 'Portrait View', icon: '📱' });
     } else {
@@ -365,6 +368,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         androidAdMob.setLandscape();
       } else if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
         try { (screen.orientation as any).lock('landscape'); } catch {}
+      }
+      if (containerRef.current && !document.fullscreenElement) {
+        try { containerRef.current.requestFullscreen(); } catch {}
       }
       setIsLandscape(true);
       setGestureOsd({ type: 'info', value: 'Cinema Landscape (16:9)', icon: '🔄' });
@@ -509,7 +515,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     <div 
       ref={containerRef}
       id="movix-xplayer-container" 
-      className="fixed inset-0 z-50 bg-black flex flex-col justify-between select-none overflow-hidden w-screen h-screen"
+      className="fixed inset-0 z-50 bg-black select-none overflow-hidden w-full h-full min-h-[100dvh] max-h-[100dvh]"
       style={{ filter: `brightness(${brightness}%)` }}
       onTouchStart={currentSource.type === 'video' ? handleTouchStart : undefined}
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
@@ -517,7 +523,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     >
       {/* Permanent Mini Floating Action Bar (visible when main header is collapsed) */}
       {!showControls && !isLocked && (
-        <div className={`absolute ${isLandscape ? 'top-3 right-4' : 'top-4 right-4'} z-50 flex items-center space-x-1.5 animate-in fade-in duration-200`}>
+        <div className={`absolute ${isLandscape ? 'top-3 right-5' : 'top-4 right-4'} z-50 flex items-center space-x-1.5 animate-in fade-in duration-200`}>
           {/* Quality Pill */}
           <button
             onClick={(e) => {
@@ -585,9 +591,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
       )}
 
-      {/* 1. TOP CONTROL BAR */}
-      <div className={`z-40 ${isLandscape ? 'px-4 py-2.5' : 'px-5 py-4'} bg-gradient-to-b from-black/95 via-black/80 to-transparent flex items-center justify-between transition-opacity duration-300 ${
-        showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
+      <div className={`absolute top-0 left-0 right-0 z-40 ${isLandscape ? 'px-6 pt-3 pb-8' : 'px-5 pt-4 pb-10'} bg-gradient-to-b from-black/95 via-black/80 to-transparent flex items-center justify-between transition-opacity duration-300 pointer-events-auto ${
+        showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}>
         <div className="flex items-center space-x-3 min-w-0">
           <img 
@@ -889,8 +895,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
       )}
 
-      {/* 9. VIDEO CANVAS */}
-      <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black w-full h-full">
+      {/* 9. VIDEO CANVAS (FULLSCREEN EDGE-TO-EDGE) */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden bg-black flex items-center justify-center">
         {/* Backdrop poster preview (only for direct video before playback begins) */}
         {!hasStartedPlaying && currentSource.type === 'video' && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -1014,8 +1020,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
       {/* 10. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
       {currentSource.type === 'video' && (
-        <div className={`z-40 ${isLandscape ? 'px-4 py-2.5' : 'px-5 py-4'} bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2 transition-opacity duration-300 ${
-          showControls && !isLocked ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        <div className={`absolute bottom-0 left-0 right-0 z-40 ${isLandscape ? 'px-6 pb-3 pt-8' : 'px-5 pb-5 pt-10'} bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2 transition-opacity duration-300 pointer-events-auto ${
+          showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}>
           {/* Progress Timeline Scrubber */}
           <div className="flex items-center space-x-3 text-xs text-white/70 font-mono">
