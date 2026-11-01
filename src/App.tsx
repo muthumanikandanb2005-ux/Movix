@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { MovieCarousel } from './components/MovieCarousel';
@@ -148,17 +148,17 @@ export const App: React.FC = () => {
     loadAllTmdbFeeds();
   }, []);
 
-  // Combined movie pools (seeded with local data, then enriched by live TMDB)
-  const combinedIndian = dedupeMovies([...indianBlockbusters, ...liveIndian]);
-  const combinedSouthIndian = dedupeMovies(liveSouthIndian);
-  const combinedHollywood = dedupeMovies([...hollywoodBlockbusters, ...liveHollywood]);
-  const combinedRomance = dedupeMovies([...romanceMovies, ...liveRomance]);
-  const combinedThriller = dedupeMovies([...thrillerMovies, ...liveThriller]);
-  const combinedAction = dedupeMovies(liveAction);
-  const combinedNowPlaying = dedupeMovies(liveNowPlaying);
+  // Combined movie pools (memoized to eliminate frame drops & jank)
+  const combinedIndian = useMemo(() => dedupeMovies([...indianBlockbusters, ...liveIndian]), [liveIndian]);
+  const combinedSouthIndian = useMemo(() => dedupeMovies(liveSouthIndian), [liveSouthIndian]);
+  const combinedHollywood = useMemo(() => dedupeMovies([...hollywoodBlockbusters, ...liveHollywood]), [liveHollywood]);
+  const combinedRomance = useMemo(() => dedupeMovies([...romanceMovies, ...liveRomance]), [liveRomance]);
+  const combinedThriller = useMemo(() => dedupeMovies([...thrillerMovies, ...liveThriller]), [liveThriller]);
+  const combinedAction = useMemo(() => dedupeMovies(liveAction), [liveAction]);
+  const combinedNowPlaying = useMemo(() => dedupeMovies(liveNowPlaying), [liveNowPlaying]);
 
-  // Global search catalogue
-  const allMovies = dedupeMovies([
+  // Global search catalogue (memoized)
+  const allMovies = useMemo(() => dedupeMovies([
     featuredIndianMovie,
     ...ottNewReleases,
     ...combinedNowPlaying,
@@ -170,7 +170,7 @@ export const App: React.FC = () => {
     ...combinedAction,
     ...sciFiPicks,
     ...liveTrending
-  ]);
+  ]), [combinedNowPlaying, combinedIndian, combinedSouthIndian, combinedHollywood, combinedRomance, combinedThriller, combinedAction, liveTrending]);
 
   // Movies filtered by selected category
   const getFilteredCategoryMovies = (): Movie[] => {
@@ -207,17 +207,17 @@ export const App: React.FC = () => {
     }
   };
 
-  // 1. User taps Play or Stream -> Open Quality & Language Selector
+  // 1. User taps Play or Stream -> Instant 1-Tap Cinema Playback
   const handleRequestPlay = (movie: Movie) => {
-    setQualityTargetMovie(movie);
+    setPlayingMovie(movie);
   };
 
-  // 2. User confirms Quality (4K, 1080p, 720p, 480p) & Language -> Show AdMob Interstitial
+  // 2. User confirms Quality & Language -> Launch Player with selected preferences
   const handleQualityConfirmed = (movie: Movie, quality: VideoQuality, language: AudioLanguage) => {
     setQualityTargetMovie(null);
     setActiveQuality(quality);
     setActiveLanguage(language);
-    setInterstitialTarget(movie);
+    setPlayingMovie(movie);
   };
 
   // 3. Ad finishes/dismissed -> Launch Player
@@ -260,7 +260,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Tab Content */}
-      <main className="flex-1">
+      <main className="flex-1 pb-28">
         {activeTab === 'home' && (
           <div className="animate-in fade-in duration-300">
             {/* 1. Indian Movie in First Home Page Hero */}

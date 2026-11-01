@@ -4,7 +4,7 @@ import {
   Film, Info, Clapperboard, Share2, Calendar, DollarSign, Building2, User 
 } from 'lucide-react';
 import { Movie, CastMember } from '../types';
-import { fetchFullMovieDetails } from '../services/tmdb';
+import { fetchFullMovieDetails, getStreamingSources } from '../services/tmdb';
 import { AdMobBanner } from './AdMobBanner';
 
 interface MovieDetailsModalProps {

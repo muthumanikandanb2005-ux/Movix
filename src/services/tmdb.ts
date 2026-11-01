@@ -55,7 +55,7 @@ export const getStreamingSources = (
       quality
     },
     {
-      name: `Server 3 (VidSrc Ultra HD)`,
+      name: `Server 3 (VidSrc PM Ultra HD)`,
       url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
@@ -67,14 +67,8 @@ export const getStreamingSources = (
       quality
     },
     {
-      name: `Server 5 (VidJoy VIP Multi-Dub)`,
-      url: `https://vidjoy.pro/embed/movie/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 6 (VidSrc To VIP)`,
-      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
+      name: `Server 5 (2Embed Cinema VIP)`,
+      url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed',
       quality
     }
@@ -82,7 +76,7 @@ export const getStreamingSources = (
 
   if (trailerKey) {
     sources.push({
-      name: 'Server 7 (Official 4K Trailer)',
+      name: 'Server 6 (Official 4K Trailer)',
       url: `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&playsinline=1&rel=0`,
       type: 'trailer'
     });
@@ -111,6 +105,11 @@ export const getTvStreamingSources = (tmdbId: number, season: number = 1, episod
     {
       name: 'Server 4 (CineSrc TV Pro)',
       url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}`,
+      type: 'embed'
+    },
+    {
+      name: 'Server 5 (2Embed TV)',
+      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
       type: 'embed'
     }
   ];

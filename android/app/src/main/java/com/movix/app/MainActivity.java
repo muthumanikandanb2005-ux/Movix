@@ -56,7 +56,8 @@ public class MainActivity extends BridgeActivity {
             webSettings.setLoadWithOverviewMode(true);
             webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
             webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-            webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+            webSettings.setJavaScriptCanOpenWindowsAutomatically(false);
+            webSettings.setSupportMultipleWindows(false);
 
             // Enable third-party cookies for cross-origin media streaming tokens & iframes
             try {
