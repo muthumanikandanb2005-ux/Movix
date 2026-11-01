@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 export type CategoryFilter = 
   | 'All' 
@@ -32,7 +32,7 @@ const CATEGORIES: CategoryMeta[] = [
   { id: 'Sci-Fi', label: 'Sci-Fi Universe', icon: '🚀' }
 ];
 
-export const OttProviderBar: React.FC<CategoryBarProps> = ({ selectedCategory, onSelectCategory }) => {
+export const OttProviderBar: React.FC<CategoryBarProps> = memo(({ selectedCategory, onSelectCategory }) => {
   return (
     <div className="w-full px-5 mb-5 select-none">
       <div className="flex items-center justify-between mb-2.5">
@@ -49,7 +49,10 @@ export const OttProviderBar: React.FC<CategoryBarProps> = ({ selectedCategory, o
         )}
       </div>
 
-      <div className="flex space-x-2.5 overflow-x-auto pb-2 scrollbar-none no-scrollbar -mx-5 px-5">
+      <div 
+        className="flex space-x-2.5 overflow-x-auto pb-2 scrollbar-none no-scrollbar -mx-5 px-5"
+        style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
+      >
         {CATEGORIES.map((c) => {
           const isSelected = selectedCategory === c.id;
           return (
@@ -70,4 +73,6 @@ export const OttProviderBar: React.FC<CategoryBarProps> = ({ selectedCategory, o
       </div>
     </div>
   );
-};
+});
+
+OttProviderBar.displayName = 'OttProviderBar';

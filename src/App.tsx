@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { MovieCarousel } from './components/MovieCarousel';
@@ -149,6 +149,9 @@ export const App: React.FC = () => {
   }, []);
 
   // Combined movie pools (memoized to eliminate frame drops & jank)
+  const top10Movies = useMemo(() => dedupeMovies([...netflixTop10, ...liveTrending]), [liveTrending]);
+  const trendingNowMovies = useMemo(() => dedupeMovies([...netflixTrendingNow, ...liveNowPlaying]), [liveNowPlaying]);
+  const netflixOriginalsMovies = useMemo(() => dedupeMovies([...netflixOriginals]), []);
   const combinedIndian = useMemo(() => dedupeMovies([...indianBlockbusters, ...liveIndian]), [liveIndian]);
   const combinedSouthIndian = useMemo(() => dedupeMovies(liveSouthIndian), [liveSouthIndian]);
   const combinedHollywood = useMemo(() => dedupeMovies([...hollywoodBlockbusters, ...liveHollywood]), [liveHollywood]);
@@ -188,7 +191,7 @@ export const App: React.FC = () => {
 
   const filteredMovies = getFilteredCategoryMovies();
 
-  const handleToggleList = (movie: Movie) => {
+  const handleToggleList = useCallback((movie: Movie) => {
     if (myList.some((m) => m.id === movie.id)) {
       setMyList((prev) => prev.filter((m) => m.id !== movie.id));
       showToast(`Removed "${movie.title}" from My List`);
@@ -196,37 +199,44 @@ export const App: React.FC = () => {
       setMyList((prev) => [...prev, movie]);
       showToast(`Added "${movie.title}" to My List`);
     }
-  };
+  }, [myList]);
 
-  const handleDownload = (movie: Movie) => {
+  const handleDownload = useCallback((movie: Movie) => {
     if (!downloads.some((m) => m.id === movie.id)) {
       setDownloads((prev) => [...prev, movie]);
       showToast(`Downloading "${movie.title}" for offline playback...`);
     } else {
       showToast(`"${movie.title}" is already in Downloads`);
     }
-  };
+  }, [downloads]);
 
   // 1. User taps Play or Stream -> Instant 1-Tap Cinema Playback
-  const handleRequestPlay = (movie: Movie) => {
+  const handleRequestPlay = useCallback((movie: Movie) => {
     setPlayingMovie(movie);
-  };
+  }, []);
 
   // 2. User confirms Quality & Language -> Launch Player with selected preferences
-  const handleQualityConfirmed = (movie: Movie, quality: VideoQuality, language: AudioLanguage) => {
+  const handleQualityConfirmed = useCallback((movie: Movie, quality: VideoQuality, language: AudioLanguage) => {
     setQualityTargetMovie(null);
     setActiveQuality(quality);
     setActiveLanguage(language);
     setPlayingMovie(movie);
-  };
+  }, []);
 
   // 3. Ad finishes/dismissed -> Launch Player
-  const handleDismissAd = () => {
+  const handleDismissAd = useCallback(() => {
     if (interstitialTarget) {
       setPlayingMovie(interstitialTarget);
       setInterstitialTarget(null);
     }
-  };
+  }, [interstitialTarget]);
+
+  // Stable movie selector callback for 60fps carousels
+  const handleSelectMovie = useCallback((movie: Movie) => {
+    setSelectedMovie(movie);
+  }, []);
+
+  const isHeroInList = useMemo(() => myList.some((m) => m.id === featuredIndianMovie.id), [myList]);
 
   // Resume movie from Continue Watching card
   const handleResumePlayback = (item: ContinueWatchingItem) => {
@@ -266,7 +276,7 @@ export const App: React.FC = () => {
             {/* 1. Indian Movie in First Home Page Hero */}
             <Hero
               movie={featuredIndianMovie}
-              isInList={myList.some((m) => m.id === featuredIndianMovie.id)}
+              isInList={isHeroInList}
               onPlay={handleRequestPlay}
               onToggleList={handleToggleList}
             />
@@ -343,8 +353,8 @@ export const App: React.FC = () => {
                 {/* 1. Netflix Top 10 in India Today */}
                 <MovieCarousel
                   title="Top 10 in India Today"
-                  movies={dedupeMovies([...netflixTop10, ...liveTrending])}
-                  onSelectMovie={setSelectedMovie}
+                  movies={top10Movies}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                   showRank
                 />
@@ -352,8 +362,8 @@ export const App: React.FC = () => {
                 {/* 2. Trending Now */}
                 <MovieCarousel
                   title="Trending Now"
-                  movies={dedupeMovies([...netflixTrendingNow, ...liveNowPlaying])}
-                  onSelectMovie={setSelectedMovie}
+                  movies={trendingNowMovies}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
@@ -361,7 +371,7 @@ export const App: React.FC = () => {
                 <MovieCarousel
                   title="New Releases"
                   movies={ottNewReleases}
-                  onSelectMovie={setSelectedMovie}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
@@ -371,8 +381,8 @@ export const App: React.FC = () => {
                 {/* 4. Netflix Originals & Exclusives */}
                 <MovieCarousel
                   title="Only on Netflix"
-                  movies={dedupeMovies([...netflixOriginals])}
-                  onSelectMovie={setSelectedMovie}
+                  movies={netflixOriginalsMovies}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
@@ -380,7 +390,7 @@ export const App: React.FC = () => {
                 <MovieCarousel
                   title="Indian Blockbusters"
                   movies={combinedIndian}
-                  onSelectMovie={setSelectedMovie}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
@@ -389,7 +399,7 @@ export const App: React.FC = () => {
                   <MovieCarousel
                     title="Tamil, Telugu & Regional"
                     movies={combinedSouthIndian}
-                    onSelectMovie={setSelectedMovie}
+                    onSelectMovie={handleSelectMovie}
                     onSeeAll={() => setActiveTab('search')}
                   />
                 )}
@@ -398,7 +408,7 @@ export const App: React.FC = () => {
                 <MovieCarousel
                   title="Hollywood Blockbusters"
                   movies={combinedHollywood}
-                  onSelectMovie={setSelectedMovie}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
@@ -406,7 +416,7 @@ export const App: React.FC = () => {
                 <MovieCarousel
                   title="Romance & Drama"
                   movies={combinedRomance}
-                  onSelectMovie={setSelectedMovie}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
@@ -414,7 +424,7 @@ export const App: React.FC = () => {
                 <MovieCarousel
                   title="Thriller & Mystery"
                   movies={combinedThriller}
-                  onSelectMovie={setSelectedMovie}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
 
@@ -423,7 +433,7 @@ export const App: React.FC = () => {
                   <MovieCarousel
                     title="High-Octane Action"
                     movies={combinedAction}
-                    onSelectMovie={setSelectedMovie}
+                    onSelectMovie={handleSelectMovie}
                     onSeeAll={() => setActiveTab('search')}
                   />
                 )}
@@ -432,7 +442,7 @@ export const App: React.FC = () => {
                 <MovieCarousel
                   title="Sci-Fi Universe"
                   movies={sciFiPicks}
-                  onSelectMovie={setSelectedMovie}
+                  onSelectMovie={handleSelectMovie}
                   onSeeAll={() => setActiveTab('search')}
                 />
               </>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Play, Plus, Check, Server } from 'lucide-react';
 import { Movie } from '../types';
 
@@ -9,7 +9,7 @@ interface HeroProps {
   onToggleList: (movie: Movie) => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ movie, isInList, onPlay, onToggleList }) => {
+export const Hero: React.FC<HeroProps> = memo(({ movie, isInList, onPlay, onToggleList }) => {
   return (
     <div className="relative w-full min-h-[580px] sm:min-h-[640px] flex flex-col justify-end pb-8 overflow-hidden">
       {/* Background Hero Artwork */}
@@ -106,4 +106,6 @@ export const Hero: React.FC<HeroProps> = ({ movie, isInList, onPlay, onToggleLis
       </div>
     </div>
   );
-};
+});
+
+Hero.displayName = 'Hero';

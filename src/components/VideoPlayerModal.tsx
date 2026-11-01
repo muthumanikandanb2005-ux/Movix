@@ -521,74 +521,16 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
       onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
-      {/* Permanent Mini Floating Action Bar (visible when main header is collapsed) */}
+      {/* Invisible top touch area to reveal controls on tap without blocking movie view */}
       {!showControls && !isLocked && (
-        <div className={`absolute ${isLandscape ? 'top-3 right-5' : 'top-4 right-4'} z-50 flex items-center space-x-1.5 animate-in fade-in duration-200`}>
-          {/* Quality Pill */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowControls(true);
-              setShowQualityMenu(true);
-            }}
-            className="px-2.5 py-1.5 rounded-full bg-black/85 hover:bg-black text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-2xl flex items-center space-x-1 active:scale-95 transition-all"
-            title="Select Quality"
-          >
-            <span>{currentQuality}</span>
-          </button>
-
-          {/* Language Pill */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowControls(true);
-              setShowLanguageMenu(true);
-            }}
-            className="px-2.5 py-1.5 rounded-full bg-black/85 hover:bg-black text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-2xl flex items-center space-x-1 active:scale-95 transition-all"
-            title="Audio Language"
-          >
-            <Globe className="w-3.5 h-3.5 text-white/80" />
-            <span className="max-w-[65px] truncate">{currentLanguage}</span>
-          </button>
-
-          {/* 1-Tap Screen Rotate */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleOrientation();
-            }}
-            className="p-2 rounded-full bg-black/85 hover:bg-black text-white backdrop-blur-md border border-white/20 shadow-2xl active:scale-90 transition-all"
-            title="Rotate Screen"
-          >
-            <RotateCw className="w-3.5 h-3.5 text-white" />
-          </button>
-
-          {/* Server Pill */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowControls(true);
-              setShowServerMenu(true);
-            }}
-            className="px-2.5 py-1.5 rounded-full bg-black/85 hover:bg-black text-white/90 hover:text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-2xl flex items-center space-x-1 active:scale-95 transition-all"
-            title="Switch Streaming Server"
-          >
-            <Server className="w-3.5 h-3.5 text-[#E50914]" />
-            <span className="hidden sm:inline">{sources[activeSourceIndex]?.name.split(' ')[1] || 'Server'}</span>
-          </button>
-
-          {/* Exit Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="p-2 rounded-full bg-black/85 hover:bg-black text-white backdrop-blur-md border border-white/20 shadow-2xl active:scale-90 transition-all"
-            title="Exit Player"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+        <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowControls(true);
+            resetControlsTimeout();
+          }}
+          className="absolute top-0 left-0 right-0 h-24 z-30 cursor-pointer"
+        />
       )}
 
       {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
@@ -706,6 +648,21 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Click-shield backdrop to close open dropdowns without touching the iframe */}
+      {(showQualityMenu || showLanguageMenu || showServerMenu || showSpeedMenu) && (
+        <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowQualityMenu(false);
+            setShowLanguageMenu(false);
+            setShowServerMenu(false);
+            setShowSpeedMenu(false);
+            resetControlsTimeout();
+          }}
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]"
+        />
+      )}
 
       {/* 2. QUALITY SELECTION DRAWER */}
       {showQualityMenu && (
@@ -910,37 +867,20 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         )}
 
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
-          <>
-            <iframe
-              key={`${currentSource.url}-${activeSourceIndex}`}
-              src={currentSource.url}
-              title={movie.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-              allowFullScreen
-              referrerPolicy="no-referrer"
-              onLoad={() => {
-                setIsBuffering(false);
-                setHasStartedPlaying(true);
-              }}
-              style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-              className="w-full h-full border-0 absolute inset-0 z-10"
-            />
-            {showControls && (
-              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowServerMenu(true);
-                  }}
-                  className="px-4 py-2 rounded-full bg-black/85 hover:bg-black text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-2xl flex items-center space-x-2 active:scale-95 transition-all"
-                >
-                  <Server className="w-3.5 h-3.5 text-[#E50914]" />
-                  <span>{currentSource.name}</span>
-                  <span className="text-[#E50914] text-[11px] font-bold">Switch Server ▾</span>
-                </button>
-              </div>
-            )}
-          </>
+          <iframe
+            key={`${currentSource.url}-${activeSourceIndex}`}
+            src={currentSource.url}
+            title={movie.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+            allowFullScreen
+            referrerPolicy="no-referrer"
+            onLoad={() => {
+              setIsBuffering(false);
+              setHasStartedPlaying(true);
+            }}
+            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+            className="w-full h-full border-0 absolute inset-0 z-10"
+          />
         ) : (
           <video
             ref={videoRef}

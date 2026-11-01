@@ -2,6 +2,7 @@ package com.movix.app;
 
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,12 +10,14 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebViewClient;
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -71,6 +74,39 @@ public class MainActivity extends BridgeActivity {
             
             // Expose JavaScript bridge for web layer
             webView.addJavascriptInterface(new AdMobBridge(), "AndroidAdMob");
+
+            // Strictly intercept & block external ad redirects from launching Google Chrome
+            webView.setWebViewClient(new BridgeWebViewClient(getBridge()) {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                    if (request == null || request.getUrl() == null) return true;
+                    Uri url = request.getUrl();
+                    String host = url.getHost();
+                    String scheme = url.getScheme();
+
+                    // Only permit local application scheme (https://localhost)
+                    if ("https".equalsIgnoreCase(scheme) && "localhost".equalsIgnoreCase(host)) {
+                        return super.shouldOverrideUrlLoading(view, request);
+                    }
+
+                    // Block all rogue ad networks & popups from launching Chrome
+                    return true;
+                }
+
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    if (url == null) return true;
+                    Uri uri = Uri.parse(url);
+                    String host = uri.getHost();
+                    String scheme = uri.getScheme();
+
+                    if ("https".equalsIgnoreCase(scheme) && "localhost".equalsIgnoreCase(host)) {
+                        return super.shouldOverrideUrlLoading(view, url);
+                    }
+
+                    return true;
+                }
+            });
         }
 
         // Initialize Google Mobile Ads SDK for monetization
