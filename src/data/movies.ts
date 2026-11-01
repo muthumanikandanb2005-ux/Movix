@@ -391,8 +391,8 @@ export const thrillerMovies: Movie[] = [
     ottProvider: 'Prime Video',
     ottUrl: 'https://www.primevideo.com',
     description: 'Seven years after the case related to Vijay and his family was closed, a series of unexpected events turns his family\'s lives upside down.',
-    poster: 'https://image.tmdb.org/t/p/w500/498aYGlnvjvoiqXYhCNHrZERi4l.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/8YFL5QQvO3SttCNJm1zP9n6P26Q.jpg',
+    poster: '/assets/poster_drishyam_2.jpg',
+    backdrop: '/assets/backdrop_drishyam_2.jpg',
     videoUrl: getStreamingSources(1029827)[0].url,
     streamSources: getStreamingSources(1029827),
     availableLanguages: ['Hindi']
@@ -449,8 +449,8 @@ export const netflixTop10: Movie[] = [
     ottUrl: 'https://www.netflix.com',
     isOttRelease: true,
     description: 'Hundreds of cash-strapped players accept a strange invitation to compete in children\'s games with deadly high stakes for a tempting 45.6 billion prize.',
-    poster: 'https://image.tmdb.org/t/p/w500/dDlGgwXb68qflQp16fGq4T5b8k1.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/2meX1nMdScFOoV4370rqHWKm5oY.jpg',
+    poster: '/assets/poster_squid_game.jpg',
+    backdrop: '/assets/backdrop_squid_game.jpg',
     videoUrl: getStreamingSources(93405)[0].url,
     streamSources: getStreamingSources(93405),
     availableLanguages: ['Korean', 'Hindi', 'English', 'Tamil', 'Telugu'],
@@ -491,8 +491,8 @@ export const netflixTop10: Movie[] = [
     ottUrl: 'https://www.netflix.com',
     isOttRelease: true,
     description: 'An Interpol-issued Red Notice is a global alert to hunt and capture the world\'s most wanted. But when an FBI profiler encounters two rival criminals, all bets are off.',
-    poster: 'https://image.tmdb.org/t/p/w500/lAXONuqgLQ6VGcqbp4F2blv36OG.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/dK12GId1DS6aqOP4xyHRJII8rQE.jpg',
+    poster: '/assets/poster_red_notice.jpg',
+    backdrop: '/assets/backdrop_red_notice.jpg',
     videoUrl: getStreamingSources(512195)[0].url,
     streamSources: getStreamingSources(512195),
     availableLanguages: ['English', 'Hindi', 'Tamil', 'Telugu'],
@@ -533,8 +533,8 @@ export const netflixTop10: Movie[] = [
     ottUrl: 'https://www.netflix.com',
     isOttRelease: true,
     description: 'A hardened son undergoes a violent transformation when an assassination attempt is made on his revered business-tycoon father.',
-    poster: 'https://image.tmdb.org/t/p/w500/hr9rjR4JWoFiIMohqnnk2zXYFOU.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/bckxSN9tvNXKyR9OsIpmvrCwYWX.jpg',
+    poster: '/assets/poster_animal.jpg',
+    backdrop: '/assets/backdrop_animal.jpg',
     videoUrl: getStreamingSources(781732)[0].url,
     streamSources: getStreamingSources(781732),
     availableLanguages: ['Hindi', 'Telugu', 'Tamil', 'Malayalam', 'Kannada'],
@@ -563,8 +563,8 @@ export const netflixTop10: Movie[] = [
     director: 'Atlee'
   },
   {
-    id: 'tmdb-917496',
-    tmdbId: 917496,
+    id: 'tmdb-646097',
+    tmdbId: 646097,
     title: 'REBEL RIDGE',
     year: 2024,
     genre: 'Crime / Action / Thriller',
@@ -575,10 +575,10 @@ export const netflixTop10: Movie[] = [
     ottUrl: 'https://www.netflix.com',
     isOttRelease: true,
     description: 'An ex-Marine grapples his way through a web of small-town corruption when an attempt to post bail for his cousin escalates into a violent standoff with the local police chief.',
-    poster: 'https://image.tmdb.org/t/p/w500/xEt2GSz9z5rSVpIHMiGdtf0KLvd.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/mKOBErqqHbIlpuTkZAXh5wecaK9.jpg',
-    videoUrl: getStreamingSources(917496)[0].url,
-    streamSources: getStreamingSources(917496),
+    poster: '/assets/poster_rebel_ridge.jpg',
+    backdrop: '/assets/backdrop_rebel_ridge.jpg',
+    videoUrl: getStreamingSources(646097)[0].url,
+    streamSources: getStreamingSources(646097),
     availableLanguages: ['English', 'Hindi'],
     cast: ['Aaron Pierre', 'Don Johnson', 'AnnaSophia Robb'],
     director: 'Jeremy Saulnier'
@@ -596,7 +596,7 @@ export const netflixTop10: Movie[] = [
     ottUrl: 'https://www.netflix.com',
     isOttRelease: true,
     description: 'Back from the brink of death, highly skilled commando Tyler Rake takes on another dangerous mission: saving the imprisoned family of a ruthless gangster.',
-    poster: 'https://image.tmdb.org/t/p/w500/7gKI9hpEMcZUQpNgKrkDzJ7vSi7.jpg',
+    poster: '/assets/poster_extraction_2.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/7I6VUdPj6tQECNHdviJkUHD2u89.jpg',
     videoUrl: getStreamingSources(697843)[0].url,
     streamSources: getStreamingSources(697843),
@@ -643,7 +643,7 @@ export const netflixTrendingNow: Movie[] = [
     isOttRelease: true,
     description: 'A fierce police inspector delves into a tangled case of twin sisters harboring dangerous secrets and a charming man caught between them.',
     poster: 'https://image.tmdb.org/t/p/w500/wbXSE68cDwqUPsHJcpdu7I5kSLK.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/9BBTo63ANSmbtNEm2kuFu0K6v9Q.jpg',
+    backdrop: '/assets/backdrop_do_patti.jpg',
     videoUrl: getStreamingSources(1148172)[0].url,
     streamSources: getStreamingSources(1148172),
     availableLanguages: ['Hindi', 'Tamil', 'Telugu'],
@@ -751,12 +751,13 @@ export const netflixOriginals: Movie[] = [
   netflixTrendingNow[4]  // The Gray Man
 ];
 
-// Sci-Fi Universe (re-uses Netflix originals + sci-fi picks from top10)
+// Sci-Fi Universe (curated top sci-fi blockbusters)
 export const sciFiPicks: Movie[] = [
-  netflixTop10[9], // Stranger Things
-  netflixTop10[3], // Red Notice
-  netflixTop10[8], // Extraction 2
-  netflixTop10[7], // Rebel Ridge
-  netflixTop10[0], // Kalki
-  netflixTrendingNow[4], // The Gray Man
+  featuredIndianMovie,       // KALKI 2898 AD (Sci-Fi / Action / Mythology)
+  hollywoodBlockbusters[0],  // DUNE: PART TWO (Sci-Fi / Adventure)
+  hollywoodBlockbusters[2],  // INTERSTELLAR (Sci-Fi / Adventure)
+  thrillerMovies[1],         // INCEPTION (Sci-Fi / Thriller)
+  netflixTop10[9],           // STRANGER THINGS (Sci-Fi / Horror / Mystery)
+  ottNewReleases[4],         // ALIEN: ROMULUS (Horror / Sci-Fi)
+  ottNewReleases[3]          // DEADPOOL & WOLVERINE (Action / Comedy / Sci-Fi)
 ];

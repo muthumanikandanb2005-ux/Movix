@@ -49,25 +49,37 @@ export const getStreamingSources = (
       quality
     },
     {
-      name: `Server 2 (SuperEmbed Cinema HD)`,
+      name: `Server 2 (VidSrc.cc Ultra 4K)`,
+      url: `https://vidsrc.cc/v2/embed/movie/${tmdbId}?autoPlay=true`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 3 (EmbedSu Fast Mirror)`,
+      url: `https://embed.su/embed/movie/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 4 (SuperEmbed Cinema HD)`,
       url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 3 (VidSrc PM Ultra HD)`,
+      name: `Server 5 (VidSrc PM Ultra HD)`,
       url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 4 (CineSrc Fast Pro)`,
+      name: `Server 6 (CineSrc Fast Pro)`,
       url: `https://cinesrc.st/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 5 (2Embed Cinema VIP)`,
+      name: `Server 7 (2Embed Cinema VIP)`,
       url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed',
       quality
@@ -76,7 +88,7 @@ export const getStreamingSources = (
 
   if (trailerKey) {
     sources.push({
-      name: 'Server 6 (Official 4K Trailer)',
+      name: 'Server 8 (Official 4K Trailer)',
       url: `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&playsinline=1&rel=0`,
       type: 'trailer'
     });
