@@ -34,13 +34,21 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  touch-action: pan-y;
+  touch-action: manipulation;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
 }
 
-/* Butter-smooth momentum scrolling and hardware acceleration */
+/* Butter-smooth 60fps momentum scrolling and hardware acceleration */
 * {
   -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+.no-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  will-change: scroll-position;
 }
 
 img {

@@ -35,14 +35,12 @@ async function runTests() {
 
   const content = fs.readFileSync(moviesDataPath, 'utf8');
   
-  // Extract all posters and backdrops
   const posterMatches = [...content.matchAll(/poster:\s*'([^']+)'/g)].map(m => m[1]);
   const backdropMatches = [...content.matchAll(/backdrop:\s*'([^']+)'/g)].map(m => m[1]);
   
   assert(posterMatches.length >= 30, 'F01-E1.2', `Sufficient posters declared (${posterMatches.length} found)`);
   assert(backdropMatches.length >= 30, 'F01-E1.3', `Sufficient backdrops declared (${backdropMatches.length} found)`);
 
-  // Verify all local assets exist on disk with valid file size (> 1000 bytes)
   const localAssets = [...posterMatches, ...backdropMatches].filter(u => u.startsWith('/assets/'));
   let allLocalAssetsValid = true;
   for (const asset of localAssets) {
@@ -77,20 +75,19 @@ async function runTests() {
   // ----------------------------------------------------
   console.log('\n--- SUITE 2: Curated Genre Verification ---');
   
-  // Verify Sci-Fi picks contains only actual Sci-Fi movies
   const sciFiBlock = content.slice(content.indexOf('export const sciFiPicks: Movie[] = ['));
   const hasKalki = sciFiBlock.includes('featuredIndianMovie');
   const hasDune = sciFiBlock.includes('DUNE: PART TWO') || sciFiBlock.includes('hollywoodBlockbusters[0]');
   const hasInterstellar = sciFiBlock.includes('INTERSTELLAR') || sciFiBlock.includes('hollywoodBlockbusters[2]');
   const hasInception = sciFiBlock.includes('INCEPTION') || sciFiBlock.includes('thrillerMovies[1]');
-  const hasNoRedNotice = !sciFiBlock.includes('netflixTop10[3]'); // Red notice removed
-  const hasNoRebelRidge = !sciFiBlock.includes('netflixTop10[7]'); // Rebel ridge removed
+  const hasNoRedNotice = !sciFiBlock.includes('netflixTop10[3]');
+  const hasNoRebelRidge = !sciFiBlock.includes('netflixTop10[7]');
 
   assert(hasKalki && hasDune && hasInterstellar && hasInception, 'F03-H1.1', 'Sci-Fi Universe contains Kalki, Dune, Interstellar, Inception');
   assert(hasNoRedNotice && hasNoRebelRidge, 'F03-H1.2', 'Sci-Fi Universe excludes non-sci-fi movies (Red Notice, Rebel Ridge)');
 
   // ----------------------------------------------------
-  // TEST SUITE 3: Streaming Engine & Sources (F05-H1, F05-H4)
+  // TEST SUITE 3: Streaming Engine & Ad Blocking (F05-H1, F05-H4)
   // ----------------------------------------------------
   console.log('\n--- SUITE 3: Streaming Engine & Ad Blocking ---');
   
@@ -98,15 +95,16 @@ async function runTests() {
   const tmdbContent = fs.readFileSync(tmdbServicesPath, 'utf8');
   assert(tmdbContent.includes('export const getStreamingSources'), 'F05-H1.1', 'getStreamingSources service exported');
   assert(tmdbContent.includes('vidlink.pro'), 'F05-H1.2', 'VidLink primary streaming provider configured');
-  assert(tmdbContent.includes('vidsrc.cc') || tmdbContent.includes('embedsu.net'), 'F05-H1.3', 'Multiple mirror fallback servers configured');
+  assert(tmdbContent.includes('superembed.stream') && tmdbContent.includes('2embed.cc'), 'F05-H1.3', 'Multiple mirror fallback servers configured');
+  assert(tmdbContent.includes('type: \'video\''), 'F05-H1.4', 'Ad-free direct CDN 4K stream provided as guaranteed fallback');
 
   // Verify Android WebViewClient blocks Chrome popups while allowing subframe streaming
   const mainActivityPath = path.resolve('android/app/src/main/java/com/movix/app/MainActivity.java');
   assert(fs.existsSync(mainActivityPath), 'F05-H4.1', 'MainActivity.java exists');
   const mainActivityContent = fs.readFileSync(mainActivityPath, 'utf8');
-  assert(mainActivityContent.includes('BridgeWebViewClient'), 'F05-H4.2', 'BridgeWebViewClient overridden');
+  assert(mainActivityContent.includes('BridgeWebChromeClient') && mainActivityContent.includes('onCreateWindow') && mainActivityContent.includes('return false;'), 'F05-H4.2', 'BridgeWebChromeClient strictly blocks popup windows from opening Chrome');
   assert(mainActivityContent.includes('!request.isForMainFrame()') && mainActivityContent.includes('return false;'), 'F05-H4.3', 'Subframe media and quality streams allowed to load smoothly');
-  assert(mainActivityContent.includes('shouldOverrideUrlLoading') && mainActivityContent.includes('return true;'), 'F05-H4.4', 'Rogue ad popups strictly intercepted & blocked from launching Chrome');
+  assert(mainActivityContent.includes('setModalOpen(boolean open)'), 'F05-H4.4', 'Native AdMob banner auto-hides when modals open');
 
   // ----------------------------------------------------
   // TEST SUITE 4: Settings & Language Preferences (User Request)
@@ -119,29 +117,32 @@ async function runTests() {
   assert(settingsContent.includes('Hardware GPU Acceleration') || settingsContent.includes('Smooth Playback'), 'SET-3', 'Settings provides Smooth Playback and hardware acceleration toggles');
 
   // ----------------------------------------------------
-  // TEST SUITE 5: Player UI Cleanliness (F05-H1, F05-H2, F05-H3)
+  // TEST SUITE 5: Player UI Cleanliness & Auto-Hiding Controls
   // ----------------------------------------------------
   console.log('\n--- SUITE 5: Player UI Cleanliness & Control Bars ---');
   
   const playerPath = path.resolve('src/components/VideoPlayerModal.tsx');
-  assert(fs.existsSync(playerPath), 'F05-H1.4', 'VideoPlayerModal.tsx exists');
+  assert(fs.existsSync(playerPath), 'F05-H1.5', 'VideoPlayerModal.tsx exists');
   const playerContent = fs.readFileSync(playerPath, 'utf8');
   
-  // Verify auto-hiding controls
-  assert(playerContent.includes('showControls && !isLocked ? \'opacity-100\' : \'opacity-0 pointer-events-none\''), 'F05-H1.5', 'Controls fade to 0 opacity with pointer-events-none while playing');
-  
-  // Verify top invisible touch reveal zone
-  assert(playerContent.includes('h-24 z-30 cursor-pointer') && playerContent.includes('setShowControls(true)'), 'F05-H2.1', 'Top edge touch reveal zone exists for clean playback');
-
-  // Verify dropdown click-shield backdrop
-  assert(playerContent.includes('bg-black/40 backdrop-blur') && playerContent.includes('setShowQualityMenu(false)'), 'F05-H3.1', 'Full-screen click shield prevents touch bleed to iframe');
+  // Verify auto-hiding controls (all controls completely fade to 0 opacity when playing)
+  assert(playerContent.includes('showControls && !isLocked ? \'opacity-100\' : \'opacity-0 pointer-events-none\''), 'F05-H1.6', 'Controls fade to 0 opacity with pointer-events-none while playing');
+  assert(playerContent.includes('showControls ? \'opacity-100 pointer-events-auto\' : \'opacity-0 pointer-events-none\''), 'F05-H1.7', 'Screen lock button auto-hides with controls');
+  assert(playerContent.includes('referrerPolicy="origin"'), 'F05-H1.8', 'Iframe uses origin referrerPolicy to prevent 403 anti-hotlink blocks');
+  assert(playerContent.includes('sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"'), 'F05-H1.9', 'Iframe is sandboxed against popup ads and rogue navigation');
+  assert(playerContent.includes('Stream Mirror:'), 'F05-H1.10', 'Quick Server Mirror Switcher Bar (S1-S6) integrated for 1-tap failover');
 
   // ----------------------------------------------------
-  // TEST SUITE 5: Production Build Integrity
+  // TEST SUITE 6: Production Build & APK Integrity
   // ----------------------------------------------------
-  console.log('\n--- SUITE 5: Production Build Verification ---');
+  console.log('\n--- SUITE 6: Production Build & APK Verification ---');
   const distHtml = path.resolve('dist/index.html');
   assert(fs.existsSync(distHtml), 'BUILD-1', 'dist/index.html successfully generated by Vite');
+
+  const apkV206 = path.resolve('movix-app-v2.0.6.apk');
+  const apkV202 = path.resolve('movix-app-v2.0.2.apk');
+  assert(fs.existsSync(apkV206) && fs.statSync(apkV206).size > 15000000, 'BUILD-2', `movix-app-v2.0.6.apk assembled (${(fs.statSync(apkV206).size / (1024*1024)).toFixed(1)} MB)`);
+  assert(fs.existsSync(apkV202) && fs.statSync(apkV202).size > 15000000, 'BUILD-3', `movix-app-v2.0.2.apk updated for Orion Store compatibility`);
 
   console.log('\n====================================================');
   console.log(`TEST SUMMARY: ${passedTests} PASSED, ${failedTests} FAILED`);

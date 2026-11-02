@@ -75,6 +75,58 @@ Recorded and resolved during `/replica-test` QA execution.
 
 ---
 
+### BUG-007: "Not Playing At All / Zero Loading" - Embed Stream Blocked by `no-referrer` and Lack of Server Mirror Failover
+- **Severity**: S1 (video fails to load on certain networks and cloud embeds)
+- **Steps to Reproduce**:
+  1. Open movie with an embedded cloud stream.
+  2. Embed iframe attempts request with `referrerPolicy="no-referrer"`.
+  3. CDN/WAF rejects stream request with 403 Forbidden or blocks iframe handshake, resulting in a black screen and infinite 0% loading.
+- **Root Cause**:
+  1. `referrerPolicy="no-referrer"` suppressed the HTTP `Referer` header required by embed streaming providers (VidLink, SuperEmbed, etc.) for cross-origin authentication.
+  2. Lack of an on-screen multi-server mirror switcher left users stuck when a single embed provider experienced regional throttling.
+- **Fix**:
+  - Removed `no-referrer` and set `referrerPolicy="origin"` on `<iframe>`.
+  - Added secure iframe sandbox: `allow-scripts allow-same-origin allow-forms allow-presentation` strictly preventing popup ads while keeping media streaming 100% functional.
+  - Added Quick Server Mirror Switcher Bar (`[S1] [S2] [S3] [S4] [S5] [Direct 4K]`) providing instant 1-tap failover across multiple verified streaming providers (VidLink, SuperEmbed, VidSrc, 2Embed, AutoEmbed, and Direct CDN Video).
+- **Status**: Verified Fixed (Test `F05-H3`, `F05-E1` passed).
+
+---
+
+### BUG-008: Tapping Play or Language Button Opened Links in External Google Chrome
+- **Severity**: S1 (ad hijacking user navigation out of the app)
+- **Steps to Reproduce**:
+  1. Open Movie Details Modal and tap "Watch Now", "Stream Servers", or audio language tags.
+  2. AdMob banner positioned at `Gravity.BOTTOM` with 65dp margin sat directly over the bottom buttons of the modal.
+  3. Tapping near the bottom tapped the AdMob banner, opening advertiser URLs in Google Chrome.
+  4. Rogue ad scripts in embed iframes called `window.open`, which Capacitor dispatched to Google Chrome via system intent.
+- **Root Cause**:
+  1. Native `AdView` was not hidden when `MovieDetailsModal` or other dialogs opened.
+  2. `MainActivity.java` did not override `WebChromeClient.onCreateWindow`, permitting popups to escape the app.
+- **Fix**:
+  - Overrode `BridgeWebChromeClient.onCreateWindow` in `MainActivity.java` to return `false` (swallowing all popup ad window requests).
+  - Added `setModalOpen(boolean)` bridge method in `MainActivity.java` and connected `App.tsx`'s `isAnyModalOpen` hook to automatically set `mAdView.setVisibility(View.GONE)` whenever ANY modal or video player is open.
+  - Blocked non-http schemes (`intent://`, `market://`, `googlechrome://`) in `shouldOverrideUrlLoading` for both main frame and subframes.
+- **Status**: Verified Fixed (Test `F04-H3`, `F05-H5` passed).
+
+---
+
+### BUG-009: Player Buttons Remaining Visible During Playback & Touch Stutter in Carousels
+- **Severity**: S2 (cinema view obstruction and touch lag)
+- **Steps to Reproduce**:
+  1. Play movie stream in `VideoPlayerModal`.
+  2. Left screen lock button, header badges, and overlays remained visible on screen during video playback.
+  3. Scrolling horizontally through movie carousels felt stiff and laggy on mobile devices.
+- **Root Cause**:
+  1. Screen Lock button had separate styling that did not respect `showControls === false` when locked.
+  2. `touch-action: pan-y;` on `body` in `src/index.css` fought horizontal touch events in movie carousels.
+- **Fix**:
+  - In `VideoPlayerModal.tsx`, all controls (Top Bar, Screen Lock button, Server Failover Bar, Bottom Timeline) strictly fade out to `opacity-0 pointer-events-none` when `showControls` is false.
+  - Added single tap toggle: tapping anywhere on the video screen reveals controls for 3 seconds, then fades cleanly into 100% immersive cinema mode.
+  - Replaced `touch-action: pan-y;` with `touch-action: manipulation;` and added `-webkit-overflow-scrolling: touch;` and hardware acceleration layers in `src/index.css`.
+- **Status**: Verified Fixed (Test `F05-H1`, `F03-E1` passed).
+
+---
+
 ### BUG-006: Player Freezes / Stuck on Quality Switch & Missing Language in Settings
 - **Severity**: S1 (stream playback stuck on quality change)
 - **Steps to Reproduce**:
@@ -90,3 +142,55 @@ Recorded and resolved during `/replica-test` QA execution.
   - In `VideoPlayerModal.tsx`: Fixed `handleQualityChange` and `useEffect` so embedded cloud streams never enter a stuck buffering state.
   - Created [`SettingsModal.tsx`](file:///C:/Users/muthu/.gemini/antigravity/scratch/movix-ui-app/src/components/SettingsModal.tsx) with Default Audio Language (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish), Default Streaming Quality, Hardware GPU Acceleration toggle, and Fast Buffer mode.
 - **Status**: Verified Fixed.
+
+---
+
+### BUG-007: "Not Playing At All / Zero Loading" - Embed Stream Blocked by `no-referrer` and Lack of Server Mirror Failover
+- **Severity**: S1 (video fails to load on certain networks and cloud embeds)
+- **Steps to Reproduce**:
+  1. Open movie with an embedded cloud stream.
+  2. Embed iframe attempts request with `referrerPolicy="no-referrer"`.
+  3. CDN/WAF rejects stream request with 403 Forbidden or blocks iframe handshake, resulting in a black screen and infinite 0% loading.
+- **Root Cause**:
+  1. `referrerPolicy="no-referrer"` suppressed the HTTP `Referer` header required by embed streaming providers (VidLink, SuperEmbed, etc.) for cross-origin authentication.
+  2. Lack of an on-screen multi-server mirror switcher left users stuck when a single embed provider experienced regional throttling.
+- **Fix**:
+  - Removed `no-referrer` and set `referrerPolicy="origin"` on `<iframe>`.
+  - Added secure iframe sandbox: `allow-scripts allow-same-origin allow-forms allow-presentation` strictly preventing popup ads while keeping media streaming 100% functional.
+  - Added Quick Server Mirror Switcher Bar (`[S1] [S2] [S3] [S4] [S5] [Direct 4K]`) providing instant 1-tap failover across multiple verified streaming providers (VidLink, SuperEmbed, VidSrc, 2Embed, AutoEmbed, and Direct CDN Video).
+- **Status**: Verified Fixed (Test `F05-H3`, `F05-E1` passed).
+
+---
+
+### BUG-008: Tapping Play or Language Button Opened Links in External Google Chrome
+- **Severity**: S1 (ad hijacking user navigation out of the app)
+- **Steps to Reproduce**:
+  1. Open Movie Details Modal and tap "Watch Now", "Stream Servers", or audio language tags.
+  2. AdMob banner positioned at `Gravity.BOTTOM` with 65dp margin sat directly over the bottom buttons of the modal.
+  3. Tapping near the bottom tapped the AdMob banner, opening advertiser URLs in Google Chrome.
+  4. Rogue ad scripts in embed iframes called `window.open`, which Capacitor dispatched to Google Chrome via system intent.
+- **Root Cause**:
+  1. Native `AdView` was not hidden when `MovieDetailsModal` or other dialogs opened.
+  2. `MainActivity.java` did not override `WebChromeClient.onCreateWindow`, permitting popups to escape the app.
+- **Fix**:
+  - Overrode `BridgeWebChromeClient.onCreateWindow` in `MainActivity.java` to return `false` (swallowing all popup ad window requests).
+  - Added `setModalOpen(boolean)` bridge method in `MainActivity.java` and connected `App.tsx`'s `isAnyModalOpen` hook to automatically set `mAdView.setVisibility(View.GONE)` whenever ANY modal or video player is open.
+  - Blocked non-http schemes (`intent://`, `market://`, `googlechrome://`) in `shouldOverrideUrlLoading` for both main frame and subframes.
+- **Status**: Verified Fixed (Test `F04-H3`, `F05-H5` passed).
+
+---
+
+### BUG-009: Player Buttons Remaining Visible During Playback & Touch Stutter in Carousels
+- **Severity**: S2 (cinema view obstruction and touch lag)
+- **Steps to Reproduce**:
+  1. Play movie stream in `VideoPlayerModal`.
+  2. Left screen lock button, header badges, and overlays remained visible on screen during video playback.
+  3. Scrolling horizontally through movie carousels felt stiff and laggy on mobile devices.
+- **Root Cause**:
+  1. Screen Lock button had separate styling that did not respect `showControls === false` when locked.
+  2. `touch-action: pan-y;` on `body` in `src/index.css` fought horizontal touch events in movie carousels.
+- **Fix**:
+  - In `VideoPlayerModal.tsx`, all controls (Top Bar, Screen Lock button, Server Failover Bar, Bottom Timeline) strictly fade out to `opacity-0 pointer-events-none` when `showControls` is false.
+  - Added single tap toggle: tapping anywhere on the video screen reveals controls for 3 seconds, then fades cleanly into 100% immersive cinema mode.
+  - Replaced `touch-action: pan-y;` with `touch-action: manipulation;` and added `-webkit-overflow-scrolling: touch;` and hardware acceleration layers in `src/index.css`.
+- **Status**: Verified Fixed (Test `F05-H1`, `F03-E1` passed).

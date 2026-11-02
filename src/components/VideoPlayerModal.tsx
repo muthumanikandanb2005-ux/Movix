@@ -99,7 +99,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const currentSource = sources[activeSourceIndex] || sources[0];
 
-  // Auto-hide controls after 4 seconds to provide clean unobstructed cinema view
+  // Auto-hide controls after 3 seconds to provide clean unobstructed cinema view
   const resetControlsTimeout = useCallback(() => {
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     if (!isLocked) {
@@ -109,7 +109,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         setShowSpeedMenu(false);
         setShowQualityMenu(false);
         setShowLanguageMenu(false);
-      }, 4000);
+      }, 3000);
     }
   }, [isLocked]);
 
@@ -335,14 +335,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     setShowQualityMenu(false);
     localStorage.setItem('movix_pref_quality', q);
 
-    if (currentSource.type === 'video') {
-      setIsBuffering(true);
-    } else {
-      setIsBuffering(false);
-      setHasStartedPlaying(true);
-    }
+    setIsBuffering(false);
+    setHasStartedPlaying(true);
 
-    setGestureOsd({ type: 'info', value: `Quality: ${q} • Optimal Stream`, icon: '⚡' });
+    setGestureOsd({ type: 'info', value: `Quality: ${q} • Smooth Playback`, icon: '⚡' });
     setTimeout(() => {
       setGestureOsd(null);
     }, 1400);
@@ -544,15 +540,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
       onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
-      {/* Invisible top touch area to reveal controls on tap without blocking movie view */}
-      {!showControls && !isLocked && (
+      {/* Screen tap area to reveal controls when hidden */}
+      {!showControls && (
         <div 
           onClick={(e) => {
             e.stopPropagation();
             setShowControls(true);
             resetControlsTimeout();
           }}
-          className="absolute top-0 left-0 right-0 h-24 z-30 cursor-pointer"
+          className="absolute inset-0 z-30 cursor-pointer"
         />
       )}
 
@@ -827,8 +823,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
       )}
 
-      {/* 6. SCREEN LOCK BUTTON (XPlayer Signature) */}
-      <div className="absolute left-5 top-1/2 -translate-y-1/2 z-50">
+      {/* 6. SCREEN LOCK BUTTON (XPlayer Signature - Completely hidden while movie plays) */}
+      <div className={`absolute left-5 top-1/2 -translate-y-1/2 z-50 transition-opacity duration-300 ${
+        showControls ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -839,9 +837,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           className={`p-3 rounded-full transition-all shadow-xl active:scale-90 ${
             isLocked
               ? 'bg-red-600 text-white ring-4 ring-red-500/40'
-              : showControls
-              ? 'bg-black/60 text-white/70 border border-white/20 hover:text-white'
-              : 'opacity-0 pointer-events-none'
+              : 'bg-black/60 text-white/70 border border-white/20 hover:text-white'
           }`}
           title={isLocked ? 'Unlock Screen' : 'Lock Screen'}
         >
@@ -894,12 +890,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
-            key={`${currentSource.url}-${activeSourceIndex}`}
+            key={`${currentSource.url}-${currentQuality}-${activeSourceIndex}`}
             src={currentSource.url}
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
-            referrerPolicy="no-referrer"
+            referrerPolicy="origin"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
             onLoad={() => {
               setIsBuffering(false);
               setHasStartedPlaying(true);
@@ -984,7 +981,40 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         )}
       </div>
 
-      {/* 10. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
+      {/* 10. QUICK SERVER MIRROR SWITCHER BAR (Auto-hidden while movie plays; 1-tap failover on summon) */}
+      {currentSource.type !== 'video' && (
+        <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-40 transition-opacity duration-300 pointer-events-auto ${
+          showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}>
+          <div className="flex items-center space-x-1.5 bg-black/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-2xl">
+            <Server className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+            <span className="text-[11px] font-bold text-white/70 mr-1 hidden sm:inline">Stream Mirror:</span>
+            {sources.map((src, idx) => (
+              <button
+                key={idx}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveSourceIndex(idx);
+                  setIsBuffering(false);
+                  setHasStartedPlaying(true);
+                  setGestureOsd({ type: 'info', value: `Connected: Server ${idx + 1}`, icon: '🔄' });
+                  setTimeout(() => setGestureOsd(null), 1400);
+                  resetControlsTimeout();
+                }}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide transition-all active:scale-95 ${
+                  activeSourceIndex === idx
+                    ? 'bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white shadow-md'
+                    : 'bg-white/10 text-white/80 hover:bg-white/20'
+                }`}
+              >
+                {src.type === 'video' ? 'Direct 4K' : `S${idx + 1}`}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 11. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
       {currentSource.type === 'video' && (
         <div className={`absolute bottom-0 left-0 right-0 z-40 ${isLandscape ? 'px-6 pb-3 pt-8' : 'px-5 pb-5 pt-10'} bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2 transition-opacity duration-300 pointer-events-auto ${
           showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'

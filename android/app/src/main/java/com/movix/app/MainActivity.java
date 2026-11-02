@@ -17,6 +17,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebChromeClient;
 import com.getcapacitor.BridgeWebViewClient;
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
@@ -75,24 +76,37 @@ public class MainActivity extends BridgeActivity {
             // Expose JavaScript bridge for web layer
             webView.addJavascriptInterface(new AdMobBridge(), "AndroidAdMob");
 
-            // Strictly intercept & block external ad redirects from launching Google Chrome while allowing smooth media streaming
+            // Strictly intercept & block rogue ad popups/new windows from escaping to Google Chrome
+            webView.setWebChromeClient(new BridgeWebChromeClient(getBridge()) {
+                @Override
+                public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
+                    // Swallow all popup windows and ad traps so Chrome is never opened
+                    return false;
+                }
+            });
+
+            // Intercept & block external ad redirects while allowing smooth media streaming
             webView.setWebViewClient(new BridgeWebViewClient(getBridge()) {
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                     if (request == null || request.getUrl() == null) return false;
+                    Uri url = request.getUrl();
+                    String scheme = url.getScheme();
+
+                    // Block intent, market, and chrome schemes that launch external apps
+                    if (scheme != null && !scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https")) {
+                        return true;
+                    }
 
                     // Allow subframes (iframes, video players, streaming CDNs, quality tracks) to load media seamlessly
                     if (!request.isForMainFrame()) {
                         return false;
                     }
 
-                    Uri url = request.getUrl();
                     String host = url.getHost();
-                    String scheme = url.getScheme();
-
                     // Only permit local application scheme (https://localhost) for top-level main frame
                     if ("https".equalsIgnoreCase(scheme) && "localhost".equalsIgnoreCase(host)) {
-                        return super.shouldOverrideUrlLoading(view, request);
+                        return false;
                     }
 
                     // Block rogue ad networks & popups from hijacking the main app and launching external Chrome
@@ -103,29 +117,13 @@ public class MainActivity extends BridgeActivity {
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
                     if (url == null) return false;
                     Uri uri = Uri.parse(url);
-                    String host = uri.getHost();
                     String scheme = uri.getScheme();
 
-                    if ("https".equalsIgnoreCase(scheme) && "localhost".equalsIgnoreCase(host)) {
-                        return super.shouldOverrideUrlLoading(view, url);
-                    }
-
-                    // Block intent, market, and chrome schemes that launch external apps
-                    if ("intent".equalsIgnoreCase(scheme) || "market".equalsIgnoreCase(scheme) || "googlechrome".equalsIgnoreCase(scheme)) {
+                    if (scheme != null && !scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https")) {
                         return true;
                     }
 
-                    // Allow streaming CDN domains and player URLs to load internally in the webview
-                    if (host != null && (
-                        host.contains("vidlink") || 
-                        host.contains("vidsrc") || 
-                        host.contains("superembed") || 
-                        host.contains("embed") || 
-                        host.contains("stream") || 
-                        host.contains("2embed") || 
-                        host.contains("cinesrc") || 
-                        host.contains("tmdb")
-                    )) {
+                    if ("https".equalsIgnoreCase(scheme) && "localhost".equalsIgnoreCase(uri.getHost())) {
                         return false;
                     }
 
@@ -350,14 +348,29 @@ public class MainActivity extends BridgeActivity {
             new Handler(Looper.getMainLooper()).post(() -> {
                 isVideoPlayerOpen = active;
                 if (active) {
+                    if (mAdView != null) {
+                        mAdView.setVisibility(View.GONE);
+                    }
                     if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
                         enableImmersiveMode();
                     }
-                    if (mAdView != null) mAdView.setVisibility(View.GONE);
                 } else {
                     disableImmersiveMode();
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                     if (mAdView != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        mAdView.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void setModalOpen(boolean open) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (mAdView != null) {
+                    if (open) {
+                        mAdView.setVisibility(View.GONE);
+                    } else if (!isVideoPlayerOpen && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                         mAdView.setVisibility(View.VISIBLE);
                     }
                 }

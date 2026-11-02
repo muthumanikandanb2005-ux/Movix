@@ -1,4 +1,4 @@
-# Movix Replica Test Plan
+# Movix Replica Test Plan (`replica/test-plan.md`)
 
 Generated per `/replica-test` methodology for the Movix application.
 
@@ -29,18 +29,20 @@ Generated per `/replica-test` methodology for the Movix application.
 ## Flow F04: Movie Selection & Details Modal
 - **F04-H1 (Happy Path)**: User taps any movie card. Details modal opens smoothly showing movie backdrop, poster, title, duration, rating, genres, audio languages, synopsis, and cast.
 - **F04-H2 (Happy Path - Play from Details)**: User taps "Play Now" inside details modal. Modal transitions smoothly into full-screen video player.
+- **F04-H3 (Happy Path - Banner Ad Suppression on Modal Open)**: Tapping movie card opens Details Modal and immediately calls `AndroidAdMob.setModalOpen(true)` hiding native banner ad so user can click "Watch Now" and "Stream Servers" without touching any ad.
 - **F04-E1 (Edge Case - Image Fallback)**: If an external image CDN fails to respond, `onError` gracefully loads local fallback artwork without breaking card dimensions.
 - **F04-E2 (Edge Case - Long Synopses & Cast Lists)**: Movie with long text/cast fits within scrollable container without clipping buttons or modal header.
 
 ---
 
-## Flow F05: Cinema Video Player (XPlayer Engine)
-- **F05-H1 (Happy Path - Unobstructed Playback)**: Movie begins playing. Within 4 seconds, all UI controls, header bar, bottom bar, and pills automatically fade out completely. View is 100% unobstructed.
-- **F05-H2 (Happy Path - Top Edge Reveal)**: User taps near top edge of the screen while controls are hidden. Top control bar reveals smoothly with title, resolution switcher, audio language, rotation button, and close icon.
-- **F05-H3 (Happy Path - Resolution & Language Drawers)**: User taps "Quality" or "Language" in top bar. Clean dropdown drawer opens. Full-screen click-shield backdrop prevents touch clicks from bleeding into underlying video iframe.
-- **F05-H4 (Happy Path - Ad & External Link Intercept)**: Video iframe emits rogue redirect or ad link. Android `BridgeWebViewClient` intercepts URL and blocks external Google Chrome from opening (`shouldOverrideUrlLoading` returns `true`).
-- **F05-H5 (Happy Path - Screen Rotation)**: User taps orientation button or rotates physical device. Player smoothly adapts between landscape and portrait without restarting stream.
-- **F05-E1 (Edge Case - Stream Failure & Server Failover)**: Server 1 fails or encounters network error. Error recovery banner displays option to switch to mirror server instantly.
+## Flow F05: Cinema Video Player (XPlayer Engine) & Zero-Loading Fix
+- **F05-H1 (Happy Path - 100% Unobstructed Playback)**: Movie begins playing. Within 3 seconds, ALL UI controls, top bar, lock button, bottom bar, and mirror pills automatically fade out completely (`opacity-0 pointer-events-none`). View is 100% clean cinema mode.
+- **F05-H2 (Happy Path - Single Screen Tap Summon)**: User taps screen while controls are hidden. All controls reveal smoothly for 3 seconds. Tapping again immediately hides controls.
+- **F05-H3 (Happy Path - Multi-Server Failover Bar)**: User taps screen to summon controls. Quick Server Mirror Switcher Bar displays `[S1] [S2] [S3] [S4] [S5] [Direct 4K]`. Tapping any server instantly switches stream mirror without stuck buffering.
+- **F05-H4 (Happy Path - Resolution & Language Preference)**: User switches quality (4K, 1080p, 720p, 480p) or audio language (Hindi, Tamil, Telugu, etc.). Player applies preference, persists to `localStorage`, and updates stream without freeze.
+- **F05-H5 (Happy Path - Ad Popup & Chrome Suppression)**: Third-party stream scripts attempt `window.open` or redirect to advertiser URLs. Android `BridgeWebChromeClient.onCreateWindow` returns `false` and `BridgeWebViewClient` blocks non-localhost main frame navigations. Google Chrome is NEVER launched.
+- **F05-H6 (Happy Path - Screen Rotation)**: User taps orientation button or rotates physical device. Player smoothly adapts between landscape and portrait without restarting stream.
+- **F05-E1 (Edge Case - Anti-Hotlink Protection / Referrer)**: Stream iframe utilizes `referrerPolicy="origin"` and sandbox `allow-scripts allow-same-origin allow-forms allow-presentation` preventing 403 blocks and popups.
 - **F05-N1 (Negative Case - Exit Player)**: User taps Close (X) or presses hardware back button. Player unmounts cleanly, restores screen orientation, restores bottom banner, and saves resume timestamp in localStorage.
 
 ---
@@ -61,11 +63,12 @@ Generated per `/replica-test` methodology for the Movix application.
 ---
 
 ## Flow F08: Offline Downloads Simulation
-- **F08-H1 (Happy Path)**: User visits Downloads tab. Shows downloaded movie items with file sizes. Tapping card initiates playback.
-- **F08-E1 (Edge Case - Storage Simulation)**: Download list preserves items and shows simulated download status.
+- **F08-H1 (Happy Path)**: User taps "Download" on movie details. Movie is added to Downloads list with storage usage indicator.
+- **F08-H2 (Happy Path - Offline Playback)**: User plays downloaded title directly from Downloads tab.
 
 ---
 
-## Flow F09: Navigation & Multi-Tab State
-- **F09-H1 (Happy Path)**: User switches between Home, Search, Downloads, and My List tabs via BottomNav. Active tab highlights in red with smooth cross-fade animation.
-- **F09-E1 (Edge Case - Mid-Flow Tab Switching)**: User opens details modal, then switches tabs or hits back. State cleans up properly without modals getting stuck open.
+## Flow F09: Settings Modal & Audio Language Preference
+- **F09-H1 (Happy Path - Language Preference)**: User opens Settings, selects Tamil / Telugu / Hindi / English. Preference is persisted to `movix_pref_language` and hydrated into the player.
+- **F09-H2 (Happy Path - Smooth Playback Engine)**: User toggles Hardware GPU Acceleration or Fast Buffer Mode. Preference is persisted to `localStorage`.
+- **F09-H3 (Happy Path - Clear Cache & History)**: User taps "Clear Watch History & Stream Cache". LocalStorage continue watching entries are flushed cleanly with toast confirmation.

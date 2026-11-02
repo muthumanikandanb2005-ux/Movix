@@ -61,27 +61,21 @@ export const getStreamingSources = (
       quality
     },
     {
-      name: `Server 4 (CineSrc Fast Pro)`,
-      url: `https://cinesrc.st/embed/movie/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 5 (2Embed Cinema VIP)`,
+      name: `Server 4 (2Embed VIP Cinema)`,
       url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 6 (VidSrc.cc Ultra 4K)`,
-      url: `https://vidsrc.cc/v2/embed/movie/${tmdbId}?autoPlay=true`,
+      name: `Server 5 (AutoEmbed Fast Stream)`,
+      url: `https://player.autoembed.cc/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 7 (EmbedSu Fast Mirror)`,
-      url: `https://embed.su/embed/movie/${tmdbId}`,
-      type: 'embed',
+      name: `Server 6 (Direct CDN ${quality} - Ad-Free Stream)`,
+      url: getQualityVideoUrl(tmdbId, quality),
+      type: 'video',
       quality
     }
   ];

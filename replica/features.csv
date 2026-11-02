@@ -1,0 +1,22 @@
+feature,area,priority,original,clone,notes
+App splash and feed hydration,onboarding,must,yes,yes,Loads Movix 3D branding and hydrates TMDB/local catalogs
+Hero billboard with instant 1-tap playback,home,must,yes,yes,Kalki 2898 AD with Watch Now and Watchlist actions
+Continue Watching resume playback strip,playback,must,yes,yes,Saves exact timestamps and progress percent to localStorage
+OTT Provider Bar / Cinema Hubs category filtering,home,must,yes,yes,Filters Indian Hollywood OTT Action Thriller Sci-Fi
+Dynamic categorized movie carousels with 60fps scrolling,home,must,yes,yes,Hardware-accelerated horizontal carousels with async image decoding
+Movie details modal with backdrop cast and synopsis,details,must,yes,yes,3-tab drawer with overview cast and stream mirrors
+Full-screen cinema player (XPlayer Engine),player,must,yes,yes,Edge-to-edge cinema video player with orientation handling
+Multi-server stream mirror failover (S1-S6),player,must,yes,yes,VidLink SuperEmbed VidSrc 2Embed AutoEmbed and Direct CDN
+Resolution quality selection (4K 1080p 720p 480p),player,must,yes,yes,Live quality switcher with timestamp preservation
+Multi-audio language selection,player,must,yes,yes,Hindi Tamil Telugu Malayalam Kannada English Spanish
+Auto-hide controls while video plays,player,must,yes,yes,All buttons lock icons and bars completely hidden during playback
+Interactive screen tap control summon,player,must,yes,yes,Single tap reveals controls for 3 seconds then smoothly fades out
+Screen lock toggle,player,should,yes,yes,XPlayer signature screen lock preventing accidental touch events
+1-Tap orientation rotate toggle,player,should,yes,yes,Instantly switches between landscape cinema and portrait view
+XPlayer touch gesture controls,player,should,yes,yes,Vertical swipe for volume and brightness plus double-tap seek
+Real-time catalog search and suggestions,search,must,yes,yes,Live search across titles genres and cast members
+My List watchlist with local storage persistence,library,must,yes,yes,Add remove and resume favorite movies
+Offline downloads storage simulation,library,should,yes,yes,Simulated offline media management
+Google AdMob native monetization,monetization,must,yes,yes,Native banner and rewarded video ad units
+Ad popup suppression and external browser containment,security,must,yes,yes,Strictly blocks rogue iframe ads from opening Google Chrome
+Settings modal with default language and smooth playback engine,settings,must,yes,yes,Audio preference quality selection GPU acceleration toggle and cache clear utility

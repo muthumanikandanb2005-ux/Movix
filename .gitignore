@@ -36,4 +36,5 @@ update_*.py
 .vercel
 *.apk
 movix-app-*.apk
+scratch/
 

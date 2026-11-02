@@ -113,6 +113,21 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  // Ensure native AdMob banner is automatically hidden when ANY modal or player is open
+  const isAnyModalOpen = Boolean(selectedMovie || playingMovie || isSettingsOpen || qualityTargetMovie || interstitialTarget);
+  useEffect(() => {
+    const androidAdMob = (window as any).AndroidAdMob;
+    if (androidAdMob) {
+      if (typeof androidAdMob.setModalOpen === 'function') {
+        androidAdMob.setModalOpen(isAnyModalOpen);
+      } else if (isAnyModalOpen && typeof androidAdMob.hideBannerAd === 'function') {
+        androidAdMob.hideBannerAd();
+      } else if (!isAnyModalOpen && typeof androidAdMob.showBannerAd === 'function') {
+        androidAdMob.showBannerAd();
+      }
+    }
+  }, [isAnyModalOpen]);
+
   const handleWatchAdVip = () => {
     const androidAdMob = (window as any).AndroidAdMob;
     if (androidAdMob && typeof androidAdMob.showRewardedAd === 'function') {
