@@ -309,7 +309,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div className="flex items-center space-x-2">
                     <span className="text-white font-bold text-xs">MOVIX Cinema App</span>
                     <span className="px-1.5 py-0.2 rounded bg-red-600/30 text-red-400 text-[9px] font-bold">
-                      v2.0.4
+                      v2.0.6
                     </span>
                   </div>
                   <p className="text-[10px] text-white/50">PvrPlay Engine • Orion Store Edition</p>
