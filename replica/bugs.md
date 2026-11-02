@@ -72,3 +72,21 @@ Recorded and resolved during `/replica-test` QA execution.
   - Added `-webkit-overflow-scrolling: touch`, `decoding="async"`, and `transform: translateZ(0)`.
   - Wrapped `MovieCarousel`, `Hero`, and `OttProviderBar` in `React.memo`.
 - **Status**: Verified Fixed.
+
+---
+
+### BUG-006: Player Freezes / Stuck on Quality Switch & Missing Language in Settings
+- **Severity**: S1 (stream playback stuck on quality change)
+- **Steps to Reproduce**:
+  1. Open any movie stream.
+  2. Tap Quality selector and pick 720p or 480p.
+  3. Video stops, gets stuck, and does not load stream.
+- **Root Cause**:
+  1. `MainActivity.java`'s `BridgeWebViewClient.shouldOverrideUrlLoading` blocked all non-localhost URLs indiscriminately without checking `request.isForMainFrame()`. When an embedded player or HLS stream requested a quality change or stream segment from a CDN, Android WebView cancelled the load.
+  2. `VideoPlayerModal.tsx` set `isBuffering(true)` on quality change for embedded cloud streams where no native video element existed to clear the buffering lock.
+  3. No dedicated Settings view existed for configuring preferred audio language and smooth playback engine.
+- **Fix**:
+  - In `MainActivity.java`: Added `if (!request.isForMainFrame()) return false;` to allow all internal iframe streaming, CDN segments, and quality switches to load freely while continuing to block external Chrome popups.
+  - In `VideoPlayerModal.tsx`: Fixed `handleQualityChange` and `useEffect` so embedded cloud streams never enter a stuck buffering state.
+  - Created [`SettingsModal.tsx`](file:///C:/Users/muthu/.gemini/antigravity/scratch/movix-ui-app/src/components/SettingsModal.tsx) with Default Audio Language (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish), Default Streaming Quality, Hardware GPU Acceleration toggle, and Fast Buffer mode.
+- **Status**: Verified Fixed.

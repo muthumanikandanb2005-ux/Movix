@@ -75,33 +75,58 @@ public class MainActivity extends BridgeActivity {
             // Expose JavaScript bridge for web layer
             webView.addJavascriptInterface(new AdMobBridge(), "AndroidAdMob");
 
-            // Strictly intercept & block external ad redirects from launching Google Chrome
+            // Strictly intercept & block external ad redirects from launching Google Chrome while allowing smooth media streaming
             webView.setWebViewClient(new BridgeWebViewClient(getBridge()) {
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                    if (request == null || request.getUrl() == null) return true;
+                    if (request == null || request.getUrl() == null) return false;
+
+                    // Allow subframes (iframes, video players, streaming CDNs, quality tracks) to load media seamlessly
+                    if (!request.isForMainFrame()) {
+                        return false;
+                    }
+
                     Uri url = request.getUrl();
                     String host = url.getHost();
                     String scheme = url.getScheme();
 
-                    // Only permit local application scheme (https://localhost)
+                    // Only permit local application scheme (https://localhost) for top-level main frame
                     if ("https".equalsIgnoreCase(scheme) && "localhost".equalsIgnoreCase(host)) {
                         return super.shouldOverrideUrlLoading(view, request);
                     }
 
-                    // Block all rogue ad networks & popups from launching Chrome
+                    // Block rogue ad networks & popups from hijacking the main app and launching external Chrome
                     return true;
                 }
 
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    if (url == null) return true;
+                    if (url == null) return false;
                     Uri uri = Uri.parse(url);
                     String host = uri.getHost();
                     String scheme = uri.getScheme();
 
                     if ("https".equalsIgnoreCase(scheme) && "localhost".equalsIgnoreCase(host)) {
                         return super.shouldOverrideUrlLoading(view, url);
+                    }
+
+                    // Block intent, market, and chrome schemes that launch external apps
+                    if ("intent".equalsIgnoreCase(scheme) || "market".equalsIgnoreCase(scheme) || "googlechrome".equalsIgnoreCase(scheme)) {
+                        return true;
+                    }
+
+                    // Allow streaming CDN domains and player URLs to load internally in the webview
+                    if (host != null && (
+                        host.contains("vidlink") || 
+                        host.contains("vidsrc") || 
+                        host.contains("superembed") || 
+                        host.contains("embed") || 
+                        host.contains("stream") || 
+                        host.contains("2embed") || 
+                        host.contains("cinesrc") || 
+                        host.contains("tmdb")
+                    )) {
+                        return false;
                     }
 
                     return true;

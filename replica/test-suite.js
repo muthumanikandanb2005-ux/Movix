@@ -100,17 +100,28 @@ async function runTests() {
   assert(tmdbContent.includes('vidlink.pro'), 'F05-H1.2', 'VidLink primary streaming provider configured');
   assert(tmdbContent.includes('vidsrc.cc') || tmdbContent.includes('embedsu.net'), 'F05-H1.3', 'Multiple mirror fallback servers configured');
 
-  // Verify Android WebViewClient blocks Chrome popups
+  // Verify Android WebViewClient blocks Chrome popups while allowing subframe streaming
   const mainActivityPath = path.resolve('android/app/src/main/java/com/movix/app/MainActivity.java');
   assert(fs.existsSync(mainActivityPath), 'F05-H4.1', 'MainActivity.java exists');
   const mainActivityContent = fs.readFileSync(mainActivityPath, 'utf8');
   assert(mainActivityContent.includes('BridgeWebViewClient'), 'F05-H4.2', 'BridgeWebViewClient overridden');
-  assert(mainActivityContent.includes('shouldOverrideUrlLoading') && mainActivityContent.includes('return true;'), 'F05-H4.3', 'Rogue ad popups strictly intercepted & blocked from launching Chrome');
+  assert(mainActivityContent.includes('!request.isForMainFrame()') && mainActivityContent.includes('return false;'), 'F05-H4.3', 'Subframe media and quality streams allowed to load smoothly');
+  assert(mainActivityContent.includes('shouldOverrideUrlLoading') && mainActivityContent.includes('return true;'), 'F05-H4.4', 'Rogue ad popups strictly intercepted & blocked from launching Chrome');
 
   // ----------------------------------------------------
-  // TEST SUITE 4: Player UI Cleanliness (F05-H1, F05-H2, F05-H3)
+  // TEST SUITE 4: Settings & Language Preferences (User Request)
   // ----------------------------------------------------
-  console.log('\n--- SUITE 4: Player UI Cleanliness & Control Bars ---');
+  console.log('\n--- SUITE 4: Settings Modal & Language Preferences ---');
+  const settingsModalPath = path.resolve('src/components/SettingsModal.tsx');
+  assert(fs.existsSync(settingsModalPath), 'SET-1', 'SettingsModal.tsx exists');
+  const settingsContent = fs.readFileSync(settingsModalPath, 'utf8');
+  assert(settingsContent.includes('Hindi') && settingsContent.includes('Tamil') && settingsContent.includes('Telugu'), 'SET-2', 'Settings provides Indian audio languages (Hindi, Tamil, Telugu, etc.)');
+  assert(settingsContent.includes('Hardware GPU Acceleration') || settingsContent.includes('Smooth Playback'), 'SET-3', 'Settings provides Smooth Playback and hardware acceleration toggles');
+
+  // ----------------------------------------------------
+  // TEST SUITE 5: Player UI Cleanliness (F05-H1, F05-H2, F05-H3)
+  // ----------------------------------------------------
+  console.log('\n--- SUITE 5: Player UI Cleanliness & Control Bars ---');
   
   const playerPath = path.resolve('src/components/VideoPlayerModal.tsx');
   assert(fs.existsSync(playerPath), 'F05-H1.4', 'VideoPlayerModal.tsx exists');

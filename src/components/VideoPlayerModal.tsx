@@ -37,9 +37,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Resolution & Language state
-  const [currentQuality, setCurrentQuality] = useState<VideoQuality>(initialQuality);
-  const [currentLanguage, setCurrentLanguage] = useState<AudioLanguage>(initialLanguage);
+  // Resolution & Language state (hydrated with user settings preferences)
+  const [currentQuality, setCurrentQuality] = useState<VideoQuality>(() => {
+    return (localStorage.getItem('movix_pref_quality') as VideoQuality) || initialQuality;
+  });
+  const [currentLanguage, setCurrentLanguage] = useState<AudioLanguage>(() => {
+    return (localStorage.getItem('movix_pref_language') as AudioLanguage) || initialLanguage;
+  });
 
   // Player state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -185,6 +189,14 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   // Attempt initial playback immediately on mount and source switch
   useEffect(() => {
+    // For embedded cloud cinema streams, ensure instant unblocked playback without buffering lock
+    if (currentSource.type === 'embed' || currentSource.type === 'trailer') {
+      setIsBuffering(false);
+      setHasStartedPlaying(true);
+      setHasError(false);
+      return;
+    }
+
     setIsBuffering(true);
     setHasError(false);
 
@@ -314,29 +326,40 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     resetControlsTimeout();
   };
 
-  // Change streaming quality on the fly (Preserves exact second)
+  // Change streaming quality on the fly (Preserves exact second & persists preference)
   const handleQualityChange = (q: VideoQuality) => {
     if (videoRef.current) {
       savedPlaybackTimeRef.current = videoRef.current.currentTime;
     }
     setCurrentQuality(q);
     setShowQualityMenu(false);
-    setIsBuffering(true);
-    setGestureOsd({ type: 'info', value: `Quality: ${q}`, icon: '⚡' });
+    localStorage.setItem('movix_pref_quality', q);
+
+    if (currentSource.type === 'video') {
+      setIsBuffering(true);
+    } else {
+      setIsBuffering(false);
+      setHasStartedPlaying(true);
+    }
+
+    setGestureOsd({ type: 'info', value: `Quality: ${q} • Optimal Stream`, icon: '⚡' });
     setTimeout(() => {
       setGestureOsd(null);
-    }, 1200);
+    }, 1400);
     resetControlsTimeout();
   };
 
-  // Change audio language on the fly
+  // Change audio language on the fly (Persists preference)
   const handleLanguageChange = (lang: AudioLanguage) => {
     setCurrentLanguage(lang);
     setShowLanguageMenu(false);
+    localStorage.setItem('movix_pref_language', lang);
+    setIsBuffering(false);
+    setHasStartedPlaying(true);
     setGestureOsd({ type: 'info', value: `Audio: ${lang} (Dolby 5.1)`, icon: '🌐' });
     setTimeout(() => {
       setGestureOsd(null);
-    }, 1500);
+    }, 1400);
     resetControlsTimeout();
   };
 
@@ -689,6 +712,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 {currentQuality === q && <Check className="w-3.5 h-3.5" />}
               </button>
             ))}
+          </div>
+          <div className="mt-2.5 pt-2 border-t border-white/10 text-[10px] text-white/50 text-center">
+            💡 Tap ⚙️ inside player to fine-tune live bitrate
           </div>
         </div>
       )}

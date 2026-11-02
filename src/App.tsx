@@ -14,6 +14,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { SearchView } from './components/SearchView';
 import { DownloadsView } from './components/DownloadsView';
 import { MyListView } from './components/MyListView';
+import { SettingsModal } from './components/SettingsModal';
 import {
   featuredIndianMovie,
   ottNewReleases,
@@ -59,10 +60,15 @@ export const App: React.FC = () => {
   // Continue Watching state (PvrPlay Signature Feature)
   const [continueWatching, setContinueWatching] = useState<ContinueWatchingItem[]>([]);
 
-  // Resolution & Language selection states
+  // Resolution & Language selection states (persisted with user preferences)
   const [qualityTargetMovie, setQualityTargetMovie] = useState<Movie | null>(null);
-  const [activeQuality, setActiveQuality] = useState<VideoQuality>('1080p');
-  const [activeLanguage, setActiveLanguage] = useState<AudioLanguage>('Hindi');
+  const [activeQuality, setActiveQuality] = useState<VideoQuality>(() => {
+    return (localStorage.getItem('movix_pref_quality') as VideoQuality) || '1080p';
+  });
+  const [activeLanguage, setActiveLanguage] = useState<AudioLanguage>(() => {
+    return (localStorage.getItem('movix_pref_language') as AudioLanguage) || 'Hindi';
+  });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const [playingMovie, setPlayingMovie] = useState<Movie | null>(null);
   const [interstitialTarget, setInterstitialTarget] = useState<Movie | null>(null);
@@ -265,7 +271,8 @@ export const App: React.FC = () => {
       {/* Top Header */}
       <Header
         onSearchClick={() => setActiveTab('search')}
-        onProfileClick={() => showToast('Movix VIP Pass Active')}
+        onProfileClick={() => setIsSettingsOpen(true)}
+        onSettingsClick={() => setIsSettingsOpen(true)}
         onVipClick={handleWatchAdVip}
       />
 
@@ -535,6 +542,26 @@ export const App: React.FC = () => {
           onClose={() => setPlayingMovie(null)}
         />
       )}
+
+      {/* Settings Modal (Language, Quality, Smooth Playback Engine) */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentLanguage={activeLanguage}
+        onLanguageChange={(l) => {
+          setActiveLanguage(l);
+          showToast(`Default Audio set to ${l}`);
+        }}
+        currentQuality={activeQuality}
+        onQualityChange={(q) => {
+          setActiveQuality(q);
+          showToast(`Default Quality set to ${q}`);
+        }}
+        onClearCache={() => {
+          setContinueWatching([]);
+          showToast('Cache & History cleared successfully');
+        }}
+      />
 
       {/* Toast Notification */}
       {toastMessage && (
