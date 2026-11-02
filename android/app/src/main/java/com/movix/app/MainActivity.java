@@ -228,6 +228,21 @@ public class MainActivity extends BridgeActivity {
             @Override
             public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
                 mRewardedAd = rewardedAd;
+                mRewardedAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                    @Override
+                    public void onAdDismissedFullScreenContent() {
+                        mRewardedAd = null;
+                        loadRewardedAd();
+                        notifyWebAdDismissed();
+                    }
+
+                    @Override
+                    public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                        mRewardedAd = null;
+                        loadRewardedAd();
+                        notifyWebAdDismissed();
+                    }
+                });
             }
 
             @Override
@@ -268,7 +283,7 @@ public class MainActivity extends BridgeActivity {
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
                 params.gravity = Gravity.BOTTOM;
-                // Keep 65dp clearance from bottom so BottomNav (Home, Search, Downloads, My List) is NEVER covered
+                // Keep 65dp clearance from bottom so BottomNav is not covered
                 float density = getResources().getDisplayMetrics().density;
                 params.bottomMargin = (int) (65 * density);
                 mAdView.setLayoutParams(params);
@@ -277,12 +292,21 @@ public class MainActivity extends BridgeActivity {
                     @Override
                     public void onAdLoaded() {
                         super.onAdLoaded();
-                        // Only show in portrait orientation
-                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT && !isVideoPlayerOpen) {
                             mAdView.setVisibility(View.VISIBLE);
                         } else {
                             mAdView.setVisibility(View.GONE);
                         }
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError error) {
+                        super.onAdFailedToLoad(error);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (mAdView != null && !isVideoPlayerOpen) {
+                                mAdView.loadAd(new AdRequest.Builder().build());
+                            }
+                        }, 30000);
                     }
                 });
 
@@ -354,6 +378,14 @@ public class MainActivity extends BridgeActivity {
                     if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
                         enableImmersiveMode();
                     }
+                    // Maximize device media volume to 100% full on cinema player launch
+                    try {
+                        android.media.AudioManager am = (android.media.AudioManager) getSystemService(android.content.Context.AUDIO_SERVICE);
+                        if (am != null) {
+                            int maxVol = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC);
+                            am.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, maxVol, 0);
+                        }
+                    } catch (Exception ignored) {}
                 } else {
                     disableImmersiveMode();
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);

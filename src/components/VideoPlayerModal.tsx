@@ -96,8 +96,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const mid = movie.tmdbId || 801688;
   const sources: StreamSource[] = getStreamingSources(mid, undefined, currentQuality, currentLanguage);
 
-  const [activeSourceIndex, setActiveSourceIndex] = useState(0);
-  const currentSource = sources[activeSourceIndex] || sources[0];
+  // Default to Server 3 (VidSrc PM Ultra HD) for ultra-fast loading as requested by user
+  const defaultServerIndex = sources.findIndex(s => s.name.includes('Server 3')) !== -1 
+    ? sources.findIndex(s => s.name.includes('Server 3')) 
+    : 2;
+
+  const [activeSourceIndex, setActiveSourceIndex] = useState(defaultServerIndex);
+  const currentSource = sources[activeSourceIndex] || sources[defaultServerIndex] || sources[0];
 
   // Auto-hide controls after 3 seconds to provide clean unobstructed cinema view
   const resetControlsTimeout = useCallback(() => {
@@ -291,6 +296,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   const handleLoadedMetadata = () => {
     if (!videoRef.current) return;
+    videoRef.current.volume = 1.0;
+    videoRef.current.muted = false;
     const dur = videoRef.current.duration || 1;
     setDuration(formatTime(dur));
     
