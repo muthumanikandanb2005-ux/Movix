@@ -127,6 +127,22 @@ Recorded and resolved during `/replica-test` QA execution.
 
 ---
 
+### BUG-010: Embed Video Displaying "Please Disable Sandbox" & Advertisement Not Playing on Movie Start
+- **Severity**: S1 (stream blocked with sandbox warning & monetization advertisement missing on play)
+- **Steps to Reproduce**:
+  1. Tap "Play" on a movie.
+  2. Embed iframe (VidLink / SuperEmbed) detects HTML `sandbox` attribute and shows "Please disable sandbox" instead of playing.
+  3. No sponsored video advertisement played before the movie began.
+- **Root Cause**:
+  1. Third-party cloud embed players explicitly test for `window.frameElement.hasAttribute('sandbox')` and halt playback if sandboxed.
+  2. `handleRequestPlay` in `src/App.tsx` directly invoked `setPlayingMovie(movie)` without triggering `setInterstitialTarget(movie)`.
+- **Fix**:
+  - Removed the `sandbox` attribute from `<iframe />` in `src/components/VideoPlayerModal.tsx` while retaining native Android popup suppression in `BridgeWebChromeClient.onCreateWindow`.
+  - Updated `handleRequestPlay` and `handleQualityConfirmed` in `src/App.tsx` to set `setInterstitialTarget(movie)`, triggering `<AdMobInterstitial />` (and native Android AdMob SDK `showInterstitialAd()`) prior to launching the player.
+- **Status**: Verified Fixed (Tests `F05-H1.9`, `AD-1` passed).
+
+---
+
 ### BUG-006: Player Freezes / Stuck on Quality Switch & Missing Language in Settings
 - **Severity**: S1 (stream playback stuck on quality change)
 - **Steps to Reproduce**:
@@ -194,3 +210,19 @@ Recorded and resolved during `/replica-test` QA execution.
   - Added single tap toggle: tapping anywhere on the video screen reveals controls for 3 seconds, then fades cleanly into 100% immersive cinema mode.
   - Replaced `touch-action: pan-y;` with `touch-action: manipulation;` and added `-webkit-overflow-scrolling: touch;` and hardware acceleration layers in `src/index.css`.
 - **Status**: Verified Fixed (Test `F05-H1`, `F03-E1` passed).
+
+---
+
+### BUG-010: Embed Video Displaying "Please Disable Sandbox" & Advertisement Not Playing on Movie Start
+- **Severity**: S1 (stream blocked with sandbox warning & monetization advertisement missing on play)
+- **Steps to Reproduce**:
+  1. Tap "Play" on a movie.
+  2. Embed iframe (VidLink / SuperEmbed) detects HTML `sandbox` attribute and shows "Please disable sandbox" instead of playing.
+  3. No sponsored video advertisement played before the movie began.
+- **Root Cause**:
+  1. Third-party cloud embed players explicitly test for `window.frameElement.hasAttribute('sandbox')` and halt playback if sandboxed.
+  2. `handleRequestPlay` in `src/App.tsx` directly invoked `setPlayingMovie(movie)` without triggering `setInterstitialTarget(movie)`.
+- **Fix**:
+  - Removed the `sandbox` attribute from `<iframe />` in `src/components/VideoPlayerModal.tsx` while retaining native Android popup suppression in `BridgeWebChromeClient.onCreateWindow`.
+  - Updated `handleRequestPlay` and `handleQualityConfirmed` in `src/App.tsx` to set `setInterstitialTarget(movie)`, triggering `<AdMobInterstitial />` (and native Android AdMob SDK `showInterstitialAd()`) prior to launching the player.
+- **Status**: Verified Fixed (Tests `F05-H1.9`, `AD-1` passed).

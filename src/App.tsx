@@ -231,17 +231,17 @@ export const App: React.FC = () => {
     }
   }, [downloads]);
 
-  // 1. User taps Play or Stream -> Instant 1-Tap Cinema Playback
+  // 1. User taps Play or Stream -> Plays Sponsored Advertisement, then launches Player
   const handleRequestPlay = useCallback((movie: Movie) => {
-    setPlayingMovie(movie);
+    setInterstitialTarget(movie);
   }, []);
 
-  // 2. User confirms Quality & Language -> Launch Player with selected preferences
+  // 2. User confirms Quality & Language -> Plays Sponsored Advertisement with chosen preferences
   const handleQualityConfirmed = useCallback((movie: Movie, quality: VideoQuality, language: AudioLanguage) => {
     setQualityTargetMovie(null);
     setActiveQuality(quality);
     setActiveLanguage(language);
-    setPlayingMovie(movie);
+    setInterstitialTarget(movie);
   }, []);
 
   // 3. Ad finishes/dismissed -> Launch Player

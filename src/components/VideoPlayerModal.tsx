@@ -896,7 +896,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
             referrerPolicy="origin"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
             onLoad={() => {
               setIsBuffering(false);
               setHasStartedPlaying(true);

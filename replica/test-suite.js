@@ -129,8 +129,13 @@ async function runTests() {
   assert(playerContent.includes('showControls && !isLocked ? \'opacity-100\' : \'opacity-0 pointer-events-none\''), 'F05-H1.6', 'Controls fade to 0 opacity with pointer-events-none while playing');
   assert(playerContent.includes('showControls ? \'opacity-100 pointer-events-auto\' : \'opacity-0 pointer-events-none\''), 'F05-H1.7', 'Screen lock button auto-hides with controls');
   assert(playerContent.includes('referrerPolicy="origin"'), 'F05-H1.8', 'Iframe uses origin referrerPolicy to prevent 403 anti-hotlink blocks');
-  assert(playerContent.includes('sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"'), 'F05-H1.9', 'Iframe is sandboxed against popup ads and rogue navigation');
+  assert(!playerContent.includes('sandbox="'), 'F05-H1.9', 'Iframe has sandbox disabled to prevent "Please disable sandbox" provider error');
   assert(playerContent.includes('Stream Mirror:'), 'F05-H1.10', 'Quick Server Mirror Switcher Bar (S1-S6) integrated for 1-tap failover');
+
+  // Verify advertisement plays on movie request
+  const appPath = path.resolve('src/App.tsx');
+  const appContent = fs.readFileSync(appPath, 'utf8');
+  assert(appContent.includes('setInterstitialTarget(movie)'), 'AD-1', 'Movie play request triggers sponsored advertisement before starting player');
 
   // ----------------------------------------------------
   // TEST SUITE 6: Production Build & APK Integrity
