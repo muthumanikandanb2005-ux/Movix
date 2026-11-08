@@ -289,6 +289,10 @@ export const App: React.FC = () => {
         onProfileClick={() => setIsSettingsOpen(true)}
         onSettingsClick={() => setIsSettingsOpen(true)}
         onVipClick={handleWatchAdVip}
+        onOtaCheck={() => {
+          showToast('🚀 Checking for Movix updates...');
+          setIsSettingsOpen(true);
+        }}
       />
 
       {/* Main Tab Content */}

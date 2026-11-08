@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, Globe, Sliders, Check, Zap, Server, Trash2, 
-  Sparkles, CheckCircle2, RefreshCw 
+  Sparkles, CheckCircle2, RefreshCw, Download, ArrowUpCircle, ShieldCheck 
 } from 'lucide-react';
 import { VideoQuality, AudioLanguage } from '../types';
+import { checkForAppUpdates, triggerApkInstall, getCurrentAppVersion, AppUpdateInfo } from '../services/otaUpdates';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -45,6 +46,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [hardwareAcceleration, setHardwareAcceleration] = useState(true);
   const [fastBuffer, setFastBuffer] = useState(true);
   const [cacheClearedToast, setCacheClearedToast] = useState(false);
+  
+  // In-app hidden OTA updates state
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<string | null>(null);
+  const currentApp = getCurrentAppVersion();
+
+  const handleCheckUpdates = async (force = false) => {
+    setIsCheckingUpdate(true);
+    setUpdateStatus('Checking GitHub repository for updates...');
+    try {
+      const res = await checkForAppUpdates(force);
+      if (res && res.hasUpdate) {
+        setUpdateInfo(res);
+        setUpdateStatus(`New Version v${res.versionName} is ready!`);
+      } else {
+        setUpdateInfo(null);
+        setUpdateStatus(`You are on the latest build (v${currentApp.versionName})`);
+      }
+    } catch {
+      setUpdateStatus('Unable to reach update server. Try again later.');
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
+  useEffect(() => {
+    // Silent background check on modal open
+    handleCheckUpdates(false);
+  }, []);
 
   useEffect(() => {
     const savedHw = localStorage.getItem('movix_setting_hw_accel');
@@ -309,11 +340,66 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div className="flex items-center space-x-2">
                     <span className="text-white font-bold text-xs">MOVIX Cinema App</span>
                     <span className="px-1.5 py-0.2 rounded bg-red-600/30 text-red-400 text-[9px] font-bold">
-                      v2.0.6
+                      v{currentApp.versionName}
                     </span>
                   </div>
-                  <p className="text-[10px] text-white/50">PvrPlay Engine • Orion Store Edition</p>
+                  <p className="text-[10px] text-white/50">Build {currentApp.versionCode} • GitHub OTA Ready</p>
                 </div>
+              </div>
+
+              {/* In-App Hidden OTA Updates Section */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <ArrowUpCircle className="w-4 h-4 text-[#E50914]" />
+                    <span className="text-xs font-bold text-white">System OTA Updates</span>
+                  </div>
+                  <button
+                    onClick={() => handleCheckUpdates(true)}
+                    disabled={isCheckingUpdate}
+                    className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-[10px] font-bold text-white/90 flex items-center space-x-1 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isCheckingUpdate ? 'animate-spin' : ''}`} />
+                    <span>{isCheckingUpdate ? 'Checking...' : 'Check Now'}</span>
+                  </button>
+                </div>
+
+                {updateStatus && (
+                  <p className="text-[10px] text-white/60">
+                    {updateStatus}
+                  </p>
+                )}
+
+                {updateInfo && (
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-red-950/40 via-black to-red-950/40 border border-red-500/30 space-y-2 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white flex items-center space-x-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>{updateInfo.title}</span>
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-mono">
+                        v{updateInfo.versionName}
+                      </span>
+                    </div>
+
+                    <ul className="text-[10px] text-white/70 space-y-1 pl-1">
+                      {updateInfo.changelog.map((item, idx) => (
+                        <li key={idx} className="flex items-start space-x-1.5">
+                          <span className="text-red-500">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      onClick={() => triggerApkInstall(updateInfo.downloadUrl)}
+                      className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-lg shadow-red-900/40 active:scale-95 transition-all mt-1"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download & Install APK Update</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* VIP Status */}

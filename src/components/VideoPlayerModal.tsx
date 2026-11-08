@@ -5,7 +5,7 @@ import {
   Server, Lock, Unlock, Sun, Gauge, Scan, Check, Languages, Globe, AlertCircle, Smartphone 
 } from 'lucide-react';
 import { Movie, StreamSource, VideoQuality, AudioLanguage } from '../types';
-import { getStreamingSources } from '../services/tmdb';
+import { getStreamingSources, getTvStreamingSources } from '../services/tmdb';
 import { saveResumeProgress } from '../services/continueWatching';
 
 interface VideoPlayerModalProps {
@@ -92,11 +92,14 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   });
   const lastTapRef = useRef<{ time: number; x: number }>({ time: 0, x: 0 });
 
-  // Generate dynamic quality streaming sources
-  const mid = movie.tmdbId || 801688;
-  const sources: StreamSource[] = getStreamingSources(mid, undefined, currentQuality, currentLanguage);
+  // Generate dynamic quality streaming sources with accurate ID & TV detection
+  const mid = movie.tmdbId || (typeof movie.id === 'string' && movie.id.startsWith('tmdb-') ? parseInt(movie.id.replace('tmdb-', '')) : parseInt(movie.id as any)) || 801688;
+  const isTv = movie.mediaType === 'tv' || movie.isTvSeries || (movie.duration && movie.duration.toLowerCase().includes('season'));
+  const sources: StreamSource[] = isTv
+    ? getTvStreamingSources(mid, movie.season || 1, movie.episode || 1)
+    : getStreamingSources(mid, undefined, currentQuality, currentLanguage);
 
-  // Default to Server 3 (VidSrc PM Ultra HD) for ultra-fast loading as requested by user
+  // Default to Server 3 (AutoEmbed / VidSrc Ultra HD) for fast instant loading
   const defaultServerIndex = sources.findIndex(s => s.name.includes('Server 3')) !== -1 
     ? sources.findIndex(s => s.name.includes('Server 3')) 
     : 2;

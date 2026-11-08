@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Search, Sparkles, Settings } from 'lucide-react';
 
 interface HeaderProps {
@@ -6,18 +6,44 @@ interface HeaderProps {
   onProfileClick: () => void;
   onSettingsClick?: () => void;
   onVipClick?: () => void;
+  onOtaCheck?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   onSearchClick, 
   onProfileClick, 
   onSettingsClick,
-  onVipClick 
+  onVipClick,
+  onOtaCheck
 }) => {
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleLogoTap = () => {
+    tapCountRef.current++;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+
+    if (tapCountRef.current >= 5) {
+      tapCountRef.current = 0;
+      if (onOtaCheck) {
+        onOtaCheck();
+      } else if (onSettingsClick) {
+        onSettingsClick();
+      }
+    } else {
+      tapTimerRef.current = setTimeout(() => {
+        tapCountRef.current = 0;
+      }, 1500);
+    }
+  };
   return (
     <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 pt-3 pb-3 bg-gradient-to-b from-[#080A0F]/95 via-[#080A0F]/70 to-transparent backdrop-blur-[2px]">
       {/* Brand Logo with 3D M Icon */}
-      <div className="flex items-center space-x-2.5 cursor-pointer select-none group">
+      <div 
+        onClick={handleLogoTap}
+        className="flex items-center space-x-2.5 cursor-pointer select-none group"
+        title="Movix Cinema (Tap 5x for Hidden Updates)"
+      >
         <div className="relative w-8 h-8 flex-shrink-0 drop-shadow-[0_2px_8px_rgba(168,85,247,0.4)]">
           <img 
             src="/assets/movix_3d_logo.png" 

@@ -176,8 +176,8 @@ export const indianBlockbusters: Movie[] = [
     director: 'Atlee'
   },
   {
-    id: 'tmdb-614933',
-    tmdbId: 614933,
+    id: 'tmdb-587412',
+    tmdbId: 587412,
     title: 'K.G.F: CHAPTER 2',
     year: 2022,
     genre: 'Action / Crime',
@@ -186,10 +186,10 @@ export const indianBlockbusters: Movie[] = [
     ottProvider: 'Prime Video',
     ottUrl: 'https://www.primevideo.com',
     description: 'The blood-soaked land of Kolar Gold Fields now has a new overlord: Rocky, whose name strikes fear into the heart of his foes and the government.',
-    poster: 'https://image.tmdb.org/t/p/w500/bcM2Tl5HlsvPBnL8DKP9Ie6vU4r.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/3TNSoa0UHGEzEz5ndXGjJVKo8RJ.jpg',
-    videoUrl: getStreamingSources(614933)[0].url,
-    streamSources: getStreamingSources(614933),
+    poster: 'https://image.tmdb.org/t/p/w500/khNVygolU0TxLIDWff5tQlAhZ23.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/nsV5Mfi9FAV4w8eDsdr7uqVswOk.jpg',
+    videoUrl: getStreamingSources(587412)[0].url,
+    streamSources: getStreamingSources(587412),
     availableLanguages: ['Kannada', 'Hindi', 'Tamil', 'Telugu', 'Malayalam'],
     cast: ['Yash', 'Sanjay Dutt', 'Raveena Tandon'],
     director: 'Prashanth Neel'
@@ -214,8 +214,8 @@ export const indianBlockbusters: Movie[] = [
     director: 'Lokesh Kanagaraj'
   },
   {
-    id: 'tmdb-828898',
-    tmdbId: 828898,
+    id: 'tmdb-770906',
+    tmdbId: 770906,
     title: 'SALAAR: PART 1',
     year: 2023,
     genre: 'Action / Crime',
@@ -224,10 +224,10 @@ export const indianBlockbusters: Movie[] = [
     ottProvider: 'JioHotstar',
     ottUrl: 'https://www.hotstar.com',
     description: 'A gang leader makes a promise to a dying friend and takes on other criminal gangs in the dystopian city-state of Khansaar.',
-    poster: 'https://image.tmdb.org/t/p/w500/u3ZgJfyBpTox5U7RfhCDIXlHnO4.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/AfDHUjLraHBvBSRoM6G30Ng2gSx.jpg',
-    videoUrl: getStreamingSources(828898)[0].url,
-    streamSources: getStreamingSources(828898),
+    poster: 'https://image.tmdb.org/t/p/w500/nlu9WbcetNFRGXXPWITr30ob7W6.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/xtOCTmGemASooRkAxRorYODig1p.jpg',
+    videoUrl: getStreamingSources(770906)[0].url,
+    streamSources: getStreamingSources(770906),
     availableLanguages: ['Telugu', 'Hindi', 'Tamil', 'Malayalam', 'Kannada'],
     cast: ['Prabhas', 'Prithviraj Sukumaran', 'Shruti Haasan'],
     director: 'Prashanth Neel'
@@ -309,8 +309,8 @@ export const hollywoodBlockbusters: Movie[] = [
 // 5. Romance & Emotional Cinema
 export const romanceMovies: Movie[] = [
   {
-    id: 'tmdb-926393',
-    tmdbId: 926393,
+    id: 'tmdb-894803',
+    tmdbId: 894803,
     title: 'SITA RAMAM',
     year: 2022,
     genre: 'Romance / Drama',
@@ -319,10 +319,10 @@ export const romanceMovies: Movie[] = [
     ottProvider: 'Prime Video',
     ottUrl: 'https://www.primevideo.com',
     description: 'An orphan soldier receives a letter from a girl named Sita. He sets out to find her and love blooms between them against all odds.',
-    poster: 'https://image.tmdb.org/t/p/w500/b0Ej6fnXAP8fK75hlyi2jKqdhHz.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/gystuaqp5AkVqqu3Nf0564zeOv4.jpg',
-    videoUrl: getStreamingSources(926393)[0].url,
-    streamSources: getStreamingSources(926393),
+    poster: 'https://image.tmdb.org/t/p/w500/t1O94ZBzsQXJihtVkrsStRLyUDR.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/28EqsZDeEAy4VMZfrYbiyJZznKn.jpg',
+    videoUrl: getStreamingSources(894803)[0].url,
+    streamSources: getStreamingSources(894803),
     availableLanguages: ['Telugu', 'Tamil', 'Malayalam', 'Hindi']
   },
   {
@@ -360,8 +360,8 @@ export const romanceMovies: Movie[] = [
     availableLanguages: ['English', 'Spanish']
   },
   {
-    id: 'tmdb-181533',
-    tmdbId: 181533,
+    id: 'tmdb-185008',
+    tmdbId: 185008,
     title: 'YEH JAWAANI HAI DEEWANI',
     year: 2013,
     genre: 'Romance / Comedy',
@@ -370,10 +370,10 @@ export const romanceMovies: Movie[] = [
     ottProvider: 'Netflix',
     ottUrl: 'https://www.netflix.com',
     description: 'Kabir and Naina bond during a trekking trip. Before Naina can express her feelings, Kabir leaves to pursue his career overseas.',
-    poster: 'https://image.tmdb.org/t/p/w500/xwgy305K6qDs3D20xUO4OZu1HPY.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/1ClgfKeczI0d0KKuBs5qSIqUReT.jpg',
-    videoUrl: getStreamingSources(181533)[0].url,
-    streamSources: getStreamingSources(181533),
+    poster: 'https://image.tmdb.org/t/p/w500/em39H81XLCDgXsI7V4IcBZseEO6.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/hvaSiRRM93aCSzTmKlY4sHERL0S.jpg',
+    videoUrl: getStreamingSources(185008)[0].url,
+    streamSources: getStreamingSources(185008),
     availableLanguages: ['Hindi']
   }
 ];
@@ -448,6 +448,10 @@ export const netflixTop10: Movie[] = [
     ottProvider: 'Netflix',
     ottUrl: 'https://www.netflix.com',
     isOttRelease: true,
+    isTvSeries: true,
+    mediaType: 'tv',
+    season: 1,
+    episode: 1,
     description: 'Hundreds of cash-strapped players accept a strange invitation to compete in children\'s games with deadly high stakes for a tempting 45.6 billion prize.',
     poster: '/assets/poster_squid_game.jpg',
     backdrop: '/assets/backdrop_squid_game.jpg',
@@ -616,6 +620,10 @@ export const netflixTop10: Movie[] = [
     ottProvider: 'Netflix',
     ottUrl: 'https://www.netflix.com',
     isOttRelease: true,
+    isTvSeries: true,
+    mediaType: 'tv',
+    season: 1,
+    episode: 1,
     description: 'When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces and one strange little girl.',
     poster: 'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg',
     backdrop: 'https://image.tmdb.org/t/p/original/56v2KjBlU4XaOv9rVYEQypROD7P.jpg',

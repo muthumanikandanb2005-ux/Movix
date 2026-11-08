@@ -60,8 +60,8 @@ public class MainActivity extends BridgeActivity {
             webSettings.setLoadWithOverviewMode(true);
             webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
             webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-            webSettings.setJavaScriptCanOpenWindowsAutomatically(false);
-            webSettings.setSupportMultipleWindows(false);
+            webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+            webSettings.setSupportMultipleWindows(true);
 
             // Enable third-party cookies for cross-origin media streaming tokens & iframes
             try {
@@ -80,7 +80,28 @@ public class MainActivity extends BridgeActivity {
             webView.setWebChromeClient(new BridgeWebChromeClient(getBridge()) {
                 @Override
                 public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
-                    // Swallow all popup windows and ad traps so Chrome is never opened
+                    if (resultMsg == null) return false;
+                    // Provide a headless isolated dummy WebView to satisfy embed players' window.open sandbox checks
+                    // while preventing any rogue popup or ad trap from ever opening Chrome
+                    try {
+                        WebView dummyWebView = new WebView(MainActivity.this);
+                        dummyWebView.setWebViewClient(new android.webkit.WebViewClient() {
+                            @Override
+                            public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
+                                return true;
+                            }
+                            @Override
+                            public boolean shouldOverrideUrlLoading(WebView v, String u) {
+                                return true;
+                            }
+                        });
+                        WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                        if (transport != null) {
+                            transport.setWebView(dummyWebView);
+                            resultMsg.sendToTarget();
+                            return true;
+                        }
+                    } catch (Exception ignored) {}
                     return false;
                 }
             });
@@ -454,6 +475,37 @@ public class MainActivity extends BridgeActivity {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
                 disableImmersiveMode();
             });
+        }
+
+        @JavascriptInterface
+        public void openUpdateUrl(String url) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                try {
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public String getAppVersion() {
+            try {
+                return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            } catch (Exception e) {
+                return "2.0.6";
+            }
+        }
+
+        @JavascriptInterface
+        public int getAppVersionCode() {
+            try {
+                return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            } catch (Exception e) {
+                return 200600;
+            }
         }
     }
 }

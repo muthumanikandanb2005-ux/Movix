@@ -43,6 +43,10 @@ export interface Movie {
   releaseDate?: string;
   productionCompanies?: string[];
   trailerKey?: string;
+  mediaType?: 'movie' | 'tv';
+  isTvSeries?: boolean;
+  season?: number;
+  episode?: number;
 }
 
 export interface ContinueWatchingItem {

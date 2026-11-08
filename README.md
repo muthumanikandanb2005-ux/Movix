@@ -12,16 +12,17 @@
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20Web-E50914?style=for-the-badge&logo=android" alt="Platform" />
   <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite" alt="Vite" />
-  <img src="https://img.shields.io/badge/Release-v2.0.6-success?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Release-v2.0.7-success?style=for-the-badge" alt="Version" />
 </p>
 
-### 📲 Download Latest APK (v2.0.6)
+### 📲 Download Latest APK (v2.0.7)
 
 | Asset | Size | Download Link |
 | :--- | :--- | :--- |
-| **MOVIX v2.0.6 APK (Latest)** | `16.9 MB` | [📥 **Download movix-app-v2.0.6.apk**](https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.6/movix-app-v2.0.6.apk) |
-| **MOVIX v2.0.2 APK (Mirror)** | `16.9 MB` | [📥 **Download movix-app-v2.0.2.apk**](https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.6/movix-app-v2.0.2.apk) |
-| **In-Repo Direct Raw APK** | `16.9 MB` | [📥 **Direct Raw Download**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.6.apk) |
+| **MOVIX v2.0.7 APK (Latest)** | `16.8 MB` | [📥 **Download movix-app-v2.0.7.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.7.apk) |
+| **MOVIX v2.0.6 APK (Mirror)** | `16.8 MB` | [📥 **Download movix-app-v2.0.6.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.6.apk) |
+| **MOVIX v2.0.2 APK (Mirror)** | `16.8 MB` | [📥 **Download movix-app-v2.0.2.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.2.apk) |
+| **GitHub Releases Page** | `Release Hub` | [🌐 **View All Releases**](https://github.com/muthumanikandanb2005-ux/Movix/releases) |
 
 ---
 
