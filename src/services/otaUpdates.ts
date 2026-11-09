@@ -10,8 +10,8 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-const CURRENT_VERSION_NAME = '2.0.7';
-const CURRENT_VERSION_CODE = 200700;
+const CURRENT_VERSION_NAME = '2.0.8';
+const CURRENT_VERSION_CODE = 200800;
 
 const GITHUB_REPO_RAW_VERSION_URL = 'https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/version.json';
 const GITHUB_API_LATEST_RELEASE = 'https://api.github.com/repos/muthumanikandanb2005-ux/Movix/releases/latest';

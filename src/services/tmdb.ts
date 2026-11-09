@@ -55,25 +55,25 @@ export const getStreamingSources = (
   const sources: StreamSource[] = [
     {
       name: `Server 1 (VidLink Pro 4K - Ultra Fast)`,
-      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true`,
+      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&audio=${langCode}&sub=${langCode}`,
       type: 'embed',
       quality
     },
     {
       name: `Server 2 (CineSrc Fast HD)`,
-      url: `https://cinesrc.st/embed/movie/${tmdbId}`,
+      url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
       name: `Server 3 (AutoEmbed Multi-Language Ultra)`,
-      url: `https://player.autoembed.me/embed/movie/${tmdbId}`,
+      url: `https://player.autoembed.me/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
       type: 'embed',
       quality
     },
     {
       name: `Server 4 (VidSrc PM Ultra HD)`,
-      url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
+      url: `https://vidsrc.pm/embed/movie/${tmdbId}?lang=${langCode}`,
       type: 'embed',
       quality
     },
@@ -114,32 +114,44 @@ export const getStreamingSources = (
   return sources;
 };
 
-export const getTvStreamingSources = (tmdbId: number, season: number = 1, episode: number = 1): StreamSource[] => {
+export const getTvStreamingSources = (
+  tmdbId: number, 
+  season: number = 1, 
+  episode: number = 1,
+  quality: VideoQuality = '1080p',
+  language: AudioLanguage = 'Hindi'
+): StreamSource[] => {
+  const langCode = LANG_CODE_MAP[language] || 'hi';
   return [
     {
       name: 'Server 1 (VidLink TV VIP 4K)',
-      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914`,
-      type: 'embed'
+      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&audio=${langCode}&sub=${langCode}`,
+      type: 'embed',
+      quality
     },
     {
       name: 'Server 2 (AutoEmbed TV Multi-Audio)',
-      url: `https://player.autoembed.me/embed/tv/${tmdbId}/${season}/${episode}`,
-      type: 'embed'
+      url: `https://player.autoembed.me/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}`,
+      type: 'embed',
+      quality
     },
     {
       name: 'Server 3 (VidSrc PM TV Ultra)',
-      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}`,
-      type: 'embed'
+      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}`,
+      type: 'embed',
+      quality
     },
     {
       name: 'Server 4 (2Embed TV VIP)',
       url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
-      type: 'embed'
+      type: 'embed',
+      quality
     },
     {
       name: 'Server 5 (SuperEmbed TV Cinema)',
       url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}`,
-      type: 'embed'
+      type: 'embed',
+      quality
     }
   ];
 };

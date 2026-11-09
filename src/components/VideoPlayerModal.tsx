@@ -96,7 +96,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const mid = movie.tmdbId || (typeof movie.id === 'string' && movie.id.startsWith('tmdb-') ? parseInt(movie.id.replace('tmdb-', '')) : parseInt(movie.id as any)) || 801688;
   const isTv = movie.mediaType === 'tv' || movie.isTvSeries || (movie.duration && movie.duration.toLowerCase().includes('season'));
   const sources: StreamSource[] = isTv
-    ? getTvStreamingSources(mid, movie.season || 1, movie.episode || 1)
+    ? getTvStreamingSources(mid, movie.season || 1, movie.episode || 1, currentQuality, currentLanguage)
     : getStreamingSources(mid, undefined, currentQuality, currentLanguage);
 
   // Default to Server 3 (AutoEmbed / VidSrc Ultra HD) for fast instant loading
@@ -110,7 +110,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   // Auto-hide controls after 3 seconds to provide clean unobstructed cinema view
   const resetControlsTimeout = useCallback(() => {
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    if (!isLocked) {
+    if (!isLocked && !showLanguageMenu && !showServerMenu && !showQualityMenu && !showSpeedMenu) {
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
         setShowServerMenu(false);
@@ -119,7 +119,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         setShowLanguageMenu(false);
       }, 3000);
     }
-  }, [isLocked]);
+  }, [isLocked, showLanguageMenu, showServerMenu, showQualityMenu, showSpeedMenu]);
 
   useEffect(() => {
     resetControlsTimeout();
@@ -574,46 +574,20 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
       onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
-      {/* Screen tap area to reveal controls when hidden (strictly for HTML5 video so embed player touches are never intercepted) */}
-      {!showControls && currentSource.type === 'video' && (
+      {/* Tap area to summon controls when hidden (zero visible buttons while playing, 100% pure cinema unobstructed screen) */}
+      {!showControls && (
         <div 
           onClick={(e) => {
             e.stopPropagation();
             setShowControls(true);
             resetControlsTimeout();
           }}
-          className="absolute inset-0 z-30 cursor-pointer"
+          className={currentSource.type === 'video' 
+            ? "absolute inset-0 z-30 cursor-pointer"
+            : "absolute top-0 left-0 right-0 h-16 z-30 cursor-pointer"
+          }
+          aria-label="Tap to summon controls"
         />
-      )}
-
-      {/* Discreet floating top pill when controls are hidden for embed */}
-      {!showControls && currentSource.type !== 'video' && (
-        <div 
-          style={{ top: 'max(env(safe-area-inset-top, 0px), 16px)', left: 'max(env(safe-area-inset-left, 0px), 16px)' }}
-          className="absolute z-40 flex items-center space-x-2 animate-in fade-in duration-200 pointer-events-auto"
-        >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClose();
-            }}
-            className="p-2 rounded-full bg-black/75 hover:bg-black/95 text-white border border-white/20 backdrop-blur-md shadow-lg active:scale-95 transition-all"
-            title="Back to Movies"
-          >
-            <X className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowControls(true);
-              resetControlsTimeout();
-            }}
-            className="px-3 py-1.5 rounded-full bg-black/75 hover:bg-black/95 text-white/90 border border-white/20 backdrop-blur-md shadow-lg text-[11px] font-bold flex items-center space-x-1.5 active:scale-95 transition-all"
-          >
-            <Server className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{currentSource.name.split('(')[0].trim() || 'Mirror'}</span>
-          </button>
-        </div>
       )}
 
       {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
@@ -675,12 +649,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setShowQualityMenu(false);
               setShowServerMenu(false);
               setShowSpeedMenu(false);
+              resetControlsTimeout();
             }}
-            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95"
+            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1.5 border border-white/10 active:scale-95"
             title="Audio Language"
           >
-            <Globe className="w-3.5 h-3.5 text-white/80" />
-            <span className="hidden sm:inline">{currentLanguage}</span>
+            <Globe className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+            <span className="text-[11px] font-bold">{currentLanguage}</span>
           </button>
 
           {/* 1-Tap Screen Rotate (XPlayer Signature) */}
@@ -790,7 +765,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       {showLanguageMenu && (
         <div 
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-16 right-16 z-50 w-64 bg-[#121622]/95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+          className="absolute top-16 right-4 sm:right-16 z-50 w-72 max-w-[calc(100vw-32px)] bg-[#121622]/98 backdrop-blur-2xl border border-white/20 rounded-2xl p-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
         >
           <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
             <span className="flex items-center space-x-1">
@@ -961,7 +936,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
-            key={`${currentSource.url}-${currentQuality}-${activeSourceIndex}`}
+            key={`${currentSource.url}-${currentQuality}-${currentLanguage}-${activeSourceIndex}`}
             src={currentSource.url}
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
@@ -1080,6 +1055,23 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 {src.type === 'video' ? 'Direct 4K' : `S${idx + 1}`}
               </button>
             ))}
+
+            {/* Quick Audio Language Switcher */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLanguageMenu(!showLanguageMenu);
+                setShowServerMenu(false);
+                setShowQualityMenu(false);
+                setShowSpeedMenu(false);
+                resetControlsTimeout();
+              }}
+              className="ml-1 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-blue-600/80 hover:bg-blue-600 text-white shadow-md flex items-center space-x-1 active:scale-95 transition-all"
+              title="Change Audio Language"
+            >
+              <Globe className="w-3 h-3 text-white" />
+              <span>{currentLanguage}</span>
+            </button>
 
             {/* Rewarded Ad VIP Server Booster Button */}
             <button
