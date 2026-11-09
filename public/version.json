@@ -1,17 +1,15 @@
 {
-  "versionName": "2.0.7",
-  "versionCode": 200700,
+  "versionName": "2.0.8",
+  "versionCode": 200800,
   "releaseDate": "2026-11-09",
-  "title": "Movix v2.0.7 - Fast Cinema Streaming & Boosted Ad Placements",
+  "title": "Movix v2.0.8 - Direct OTA Update & Trending Netflix Movies",
   "changelog": [
-    "Fixed movie loading & playback with direct iframe click accessibility",
-    "High-eCPM Rewarded Ad placements: Unlock VIP 4K Server Pass",
-    "In-feed sponsored ad banners across Home, Details, Search, and My List",
-    "Ultra-fast 500ms VidLink Pro 4K and AutoEmbed streaming servers",
-    "Continuous AdMob banner auto-refresh & post-roll video interstitials",
-    "Accurate Indian movie metadata and posters (KGF 2, Salaar, Sita Ramam, Yeh Jawaani)",
-    "Full TV show streaming support for Squid Game & Stranger Things",
-    "In-app OTA updates directly from GitHub repository"
+    "Direct in-app OTA update delivery system",
+    "Trending Movies on Netflix dedicated carousel",
+    "Settings option added & profile image removed",
+    "Ultra-fast 500ms VidLink Pro 4K & AutoEmbed streaming",
+    "VIP 4K Rewarded Ad booster and continuous auto-refresh banners",
+    "Direct player tap-to-play touch access (zero blocking)"
   ],
   "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.7/movix-app-v2.0.7.apk",
   "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.7.apk",

@@ -494,6 +494,20 @@ public class MainActivity extends BridgeActivity {
         public void openUpdateUrl(String url) {
             new Handler(Looper.getMainLooper()).post(() -> {
                 try {
+                    if (url != null && url.endsWith(".apk")) {
+                        try {
+                            android.app.DownloadManager dm = (android.app.DownloadManager) getSystemService(android.content.Context.DOWNLOAD_SERVICE);
+                            if (dm != null) {
+                                android.app.DownloadManager.Request request = new android.app.DownloadManager.Request(Uri.parse(url));
+                                request.setTitle("Movix Update");
+                                request.setDescription("Downloading latest Movix update package...");
+                                request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                request.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, "movix-update.apk");
+                                request.setMimeType("application/vnd.android.package-archive");
+                                dm.enqueue(request);
+                            }
+                        } catch (Exception ignored) {}
+                    }
                     android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
                     intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);

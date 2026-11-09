@@ -76,26 +76,15 @@ export const Header: React.FC<HeaderProps> = ({
           <Search className="w-5 h-5 stroke-[2.2]" />
         </button>
 
+        {/* Settings Option (Profile Image Removed as Requested) */}
         <button 
           onClick={onSettingsClick || onProfileClick}
-          aria-label="Settings & Language"
-          className="p-1.5 text-white/90 hover:text-white transition-transform active:scale-95"
-          title="Settings & Language"
+          aria-label="Settings"
+          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 active:scale-95 transition-all shadow-sm"
+          title="Settings (Audio Language, Resolution, Updates)"
         >
-          <Settings className="w-5 h-5 stroke-[2.2]" />
-        </button>
-
-        <button 
-          onClick={onProfileClick}
-          aria-label="User profile"
-          className="relative rounded-full ring-2 ring-purple-500/40 hover:ring-[#E50914]/80 transition-all active:scale-95 overflow-hidden w-8 h-8 shadow-md shadow-purple-950/30"
-          title="Profile & Settings"
-        >
-          <img 
-            src="/assets/avatar.png" 
-            alt="Profile" 
-            className="w-full h-full object-cover"
-          />
+          <Settings className="w-4 h-4 text-white stroke-[2.2]" />
+          <span className="text-[11px] font-bold">Settings</span>
         </button>
       </div>
     </header>

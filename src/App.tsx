@@ -15,6 +15,8 @@ import { SearchView } from './components/SearchView';
 import { DownloadsView } from './components/DownloadsView';
 import { MyListView } from './components/MyListView';
 import { SettingsModal } from './components/SettingsModal';
+import { OtaUpdateModal } from './components/OtaUpdateModal';
+import { checkForAppUpdates, AppUpdateInfo } from './services/otaUpdates';
 import {
   featuredIndianMovie,
   ottNewReleases,
@@ -36,6 +38,7 @@ import {
   fetchRomanceFromTMDB,
   fetchThrillerFromTMDB,
   fetchActionFromTMDB,
+  fetchNetflixTrending,
   getQualityVideoUrl
 } from './services/tmdb';
 import { getContinueWatchingList } from './services/continueWatching';
@@ -59,6 +62,8 @@ export const App: React.FC = () => {
   
   // Continue Watching state (PvrPlay Signature Feature)
   const [continueWatching, setContinueWatching] = useState<ContinueWatchingItem[]>([]);
+  const [otaUpdateAvailable, setOtaUpdateAvailable] = useState<AppUpdateInfo | null>(null);
+  const [liveNetflixTrending, setLiveNetflixTrending] = useState<Movie[]>([]);
 
   // Resolution & Language selection states (persisted with user preferences)
   const [qualityTargetMovie, setQualityTargetMovie] = useState<Movie | null>(null);
@@ -114,7 +119,7 @@ export const App: React.FC = () => {
   }, []);
 
   // Ensure native AdMob banner is automatically hidden when ANY modal or player is open
-  const isAnyModalOpen = Boolean(selectedMovie || playingMovie || isSettingsOpen || qualityTargetMovie || interstitialTarget);
+  const isAnyModalOpen = Boolean(selectedMovie || playingMovie || isSettingsOpen || qualityTargetMovie || interstitialTarget || otaUpdateAvailable);
   useEffect(() => {
     const androidAdMob = (window as any).AndroidAdMob;
     if (androidAdMob) {
@@ -127,6 +132,25 @@ export const App: React.FC = () => {
       }
     }
   }, [isAnyModalOpen]);
+
+  useEffect(() => {
+    // Direct in-app OTA update check on launch
+    const checkOtaStartup = async () => {
+      try {
+        const update = await checkForAppUpdates();
+        if (update && update.hasUpdate) {
+          const dismissed = sessionStorage.getItem('movix_ota_dismissed');
+          if (!dismissed) {
+            setOtaUpdateAvailable(update);
+          }
+        }
+      } catch (e) {
+        console.warn('OTA startup check error:', e);
+      }
+    };
+    const timer = setTimeout(checkOtaStartup, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleWatchAdVip = () => {
     const androidAdMob = (window as any).AndroidAdMob;
@@ -152,8 +176,10 @@ export const App: React.FC = () => {
           fetchHollywoodFromTMDB(),
           fetchRomanceFromTMDB(),
           fetchThrillerFromTMDB(),
-          fetchActionFromTMDB()
+          fetchActionFromTMDB(),
+          fetchNetflixTrending()
         ]);
+        const netflixRes = arguments[0] || [];
         if (trending?.length) setLiveTrending(trending);
         if (nowPlaying?.length) setLiveNowPlaying(nowPlaying);
         if (indian?.length) setLiveIndian(indian);
@@ -167,11 +193,13 @@ export const App: React.FC = () => {
       }
     };
     loadAllTmdbFeeds();
+    fetchNetflixTrending().then((res) => { if (res?.length) setLiveNetflixTrending(res); });
   }, []);
 
   // Combined movie pools (memoized to eliminate frame drops & jank)
   const top10Movies = useMemo(() => dedupeMovies([...netflixTop10, ...liveTrending]), [liveTrending]);
   const trendingNowMovies = useMemo(() => dedupeMovies([...netflixTrendingNow, ...liveNowPlaying]), [liveNowPlaying]);
+  const trendingNetflixMovies = useMemo(() => dedupeMovies([...netflixTrendingNow, ...liveNetflixTrending]), [liveNetflixTrending]);
   const netflixOriginalsMovies = useMemo(() => dedupeMovies([...netflixOriginals]), []);
   const combinedIndian = useMemo(() => dedupeMovies([...indianBlockbusters, ...liveIndian]), [liveIndian]);
   const combinedSouthIndian = useMemo(() => dedupeMovies(liveSouthIndian), [liveSouthIndian]);
@@ -385,7 +413,15 @@ export const App: React.FC = () => {
                   showRank
                 />
 
-                {/* 2. Trending Now */}
+                {/* 2. Trending Movies on Netflix (User Request) */}
+                <MovieCarousel
+                  title="Trending Movies on Netflix"
+                  movies={trendingNetflixMovies}
+                  onSelectMovie={handleSelectMovie}
+                  onSeeAll={() => setActiveTab('search')}
+                />
+
+                {/* 3. Trending Now */}
                 <MovieCarousel
                   title="Trending Now"
                   movies={trendingNowMovies}
@@ -584,6 +620,17 @@ export const App: React.FC = () => {
           showToast('Cache & History cleared successfully');
         }}
       />
+
+      {/* Direct In-App OTA Update Dialog */}
+      {otaUpdateAvailable && (
+        <OtaUpdateModal
+          update={otaUpdateAvailable}
+          onClose={() => {
+            sessionStorage.setItem('movix_ota_dismissed', 'true');
+            setOtaUpdateAvailable(null);
+          }}
+        />
+      )}
 
       {/* Toast Notification */}
       {toastMessage && (
