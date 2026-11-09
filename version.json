@@ -1,8 +1,8 @@
 {
-  "versionName": "2.0.8",
-  "versionCode": 200800,
+  "versionName": "2.0.9",
+  "versionCode": 200900,
   "releaseDate": "2026-11-09",
-  "title": "Movix v2.0.8 - Pure Cinema Experience & Multi-Audio",
+  "title": "Movix v2.0.9 - Cinema Edition & Direct OTA",
   "changelog": [
     "All player options completely hidden during playback (zero distraction, pure cinema)",
     "In-player audio language switcher (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish)",
@@ -11,7 +11,7 @@
     "Ultra-fast direct server loading with Server 3 default",
     "Direct in-app OTA update system"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.8/movix-app-v2.0.8.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.8.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.9/movix-app-v2.0.9.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.9.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }

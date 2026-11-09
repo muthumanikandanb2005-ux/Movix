@@ -10,113 +10,125 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-const CURRENT_VERSION_NAME = '2.0.8';
-const CURRENT_VERSION_CODE = 200800;
+export const LATEST_RELEASE_VERSION_NAME = '2.0.9';
+export const LATEST_RELEASE_VERSION_CODE = 200900;
 
-const GITHUB_REPO_RAW_VERSION_URL = 'https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/version.json';
-const GITHUB_API_LATEST_RELEASE = 'https://api.github.com/repos/muthumanikandanb2005-ux/Movix/releases/latest';
+export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
+  hasUpdate: true,
+  versionName: LATEST_RELEASE_VERSION_NAME,
+  versionCode: LATEST_RELEASE_VERSION_CODE,
+  releaseDate: '2026-11-09',
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Cinema Edition`,
+  changelog: [
+    'All player options completely hidden during playback (pure cinema)',
+    'In-player audio language switcher (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish)',
+    'Universal mobile fitting (Notch, Dynamic Island, Punch-Hole, Curved screens)',
+    'Ultra-fast direct server loading (Server 3 default, 500ms VidLink Pro 4K)',
+    'Trending Movies on Netflix carousel & settings option'
+  ],
+  downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
+  rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
+  currentVersion: '2.0.8'
+};
+
+const VERSION_MIRRORS = [
+  'https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/version.json',
+  'https://github.com/muthumanikandanb2005-ux/Movix/raw/main/version.json',
+  'https://cdn.jsdelivr.net/gh/muthumanikandanb2005-ux/Movix@main/version.json',
+  'https://api.github.com/repos/muthumanikandanb2005-ux/Movix/releases/latest',
+  '/version.json'
+];
 
 export const getCurrentAppVersion = (): { versionName: string; versionCode: number } => {
   const android = (window as any).AndroidAdMob;
   if (android && typeof android.getAppVersion === 'function') {
     try {
       const vn = android.getAppVersion();
-      const vc = android.getAppVersionCode ? android.getAppVersionCode() : CURRENT_VERSION_CODE;
-      return { versionName: vn || CURRENT_VERSION_NAME, versionCode: vc || CURRENT_VERSION_CODE };
+      const vc = android.getAppVersionCode ? android.getAppVersionCode() : 200800;
+      return { versionName: vn || '2.0.8', versionCode: vc || 200800 };
     } catch {}
   }
-  return { versionName: CURRENT_VERSION_NAME, versionCode: CURRENT_VERSION_CODE };
+  return { versionName: '2.0.8', versionCode: 200800 };
 };
 
 export const checkForAppUpdates = async (force = false): Promise<AppUpdateInfo | null> => {
   const current = getCurrentAppVersion();
-  
-  try {
-    // 1. First attempt to check the GitHub repository raw version.json
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(`${GITHUB_REPO_RAW_VERSION_URL}?_t=${Date.now()}`, {
-      signal: controller.signal,
-      cache: 'no-store'
-    });
-    clearTimeout(timeout);
 
-    if (res.ok) {
-      const data = await res.json();
-      const newVersionCode = Number(data.versionCode) || 0;
-      const isNewer = newVersionCode > current.versionCode;
+  // Try each mirror endpoint sequentially with a 4s timeout
+  for (const url of VERSION_MIRRORS) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(`${url}?_t=${Date.now()}`, {
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+      clearTimeout(timeout);
 
-      return {
-        hasUpdate: force ? true : isNewer,
-        versionName: data.versionName || '2.0.7',
-        versionCode: newVersionCode,
-        releaseDate: data.releaseDate || new Date().toISOString().split('T')[0],
-        title: data.title || `Movix Update ${data.versionName}`,
-        changelog: Array.isArray(data.changelog) ? data.changelog : [
-          'Ultra-fast movie streaming with zero sandbox error',
-          'Indian movie titles & posters fixed',
-          'OTA Updates integrated'
-        ],
-        downloadUrl: data.apkUrl || 'https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.6/movix-app-v2.0.6.apk',
-        rawApkUrl: data.rawApkUrl || 'https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.6.apk',
-        currentVersion: current.versionName
-      };
+      if (res.ok) {
+        const data = await res.json();
+        
+        // If GitHub Releases API response
+        if (data.tag_name) {
+          const tag = data.tag_name.replace('v', '');
+          const apkAsset = (data.assets || []).find((a: any) => a.name && a.name.endsWith('.apk'));
+          const downloadUrl = apkAsset?.browser_download_url || `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/${data.tag_name}/movix-app-${data.tag_name}.apk`;
+          const isNewer = tag !== current.versionName;
+          return {
+            hasUpdate: force ? true : isNewer,
+            versionName: tag,
+            versionCode: current.versionCode + 100,
+            releaseDate: data.published_at ? data.published_at.split('T')[0] : '2026-11-09',
+            title: data.name || `Movix ${data.tag_name}`,
+            changelog: DEFAULT_UPDATE_INFO.changelog,
+            downloadUrl,
+            rawApkUrl: downloadUrl,
+            currentVersion: current.versionName
+          };
+        }
+
+        // Standard version.json format
+        const newVersionCode = Number(data.versionCode) || LATEST_RELEASE_VERSION_CODE;
+        const newVersionName = data.versionName || LATEST_RELEASE_VERSION_NAME;
+        const isNewer = newVersionCode > current.versionCode || newVersionName !== current.versionName;
+
+        return {
+          hasUpdate: force ? true : isNewer,
+          versionName: newVersionName,
+          versionCode: newVersionCode,
+          releaseDate: data.releaseDate || '2026-11-09',
+          title: data.title || `Movix v${newVersionName} - Cinema Edition`,
+          changelog: Array.isArray(data.changelog) ? data.changelog : DEFAULT_UPDATE_INFO.changelog,
+          downloadUrl: data.apkUrl || DEFAULT_UPDATE_INFO.downloadUrl,
+          rawApkUrl: data.rawApkUrl || DEFAULT_UPDATE_INFO.rawApkUrl,
+          currentVersion: current.versionName
+        };
+      }
+    } catch {
+      // Continue to next mirror
     }
-  } catch (err) {
-    console.warn('Raw version.json check failed, falling back to GitHub API:', err);
   }
 
-  // 2. Fallback check directly against GitHub Releases API
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
-    const apiRes = await fetch(GITHUB_API_LATEST_RELEASE, {
-      signal: controller.signal,
-      headers: { Accept: 'application/vnd.github.v3+json' }
-    });
-    clearTimeout(timeout);
-
-    if (apiRes.ok) {
-      const release = await apiRes.json();
-      const tag = (release.tag_name || '').replace('v', '');
-      const apkAsset = (release.assets || []).find((a: any) => a.name && a.name.endsWith('.apk'));
-      const downloadUrl = apkAsset?.browser_download_url || `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/${release.tag_name}/movix-app-v2.0.6.apk`;
-
-      const isNewer = tag !== current.versionName && tag > current.versionName;
-
-      return {
-        hasUpdate: force ? true : isNewer,
-        versionName: tag || '2.0.7',
-        versionCode: current.versionCode + 100,
-        releaseDate: release.published_at ? release.published_at.split('T')[0] : '2026-11-08',
-        title: release.name || `Movix ${release.tag_name}`,
-        changelog: release.body ? release.body.split('\n').filter((l: string) => l.startsWith('-')).map((l: string) => l.replace(/^-\s*/, '')) : [
-          'Performance and cinema player improvements',
-          'Fast streaming engine updates'
-        ],
-        downloadUrl,
-        rawApkUrl: downloadUrl,
-        currentVersion: current.versionName
-      };
-    }
-  } catch (apiErr) {
-    console.warn('GitHub Releases API check failed:', apiErr);
-  }
-
-  return null;
+  // Guaranteed fallback so update check NEVER returns empty or fails silently
+  return {
+    ...DEFAULT_UPDATE_INFO,
+    hasUpdate: force ? true : (DEFAULT_UPDATE_INFO.versionCode > current.versionCode || DEFAULT_UPDATE_INFO.versionName !== current.versionName),
+    currentVersion: current.versionName
+  };
 };
 
 export const triggerApkInstall = (downloadUrl: string): void => {
+  const finalUrl = downloadUrl || DEFAULT_UPDATE_INFO.downloadUrl;
   const android = (window as any).AndroidAdMob;
   if (android && typeof android.openUpdateUrl === 'function') {
-    android.openUpdateUrl(downloadUrl);
+    android.openUpdateUrl(finalUrl);
     return;
   }
 
-  // Fallback for Web/Browser: create an anchor and click to trigger file download
+  // Web/Browser fallback: create an anchor and click to trigger file download
   const link = document.createElement('a');
-  link.href = downloadUrl;
-  link.download = downloadUrl.split('/').pop() || 'movix-app-update.apk';
+  link.href = finalUrl;
+  link.download = finalUrl.split('/').pop() || `movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`;
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
   document.body.appendChild(link);

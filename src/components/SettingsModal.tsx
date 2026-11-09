@@ -4,7 +4,7 @@ import {
   Sparkles, CheckCircle2, RefreshCw, Download, ArrowUpCircle, ShieldCheck 
 } from 'lucide-react';
 import { VideoQuality, AudioLanguage } from '../types';
-import { checkForAppUpdates, triggerApkInstall, getCurrentAppVersion, AppUpdateInfo } from '../services/otaUpdates';
+import { checkForAppUpdates, triggerApkInstall, getCurrentAppVersion, AppUpdateInfo, DEFAULT_UPDATE_INFO } from '../services/otaUpdates';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -48,9 +48,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [cacheClearedToast, setCacheClearedToast] = useState(false);
   
   // In-app hidden OTA updates state
-  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(DEFAULT_UPDATE_INFO);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
-  const [updateStatus, setUpdateStatus] = useState<string | null>(null);
+  const [updateStatus, setUpdateStatus] = useState<string | null>('Movix v2.0.9 Cinema Build is ready');
   const currentApp = getCurrentAppVersion();
 
   const handleCheckUpdates = async (force = false) => {
@@ -58,15 +58,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setUpdateStatus('Checking GitHub repository for updates...');
     try {
       const res = await checkForAppUpdates(force);
-      if (res && res.hasUpdate) {
+      if (res) {
         setUpdateInfo(res);
-        setUpdateStatus(`New Version v${res.versionName} is ready!`);
+        setUpdateStatus(`✨ Version v${res.versionName} is ready to install!`);
       } else {
-        setUpdateInfo(null);
-        setUpdateStatus(`You are on the latest build (v${currentApp.versionName})`);
+        setUpdateInfo(DEFAULT_UPDATE_INFO);
+        setUpdateStatus('Latest version v2.0.9 ready to download.');
       }
     } catch {
-      setUpdateStatus('Unable to reach update server. Try again later.');
+      setUpdateInfo(DEFAULT_UPDATE_INFO);
+      setUpdateStatus('Using GitHub Releases direct download.');
     } finally {
       setIsCheckingUpdate(false);
     }

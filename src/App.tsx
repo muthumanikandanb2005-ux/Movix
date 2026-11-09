@@ -139,16 +139,13 @@ export const App: React.FC = () => {
       try {
         const update = await checkForAppUpdates();
         if (update && update.hasUpdate) {
-          const dismissed = sessionStorage.getItem('movix_ota_dismissed');
-          if (!dismissed) {
-            setOtaUpdateAvailable(update);
-          }
+          setOtaUpdateAvailable(update);
         }
       } catch (e) {
         console.warn('OTA startup check error:', e);
       }
     };
-    const timer = setTimeout(checkOtaStartup, 1200);
+    const timer = setTimeout(checkOtaStartup, 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -322,6 +319,22 @@ export const App: React.FC = () => {
           setIsSettingsOpen(true);
         }}
       />
+
+      {/* Persistent In-App Update Banner */}
+      {otaUpdateAvailable && (
+        <div 
+          onClick={() => setIsSettingsOpen(true)}
+          className="mx-3.5 my-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#E50914] via-[#FF2E43] to-[#E50914] text-white flex items-center justify-between text-xs font-bold shadow-lg shadow-red-950/60 cursor-pointer active:scale-98 transition-all"
+        >
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">🚀</span>
+            <span>Movix v{otaUpdateAvailable.versionName} Update Ready!</span>
+          </div>
+          <span className="text-[10px] uppercase font-black bg-black/40 px-2 py-0.5 rounded-full border border-white/20">
+            Install APK
+          </span>
+        </div>
+      )}
 
       {/* Main Tab Content */}
       <main className="flex-1 pb-28">
@@ -626,7 +639,6 @@ export const App: React.FC = () => {
         <OtaUpdateModal
           update={otaUpdateAvailable}
           onClose={() => {
-            sessionStorage.setItem('movix_ota_dismissed', 'true');
             setOtaUpdateAvailable(null);
           }}
         />
