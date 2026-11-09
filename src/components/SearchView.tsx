@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X, Star, Film } from 'lucide-react';
 import { Movie } from '../types';
+import { AdMobBanner } from './AdMobBanner';
 import { searchMoviesFromTMDB } from '../services/tmdb';
 
 interface SearchViewProps {
@@ -95,6 +96,11 @@ export const SearchView: React.FC<SearchViewProps> = ({ allMovies, onSelectMovie
           ))}
         </div>
       )}
+
+      {/* Sponsored Ad Banner */}
+      <div className="-mx-5 mb-4">
+        <AdMobBanner />
+      </div>
 
       {/* Search status */}
       {isSearching && (

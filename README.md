@@ -19,9 +19,9 @@
 
 | Asset | Size | Download Link |
 | :--- | :--- | :--- |
-| **MOVIX v2.0.7 APK (Latest)** | `16.8 MB` | [📥 **Download movix-app-v2.0.7.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.7.apk) |
-| **MOVIX v2.0.6 APK (Mirror)** | `16.8 MB` | [📥 **Download movix-app-v2.0.6.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.6.apk) |
-| **MOVIX v2.0.2 APK (Mirror)** | `16.8 MB` | [📥 **Download movix-app-v2.0.2.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.2.apk) |
+| **MOVIX v2.0.7 APK (Latest)** | `17.7 MB` | [📥 **Download movix-app-v2.0.7.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.7.apk) |
+| **MOVIX v2.0.6 APK (Mirror)** | `17.7 MB` | [📥 **Download movix-app-v2.0.6.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.6.apk) |
+| **MOVIX v2.0.2 APK (Mirror)** | `17.7 MB` | [📥 **Download movix-app-v2.0.2.apk**](https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.2.apk) |
 | **GitHub Releases Page** | `Release Hub` | [🌐 **View All Releases**](https://github.com/muthumanikandanb2005-ux/Movix/releases) |
 
 ---

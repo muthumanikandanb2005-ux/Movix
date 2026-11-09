@@ -41,6 +41,17 @@ public class MainActivity extends BridgeActivity {
     private AdView mAdView;
     private boolean isAdLoading = false;
     private boolean isVideoPlayerOpen = false;
+    private final Handler mBannerRefreshHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mBannerRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mAdView != null && !isVideoPlayerOpen && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                mAdView.loadAd(new AdRequest.Builder().build());
+            }
+            mBannerRefreshHandler.postDelayed(this, 30000);
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -338,6 +349,8 @@ public class MainActivity extends BridgeActivity {
 
                 AdRequest adRequest = new AdRequest.Builder().build();
                 mAdView.loadAd(adRequest);
+                mBannerRefreshHandler.removeCallbacks(mBannerRefreshRunnable);
+                mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 30000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -495,7 +508,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.0.6";
+                return "2.0.7";
             }
         }
 
@@ -504,7 +517,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 200600;
+                return 200700;
             }
         }
     }

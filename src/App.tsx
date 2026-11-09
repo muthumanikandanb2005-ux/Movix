@@ -430,6 +430,9 @@ export const App: React.FC = () => {
                   />
                 )}
 
+                {/* Mid-Feed Sponsored Banner (Boosted Ad Placement) */}
+                <AdMobBanner />
+
                 {/* 7. Hollywood Blockbusters */}
                 <MovieCarousel
                   title="Hollywood Blockbusters"

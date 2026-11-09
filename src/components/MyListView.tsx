@@ -1,6 +1,7 @@
 import React from 'react';
 import { Play, Trash2, Bookmark } from 'lucide-react';
 import { Movie } from '../types';
+import { AdMobBanner } from './AdMobBanner';
 
 interface MyListViewProps {
   myList: Movie[];
@@ -16,6 +17,11 @@ export const MyListView: React.FC<MyListViewProps> = ({ myList, onSelectMovie, o
           My List
         </h1>
         <span className="text-xs text-white/50">{myList.length} Titles</span>
+      </div>
+
+      {/* Sponsored Ad Banner */}
+      <div className="-mx-5 mb-4">
+        <AdMobBanner />
       </div>
 
       {myList.length > 0 ? (

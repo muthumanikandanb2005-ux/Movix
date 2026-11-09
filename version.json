@@ -1,17 +1,19 @@
 {
   "versionName": "2.0.7",
   "versionCode": 200700,
-  "releaseDate": "2026-11-08",
-  "title": "Movix v2.0.7 - Zero-Sandbox & High-Speed Playback",
+  "releaseDate": "2026-11-09",
+  "title": "Movix v2.0.7 - Fast Cinema Streaming & Boosted Ad Placements",
   "changelog": [
-    "Fixed 'Please disable sandbox' error with headless dummy window handler",
-    "Ultra-fast 500ms movie streaming with CineSrc and AutoEmbed",
-    "Fixed Indian movie posters & titles (K.G.F: Chapter 2, Salaar, Sita Ramam, Yeh Jawaani)",
-    "Added full TV show streaming support for Squid Game & Stranger Things",
-    "Multi-audio language switching (Hindi, Tamil, Telugu, Malayalam, Kannada, English)",
+    "Fixed movie loading & playback with direct iframe click accessibility",
+    "High-eCPM Rewarded Ad placements: Unlock VIP 4K Server Pass",
+    "In-feed sponsored ad banners across Home, Details, Search, and My List",
+    "Ultra-fast 500ms VidLink Pro 4K and AutoEmbed streaming servers",
+    "Continuous AdMob banner auto-refresh & post-roll video interstitials",
+    "Accurate Indian movie metadata and posters (KGF 2, Salaar, Sita Ramam, Yeh Jawaani)",
+    "Full TV show streaming support for Squid Game & Stranger Things",
     "In-app OTA updates directly from GitHub repository"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.6/movix-app-v2.0.6.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.6.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.7/movix-app-v2.0.7.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.7.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }

@@ -223,6 +223,31 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               </button>
             </div>
 
+            {/* VIP 4K Rewarded Ad Booster Button */}
+            <button
+              onClick={() => {
+                const androidAdMob = (window as any).AndroidAdMob;
+                if (androidAdMob && typeof androidAdMob.showRewardedAd === 'function') {
+                  androidAdMob.showRewardedAd();
+                } else if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
+                  androidAdMob.showInterstitialAd();
+                }
+                onPlay({ ...movie, videoUrl: sources[0].url });
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-red-500/20 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/30 border border-amber-500/40 text-white font-bold text-xs flex items-center justify-between shadow-lg active:scale-95 transition-all group"
+            >
+              <div className="flex items-center space-x-2">
+                <span className="text-base animate-bounce">👑</span>
+                <div className="text-left">
+                  <span className="text-amber-400 font-black tracking-wide">Unlock VIP 4K Fast Server</span>
+                  <span className="text-[10px] text-white/60 ml-2 hidden sm:inline">• Watch short ad for 0% buffering</span>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-amber-500 text-black text-[10px] font-black group-hover:scale-105 transition-transform">
+                FREE VIP PASS
+              </span>
+            </button>
+
             {/* Stream Server Picker Drawer */}
             {showServerPicker && (
               <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/15 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">

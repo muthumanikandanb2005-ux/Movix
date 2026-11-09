@@ -166,6 +166,30 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     };
   }, []);
 
+  // Screen Lock & controls auto-hide logic
+  const watchSecondsRef = useRef<number>(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      watchSecondsRef.current += 1;
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    const androidAdMob = (window as any).AndroidAdMob;
+    if (androidAdMob && typeof androidAdMob.setPlayerActive === 'function') {
+      androidAdMob.setPlayerActive(false);
+    }
+    // High-eCPM post-roll interstitial monetization:
+    // When closing the player after watching for at least 10 seconds or starting playback, show interstitial
+    if (watchSecondsRef.current >= 10 || hasStartedPlaying) {
+      if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
+        androidAdMob.showInterstitialAd();
+      }
+    }
+    onClose();
+  }, [hasStartedPlaying, onClose]);
+
   // Listen for PvrPlay player postMessage events (pvr:close, pvr:resume)
   useEffect(() => {
     const handlePlayerMessage = (e: MessageEvent) => {
@@ -173,7 +197,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       if (!data) return;
 
       if (data.type === 'pvr:close') {
-        onClose();
+        handleClose();
         return;
       }
 
@@ -190,7 +214,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     return () => {
       window.removeEventListener('message', handlePlayerMessage);
     };
-  }, [movie, onClose]);
+  }, [movie, handleClose]);
 
   const lastSavedTimeRef = useRef<number>(0);
   const savedPlaybackTimeRef = useRef<number>(0);
@@ -550,8 +574,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
       onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
-      {/* Screen tap area to reveal controls when hidden */}
-      {!showControls && (
+      {/* Screen tap area to reveal controls when hidden (strictly for HTML5 video so embed player touches are never intercepted) */}
+      {!showControls && currentSource.type === 'video' && (
         <div 
           onClick={(e) => {
             e.stopPropagation();
@@ -560,6 +584,33 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           }}
           className="absolute inset-0 z-30 cursor-pointer"
         />
+      )}
+
+      {/* Discreet floating top pill when controls are hidden for embed */}
+      {!showControls && currentSource.type !== 'video' && (
+        <div className="absolute top-3 left-3 z-40 flex items-center space-x-2 animate-in fade-in duration-200 pointer-events-auto">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClose();
+            }}
+            className="p-2 rounded-full bg-black/75 hover:bg-black/95 text-white border border-white/20 backdrop-blur-md shadow-lg active:scale-95 transition-all"
+            title="Back to Movies"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowControls(true);
+              resetControlsTimeout();
+            }}
+            className="px-3 py-1.5 rounded-full bg-black/75 hover:bg-black/95 text-white/90 border border-white/20 backdrop-blur-md shadow-lg text-[11px] font-bold flex items-center space-x-1.5 active:scale-95 transition-all"
+          >
+            <Server className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{currentSource.name.split('(')[0].trim() || 'Mirror'}</span>
+          </button>
+        </div>
       )}
 
       {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
@@ -669,7 +720,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onClose();
+              handleClose();
             }}
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90"
           >
@@ -1019,6 +1070,28 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 {src.type === 'video' ? 'Direct 4K' : `S${idx + 1}`}
               </button>
             ))}
+
+            {/* Rewarded Ad VIP Server Booster Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const androidAdMob = (window as any).AndroidAdMob;
+                if (androidAdMob && typeof androidAdMob.showRewardedAd === 'function') {
+                  androidAdMob.showRewardedAd();
+                } else if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
+                  androidAdMob.showInterstitialAd();
+                }
+                setGestureOsd({ type: 'info', value: '⭐ VIP 4K Server Unlocked!', icon: '👑' });
+                setTimeout(() => setGestureOsd(null), 2000);
+                setActiveSourceIndex(0); // Switch to ultra-fast Server 1 (VidLink Pro 4K)
+                resetControlsTimeout();
+              }}
+              className="ml-1 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-md flex items-center space-x-1 active:scale-95 transition-all"
+              title="Watch Ad for 4K VIP Pass"
+            >
+              <span>⭐</span>
+              <span className="hidden xs:inline">VIP 4K</span>
+            </button>
           </div>
         </div>
       )}
