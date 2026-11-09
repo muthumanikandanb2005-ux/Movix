@@ -57,6 +57,18 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Enable complete display cutout adaptation (flat, curved, dynamic island, mini capsule, drop notch, punch hole)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            try {
+                android.view.WindowManager.LayoutParams lp = getWindow().getAttributes();
+                lp.layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+                getWindow().setAttributes(lp);
+            } catch (Exception ignored) {}
+        }
+        try {
+            getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
+        } catch (Exception ignored) {}
+
         // Configure WebView for butter-smooth streaming & flawless landscape orientation
         if (getBridge() != null && getBridge().getWebView() != null) {
             WebView webView = getBridge().getWebView();

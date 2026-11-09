@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 pt-3 pb-3 bg-gradient-to-b from-[#080A0F]/95 via-[#080A0F]/70 to-transparent backdrop-blur-[2px]">
+    <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between safe-header pb-3 bg-gradient-to-b from-[#080A0F]/98 via-[#080A0F]/85 to-transparent backdrop-blur-[3px]">
       {/* Brand Logo with 3D M Icon */}
       <div 
         onClick={handleLogoTap}

@@ -48,7 +48,7 @@ export const SearchView: React.FC<SearchViewProps> = ({ allMovies, onSelectMovie
     : allMovies.filter((m) => selectedGenre === 'All' || m.genre.toLowerCase().includes(selectedGenre.toLowerCase()));
 
   return (
-    <div className="pt-20 px-5 pb-24 min-h-screen">
+    <div className="safe-content-top px-5 pb-28 min-h-screen">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-black text-white tracking-tight font-display">
           Search & Discover

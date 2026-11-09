@@ -588,7 +588,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
       {/* Discreet floating top pill when controls are hidden for embed */}
       {!showControls && currentSource.type !== 'video' && (
-        <div className="absolute top-3 left-3 z-40 flex items-center space-x-2 animate-in fade-in duration-200 pointer-events-auto">
+        <div 
+          style={{ top: 'max(env(safe-area-inset-top, 0px), 16px)', left: 'max(env(safe-area-inset-left, 0px), 16px)' }}
+          className="absolute z-40 flex items-center space-x-2 animate-in fade-in duration-200 pointer-events-auto"
+        >
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -614,9 +617,16 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       )}
 
       {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
-      <div className={`absolute top-0 left-0 right-0 z-40 ${isLandscape ? 'px-6 pt-3 pb-8' : 'px-5 pt-4 pb-10'} bg-gradient-to-b from-black/95 via-black/80 to-transparent flex items-center justify-between transition-opacity duration-300 pointer-events-auto ${
-        showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
-      }`}>
+      <div 
+        style={{
+          paddingTop: 'max(env(safe-area-inset-top, 0px), 24px)',
+          paddingLeft: 'max(env(safe-area-inset-left, 0px), 16px)',
+          paddingRight: 'max(env(safe-area-inset-right, 0px), 16px)'
+        }}
+        className={`absolute top-0 left-0 right-0 z-40 pb-8 bg-gradient-to-b from-black/95 via-black/80 to-transparent flex items-center justify-between transition-opacity duration-300 pointer-events-auto ${
+          showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
         <div className="flex items-center space-x-3 min-w-0">
           <img 
             src="/assets/movix_3d_logo.png" 

@@ -11,7 +11,7 @@ interface MyListViewProps {
 
 export const MyListView: React.FC<MyListViewProps> = ({ myList, onSelectMovie, onRemove }) => {
   return (
-    <div className="pt-20 px-5 pb-24 min-h-screen">
+    <div className="safe-content-top px-5 pb-28 min-h-screen">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-black text-white tracking-tight font-display">
           My List
