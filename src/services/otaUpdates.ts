@@ -10,28 +10,28 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.5';
-export const LATEST_RELEASE_VERSION_CODE = 201500;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.6';
+export const LATEST_RELEASE_VERSION_CODE = 201600;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-10',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Accurate Movie Audio Languages & Direct OTA`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Multi-Audio Stream Engine & Direct OTA`,
   changelog: [
+    'True Regional Multi-Audio Engine: Server 1 (VidLink Pro Multi-Audio) set as default with direct regional dubbed audio support',
+    'Unblocked Player Audio Controls: Direct click-through to internal audio track switcher without overlay interference',
+    'Elevated Quick Mirror Bar: Clean bottom spacing so video player controls, gears, and track options are 100% accessible',
     'Strict Movie Language Filtering: Only genuinely available audio tracks for the movie are shown; unavailable dummy languages completely removed',
-    'Accurate Audio Track Selection: Audio language dynamically reflects the movie original soundtrack and verified dubbed releases',
     'Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)',
     '100% Zero-Overlay Cinema Playback: All options, controls, and audio pills completely hidden while playing',
     'Instant Tap-to-Summon: Screen tap seamlessly restores Language, Options, Quality, and Volume controls',
-    'True Edge-to-Edge Fullscreen Playback: Adaptive display cutout support across notch, punch-hole, and curved displays',
-    'Universal Aspect Ratio Fill: 1-tap zoom/crop to fill modern 19.5:9 and 20:9 phone displays with zero letterboxing',
-    'XPlayer Sound Boost (150%) & Brightness with hardware sync'
+    'True Edge-to-Edge Fullscreen Playback across notch, punch-hole, and curved displays'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.1.4'
+  currentVersion: '2.1.5'
 };
 
 const VERSION_MIRRORS = [

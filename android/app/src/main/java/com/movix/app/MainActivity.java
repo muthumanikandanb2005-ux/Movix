@@ -710,7 +710,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.1.5";
+                return "2.1.6";
             }
         }
 
@@ -719,7 +719,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 201500;
+                return 201600;
             }
         }
     }

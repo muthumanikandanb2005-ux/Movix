@@ -54,49 +54,43 @@ export const getStreamingSources = (
   const langCode = LANG_CODE_MAP[language] || 'hi';
   const sources: StreamSource[] = [
     {
-      name: `Server 1 (VidLink Pro 4K - Ultra Fast)`,
-      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&audio=${langCode}&sub=${langCode}`,
+      name: `Server 1 (VidLink Pro Multi-Audio 4K - Primary)`,
+      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 2 (CineSrc Fast HD)`,
+      name: `Server 2 (CineSrc Multi-Language HD)`,
       url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 3 (AutoEmbed Multi-Language Ultra)`,
-      url: `https://player.autoembed.me/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 4 (VidSrc PM Ultra HD)`,
-      url: `https://vidsrc.pm/embed/movie/${tmdbId}?lang=${langCode}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 5 (VidSrc To Cinema 4K)`,
+      name: `Server 3 (VidSrc To Cinema 4K)`,
       url: `https://vidsrc.to/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 6 (2Embed VIP Cinema)`,
+      name: `Server 4 (2Embed VIP Multi-Server)`,
       url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 7 (SuperEmbed Cinema HD)`,
+      name: `Server 5 (SuperEmbed Multi-Server)`,
       url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 8 (Direct CDN ${quality} - Ad-Free Stream)`,
+      name: `Server 6 (AutoEmbed Fast Cinema)`,
+      url: `https://player.autoembed.me/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 7 (Direct CDN ${quality} - Ad-Free Stream)`,
       url: getQualityVideoUrl(tmdbId, quality),
       type: 'video',
       quality
@@ -105,7 +99,7 @@ export const getStreamingSources = (
 
   if (trailerKey) {
     sources.push({
-      name: 'Server 9 (Official 4K Trailer)',
+      name: 'Server 8 (Official 4K Trailer)',
       url: `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&playsinline=1&rel=0`,
       type: 'trailer'
     });
@@ -124,26 +118,26 @@ export const getTvStreamingSources = (
   const langCode = LANG_CODE_MAP[language] || 'hi';
   return [
     {
-      name: 'Server 1 (VidLink TV VIP 4K)',
-      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&audio=${langCode}&sub=${langCode}`,
+      name: 'Server 1 (VidLink TV Multi-Audio 4K)',
+      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 2 (AutoEmbed TV Multi-Audio)',
-      url: `https://player.autoembed.me/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: 'Server 3 (VidSrc PM TV Ultra)',
+      name: 'Server 2 (VidSrc PM TV Ultra)',
       url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 4 (2Embed TV VIP)',
+      name: 'Server 3 (2Embed TV VIP)',
       url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: 'Server 4 (AutoEmbed TV Multi-Audio)',
+      url: `https://player.autoembed.me/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}`,
       type: 'embed',
       quality
     },
