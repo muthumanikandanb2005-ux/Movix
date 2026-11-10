@@ -7,6 +7,7 @@ interface HeaderProps {
   onSettingsClick?: () => void;
   onVipClick?: () => void;
   onOtaCheck?: () => void;
+  hasUpdate?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -14,7 +15,8 @@ export const Header: React.FC<HeaderProps> = ({
   onProfileClick, 
   onSettingsClick,
   onVipClick,
-  onOtaCheck
+  onOtaCheck,
+  hasUpdate
 }) => {
   const tapCountRef = useRef(0);
   const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -76,15 +78,21 @@ export const Header: React.FC<HeaderProps> = ({
           <Search className="w-5 h-5 stroke-[2.2]" />
         </button>
 
-        {/* Settings Option (Profile Image Removed as Requested) */}
+        {/* Settings Option with OTA Update indicator */}
         <button 
           onClick={onSettingsClick || onProfileClick}
           aria-label="Settings"
-          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 active:scale-95 transition-all shadow-sm"
+          className="relative flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 active:scale-95 transition-all shadow-sm"
           title="Settings (Audio Language, Resolution, Updates)"
         >
           <Settings className="w-4 h-4 text-white stroke-[2.2]" />
           <span className="text-[11px] font-bold">Settings</span>
+          {hasUpdate && (
+            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#E50914] text-[8px] font-black items-center justify-center text-white">!</span>
+            </span>
+          )}
         </button>
       </div>
     </header>

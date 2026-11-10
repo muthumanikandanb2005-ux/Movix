@@ -50,7 +50,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   // In-app hidden OTA updates state
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(DEFAULT_UPDATE_INFO);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
-  const [updateStatus, setUpdateStatus] = useState<string | null>('Movix v2.0.9 Cinema Build is ready');
+  const [updateStatus, setUpdateStatus] = useState<string | null>(`Movix v${DEFAULT_UPDATE_INFO.versionName} OTA update is ready`);
   const currentApp = getCurrentAppVersion();
 
   const handleCheckUpdates = async (force = false) => {
@@ -63,11 +63,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         setUpdateStatus(`✨ Version v${res.versionName} is ready to install!`);
       } else {
         setUpdateInfo(DEFAULT_UPDATE_INFO);
-        setUpdateStatus('Latest version v2.0.9 ready to download.');
+        setUpdateStatus(`Latest version v${DEFAULT_UPDATE_INFO.versionName} ready to download.`);
       }
     } catch {
       setUpdateInfo(DEFAULT_UPDATE_INFO);
-      setUpdateStatus('Using GitHub Releases direct download.');
+      setUpdateStatus(`Using Direct In-App OTA v${DEFAULT_UPDATE_INFO.versionName}.`);
     } finally {
       setIsCheckingUpdate(false);
     }

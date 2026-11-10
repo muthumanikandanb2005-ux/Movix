@@ -135,7 +135,7 @@ export const App: React.FC = () => {
   }, [isAnyModalOpen]);
 
   useEffect(() => {
-    // Direct in-app OTA update check on launch
+    // Direct in-app OTA update check on launch and continuous background polling every 30s
     const checkOtaStartup = async () => {
       try {
         const update = await checkForAppUpdates();
@@ -146,8 +146,12 @@ export const App: React.FC = () => {
         console.warn('OTA startup check error:', e);
       }
     };
-    const timer = setTimeout(checkOtaStartup, 800);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(checkOtaStartup, 500);
+    const interval = setInterval(checkOtaStartup, 30000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleWatchAdVip = () => {
@@ -334,6 +338,7 @@ export const App: React.FC = () => {
           showToast('🚀 Checking for Movix updates...');
           setIsSettingsOpen(true);
         }}
+        hasUpdate={Boolean(otaUpdateAvailable)}
       />
 
       {/* Persistent In-App Update Banner */}
