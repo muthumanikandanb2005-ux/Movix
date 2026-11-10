@@ -3,12 +3,16 @@ package com.movix.app;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -193,6 +197,22 @@ public class MainActivity extends BridgeActivity {
     private void enableImmersiveMode() {
         runOnUiThread(() -> {
             try {
+                // Notch, dynamic island, drop notch & punch hole edge-to-edge layout
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    getWindow().getAttributes().layoutInDisplayCutoutMode = 
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+                }
+
+                // Android 11+ (API 30+) WindowInsetsController for sticky immersive fullscreen
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    final WindowInsetsController insetsController = getWindow().getInsetsController();
+                    if (insetsController != null) {
+                        insetsController.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                        insetsController.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                    }
+                }
+
+                // Legacy System UI flags
                 View decorView = getWindow().getDecorView();
                 decorView.setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -209,6 +229,18 @@ public class MainActivity extends BridgeActivity {
     private void disableImmersiveMode() {
         runOnUiThread(() -> {
             try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    getWindow().getAttributes().layoutInDisplayCutoutMode = 
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    final WindowInsetsController insetsController = getWindow().getInsetsController();
+                    if (insetsController != null) {
+                        insetsController.show(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                    }
+                }
+
                 View decorView = getWindow().getDecorView();
                 decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
             } catch (Exception ignored) {}
@@ -218,7 +250,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // During landscape cinema mode or when video player is open, hide banner ad and adapt screen
+        // During cinema mode or when video player is open, hide banner ad and adapt screen
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             if (mAdView != null) {
                 mAdView.setVisibility(View.GONE);
@@ -228,11 +260,20 @@ public class MainActivity extends BridgeActivity {
             }
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             if (isVideoPlayerOpen) {
-                disableImmersiveMode();
+                // Keep immersive fullscreen active even in portrait mode!
+                enableImmersiveMode();
                 if (mAdView != null) mAdView.setVisibility(View.GONE);
             } else if (mAdView != null) {
                 mAdView.setVisibility(View.VISIBLE);
             }
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus && isVideoPlayerOpen) {
+            enableImmersiveMode();
         }
     }
 
@@ -427,9 +468,7 @@ public class MainActivity extends BridgeActivity {
                     if (mAdView != null) {
                         mAdView.setVisibility(View.GONE);
                     }
-                    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        enableImmersiveMode();
-                    }
+                    enableImmersiveMode();
                     // Maximize device media volume to 100% full on cinema player launch
                     try {
                         android.media.AudioManager am = (android.media.AudioManager) getSystemService(android.content.Context.AUDIO_SERVICE);
@@ -671,7 +710,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.1.1";
+                return "2.1.2";
             }
         }
 
@@ -680,7 +719,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 201100;
+                return 201200;
             }
         }
     }

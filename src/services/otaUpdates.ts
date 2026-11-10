@@ -10,27 +10,28 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.1';
-export const LATEST_RELEASE_VERSION_CODE = 201100;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.2';
+export const LATEST_RELEASE_VERSION_CODE = 201200;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-10',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Direct In-App OTA & Accurate Multi-Language`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Immersive Edge-to-Edge Fullscreen & Zero-Overlay Cinema`,
   changelog: [
+    '100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays',
+    'Instant Tap-to-Summon: Screen tap seamlessly restores Language, Options, Quality, and Volume controls',
+    'True Edge-to-Edge Fullscreen Playback: Adaptive display cutout support across notch, punch-hole, dynamic island, and curved displays',
+    'Universal Aspect Ratio Fill: 1-tap zoom/crop to fill modern 19.5:9 and 20:9 phone displays with zero letterboxing',
     'Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)',
     'Prominent Audio Language switcher button in player top bar and quick mirror bar',
     'Centered responsive Multi-Language Audio modal with accurate Dolby 5.1/Original dub badges',
-    'Continuous on-screen audio language status pill during playback',
-    'Accurate multi-language mapping across all TMDB and Netflix movie feeds',
-    'XPlayer Sound Boost (150%) & Brightness with hardware sync',
-    'Universal mobile screen notch & punch hole edge-to-edge fitting'
+    'XPlayer Sound Boost (150%) & Brightness with hardware sync'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.1.0'
+  currentVersion: '2.1.1'
 };
 
 const VERSION_MIRRORS = [

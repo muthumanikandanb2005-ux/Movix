@@ -638,46 +638,37 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
   };
 
+  const getIframeTransform = () => {
+    if (aspectMode === 'cover') {
+      return isLandscape ? 'scale(1.34)' : 'scale(1.18)';
+    }
+    if (aspectMode === 'fill') {
+      return isLandscape ? 'scaleX(1.34) scaleY(1.06)' : 'scaleX(1.18) scaleY(1.06)';
+    }
+    return 'none';
+  };
+
   const playerContent = (
     <div 
       ref={containerRef}
       id="movix-xplayer-container" 
-      className="fixed inset-0 z-50 bg-black select-none overflow-hidden w-full h-full min-h-[100dvh] max-h-[100dvh]"
+      className="fixed inset-0 z-50 bg-black select-none overflow-hidden w-screen h-screen w-full h-full min-h-[100dvh] max-h-[100dvh]"
       style={{ filter: `brightness(${brightness}%)` }}
       onTouchStart={currentSource.type === 'video' ? handleTouchStart : undefined}
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
       onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
-      {/* Tap area to summon controls when hidden */}
+      {/* 100% Zero-Overlay Tap Area: All controls completely hidden while playing; tap screen to summon */}
       {!showControls && (
-        <>
-          <div 
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowControls(true);
-              resetControlsTimeout();
-            }}
-            className="absolute inset-0 z-30 cursor-pointer"
-            aria-label="Tap to summon controls"
-          />
-          {/* Quick Language Indicator Pill (Always accessible during cinema playback) */}
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowLanguageMenu(true);
-              setShowControls(true);
-              resetControlsTimeout();
-            }}
-            style={{ top: 'max(env(safe-area-inset-top, 0px), 12px)' }}
-            className="absolute left-1/2 -translate-x-1/2 z-40 bg-black/75 hover:bg-black/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-2xl active:scale-95 transition-all"
-            title="Current Audio Language (Tap to Change)"
-          >
-            <Globe className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Audio: {currentLanguage}</span>
-            <span className="text-white/40">•</span>
-            <span className="text-[10px] text-cyan-300 font-normal">Change</span>
-          </button>
-        </>
+        <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowControls(true);
+            resetControlsTimeout();
+          }}
+          className="absolute inset-0 z-30 cursor-pointer"
+          aria-label="Tap to summon controls"
+        />
       )}
 
       {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
@@ -731,7 +722,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             title="Audio Language"
           >
             <Globe className="w-3.5 h-3.5 text-cyan-300 flex-shrink-0 animate-pulse" />
-            <span className="font-extrabold">{currentLanguage}</span>
+            <span className="font-extrabold">Audio: {currentLanguage}</span>
           </button>
 
           {/* 2. Quality Switcher Button */}
@@ -1391,7 +1382,12 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setIsBuffering(false);
               setHasStartedPlaying(true);
             }}
-            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+            style={{ 
+              transform: getIframeTransform(), 
+              transformOrigin: 'center center',
+              transition: 'transform 0.25s ease-out',
+              willChange: 'transform' 
+            }}
             className="w-full h-full border-0 absolute inset-0 z-10"
           />
         ) : (
