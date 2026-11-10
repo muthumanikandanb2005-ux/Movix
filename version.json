@@ -1,17 +1,18 @@
 {
-  "versionName": "2.0.9",
-  "versionCode": 200900,
-  "releaseDate": "2026-11-09",
-  "title": "Movix v2.0.9 - Cinema Edition & Direct OTA",
+  "versionName": "2.1.0",
+  "versionCode": 201000,
+  "releaseDate": "2026-11-10",
+  "title": "Movix v2.1.0 - XPlayer Cinema Suite & Live Daily Netflix",
   "changelog": [
-    "All player options completely hidden during playback (zero distraction, pure cinema)",
-    "In-player audio language switcher (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish)",
-    "Universal notch, punch-hole, dynamic island & curved screen fitting across all mobile devices",
-    "Dedicated Trending Movies on Netflix carousel",
-    "Ultra-fast direct server loading with Server 3 default",
-    "Direct in-app OTA update system"
+    "XPlayer Sound Volume Control (0% to 150% Boost) with Mute toggle & presets",
+    "XPlayer Screen Brightness Control (20% to 150%) with hardware display sync",
+    "Dedicated In-Player Audio Track & Multi-Language switcher (Hindi 5.1, Tamil, Telugu, Malayalam, Kannada, English, Spanish)",
+    "Real-time live daily Netflix trending movies (fresh daily catalogue from TMDB API)",
+    "All player controls auto-hidden while movie plays for clean unobstructed cinema view",
+    "On-screen vertical brightness and volume capsule sliders",
+    "Universal notch, punch-hole & curved screen edge-to-edge support"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.0.9/movix-app-v2.0.9.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.0.9.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.1.0/movix-app-v2.1.0.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.1.0.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }

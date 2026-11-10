@@ -39,6 +39,7 @@ import {
   fetchThrillerFromTMDB,
   fetchActionFromTMDB,
   fetchNetflixTrending,
+  fetchLiveDailyNetflixMovies,
   getQualityVideoUrl
 } from './services/tmdb';
 import { getContinueWatchingList } from './services/continueWatching';
@@ -173,10 +174,8 @@ export const App: React.FC = () => {
           fetchHollywoodFromTMDB(),
           fetchRomanceFromTMDB(),
           fetchThrillerFromTMDB(),
-          fetchActionFromTMDB(),
-          fetchNetflixTrending()
+          fetchActionFromTMDB()
         ]);
-        const netflixRes = arguments[0] || [];
         if (trending?.length) setLiveTrending(trending);
         if (nowPlaying?.length) setLiveNowPlaying(nowPlaying);
         if (indian?.length) setLiveIndian(indian);
@@ -190,14 +189,31 @@ export const App: React.FC = () => {
       }
     };
     loadAllTmdbFeeds();
-    fetchNetflixTrending().then((res) => { if (res?.length) setLiveNetflixTrending(res); });
+
+    // Live daily Netflix real-time fetch (daily refreshed information)
+    fetchLiveDailyNetflixMovies().then((daily) => {
+      if (daily.trending?.length) setLiveNetflixTrending(daily.trending);
+      if (daily.originals?.length) setLiveNetflixOriginals(daily.originals);
+    });
   }, []);
 
   // Combined movie pools (memoized to eliminate frame drops & jank)
-  const top10Movies = useMemo(() => dedupeMovies([...netflixTop10, ...liveTrending]), [liveTrending]);
-  const trendingNowMovies = useMemo(() => dedupeMovies([...netflixTrendingNow, ...liveNowPlaying]), [liveNowPlaying]);
-  const trendingNetflixMovies = useMemo(() => dedupeMovies([...netflixTrendingNow, ...liveNetflixTrending]), [liveNetflixTrending]);
-  const netflixOriginalsMovies = useMemo(() => dedupeMovies([...netflixOriginals]), []);
+  // Real-time daily live Netflix data prioritized directly over old static arrays
+  const trendingNetflixMovies = useMemo(() => {
+    if (liveNetflixTrending.length > 0) return dedupeMovies(liveNetflixTrending);
+    return dedupeMovies(netflixTrendingNow);
+  }, [liveNetflixTrending]);
+
+  const top10Movies = useMemo(() => {
+    if (liveNetflixTrending.length >= 10) return dedupeMovies(liveNetflixTrending.slice(0, 10));
+    return dedupeMovies([...netflixTop10, ...liveTrending]);
+  }, [liveNetflixTrending, liveTrending]);
+
+  const trendingNowMovies = useMemo(() => dedupeMovies([...liveNowPlaying, ...netflixTrendingNow]), [liveNowPlaying]);
+  const netflixOriginalsMovies = useMemo(() => {
+    if (liveNetflixOriginals.length > 0) return dedupeMovies(liveNetflixOriginals);
+    return dedupeMovies(netflixOriginals);
+  }, [liveNetflixOriginals]);
   const combinedIndian = useMemo(() => dedupeMovies([...indianBlockbusters, ...liveIndian]), [liveIndian]);
   const combinedSouthIndian = useMemo(() => dedupeMovies(liveSouthIndian), [liveSouthIndian]);
   const combinedHollywood = useMemo(() => dedupeMovies([...hollywoodBlockbusters, ...liveHollywood]), [liveHollywood]);
@@ -426,13 +442,29 @@ export const App: React.FC = () => {
                   showRank
                 />
 
-                {/* 2. Trending Movies on Netflix (User Request) */}
-                <MovieCarousel
-                  title="Trending Movies on Netflix"
-                  movies={trendingNetflixMovies}
-                  onSelectMovie={handleSelectMovie}
-                  onSeeAll={() => setActiveTab('search')}
-                />
+                {/* 2. Trending Movies on Netflix (Real-Time Live Daily Updates) */}
+                <div className="relative">
+                  <div className="px-5 mb-1 flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E50914]" />
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-red-500">
+                        Live Netflix Daily Feed
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-white/50 font-mono">
+                      Refreshed Today
+                    </span>
+                  </div>
+                  <MovieCarousel
+                    title="Trending Movies on Netflix"
+                    movies={trendingNetflixMovies}
+                    onSelectMovie={handleSelectMovie}
+                    onSeeAll={() => setActiveTab('search')}
+                  />
+                </div>
 
                 {/* 3. Trending Now */}
                 <MovieCarousel

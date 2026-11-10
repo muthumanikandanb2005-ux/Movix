@@ -503,6 +503,31 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
+        public void setDeviceVolume(float ratio) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                try {
+                    android.media.AudioManager am = (android.media.AudioManager) getSystemService(android.content.Context.AUDIO_SERVICE);
+                    if (am != null) {
+                        int maxVol = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC);
+                        int target = Math.round(maxVol * Math.max(0f, Math.min(1f, ratio)));
+                        am.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, target, 0);
+                    }
+                } catch (Exception ignored) {}
+            });
+        }
+
+        @JavascriptInterface
+        public void setDeviceBrightness(float ratio) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                try {
+                    android.view.WindowManager.LayoutParams lp = getWindow().getAttributes();
+                    lp.screenBrightness = Math.max(0.05f, Math.min(1.0f, ratio));
+                    getWindow().setAttributes(lp);
+                } catch (Exception ignored) {}
+            });
+        }
+
+        @JavascriptInterface
         public void openUpdateUrl(String url) {
             new Handler(Looper.getMainLooper()).post(() -> {
                 try {
@@ -534,7 +559,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.0.9";
+                return "2.1.0";
             }
         }
 
@@ -543,7 +568,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 200900;
+                return 201000;
             }
         }
     }

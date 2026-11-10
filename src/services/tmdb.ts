@@ -322,26 +322,103 @@ export const fetchHollywoodFromTMDB = async (): Promise<Movie[]> => {
 // 3. Platform Specific (Netflix=8, Prime=9, Hotstar=337, Apple=350, Max=1899, Hulu=15)
 export const fetchPlatformMoviesFromTMDB = async (providerId: number = 8): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/discover/movie?with_watch_providers=${providerId}&watch_region=IN&sort_by=popularity.desc&page=1`);
-  if (data?.results?.length) return data.results.map(mapTmdbToMovie);
+  if (data?.results?.length) return data.results.map((m: any) => ({ ...mapTmdbToMovie(m), ottProvider: 'Netflix' as const }));
   const dataFallback = await safeFetch(`${BASE_URL}/discover/movie?with_watch_providers=${providerId}&sort_by=popularity.desc&page=1`);
-  return dataFallback?.results ? dataFallback.results.map(mapTmdbToMovie) : [];
+  return dataFallback?.results ? dataFallback.results.map((m: any) => ({ ...mapTmdbToMovie(m), ottProvider: 'Netflix' as const })) : [];
 };
 
-// 3.1 Fetch Real Netflix Trending Movies
+// 3.1 Live Daily Netflix Trending Movies (Daily refreshed real-time catalogue)
+export const fetchLiveDailyNetflixMovies = async (): Promise<{ trending: Movie[]; top10: Movie[]; originals: Movie[] }> => {
+  const todayKey = new Date().toISOString().split('T')[0];
+  const cacheKey = `movix_daily_netflix_${todayKey}`;
+
+  // Check today's local cache for instant 0ms load
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.trending?.length && parsed.top10?.length) {
+        return parsed;
+      }
+    }
+  } catch {}
+
+  // Fetch live daily movies directly from TMDB
+  try {
+    const [page1, page2] = await Promise.all([
+      safeFetch(`${BASE_URL}/discover/movie?with_watch_providers=8&sort_by=popularity.desc&page=1`),
+      safeFetch(`${BASE_URL}/discover/movie?with_watch_providers=8&sort_by=popularity.desc&page=2`)
+    ]);
+
+    const combinedRaw = [
+      ...(page1?.results || []),
+      ...(page2?.results || [])
+    ];
+
+    const seen = new Set<number>();
+    const dedupeRaw = combinedRaw.filter((m: any) => {
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      return true;
+    });
+
+    const trending: Movie[] = dedupeRaw.map((m: any, idx: number) => ({
+      ...mapTmdbToMovie(m),
+      ottProvider: 'Netflix' as const,
+      badge: idx < 3 ? '🔥 #1 TODAY' : idx < 10 ? 'NETFLIX TODAY' : 'POPULAR NOW'
+    }));
+
+    const top10: Movie[] = trending.slice(0, 10).map((m, idx) => ({
+      ...m,
+      badge: `TOP #${idx + 1} TODAY`
+    }));
+
+    // Netflix Originals
+    const origData = await safeFetch(`${BASE_URL}/discover/movie?with_networks=213&sort_by=popularity.desc&page=1`);
+    const originals: Movie[] = (origData?.results || []).map((m: any) => ({
+      ...mapTmdbToMovie(m),
+      ottProvider: 'Netflix' as const,
+      badge: 'NETFLIX ORIGINAL'
+    }));
+
+    const result = {
+      trending: trending.length > 0 ? trending : [],
+      top10: top10.length > 0 ? top10 : [],
+      originals: originals.length > 0 ? originals : []
+    };
+
+    if (result.trending.length > 0) {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(result));
+      } catch {}
+    }
+
+    return result;
+  } catch (err) {
+    console.warn('Live daily Netflix fetch error:', err);
+    return { trending: [], top10: [], originals: [] };
+  }
+};
+
+// 3.2 Fetch Real Netflix Trending Movies
 export const fetchNetflixTrending = async (): Promise<Movie[]> => {
+  const daily = await fetchLiveDailyNetflixMovies();
+  if (daily.trending.length > 0) return daily.trending;
   return fetchPlatformMoviesFromTMDB(8);
 };
 
-// 3.2 Fetch Real Netflix Originals (Network ID 213)
+// 3.3 Fetch Real Netflix Originals (Network ID 213)
 export const fetchNetflixOriginals = async (): Promise<Movie[]> => {
   const data = await safeFetch(`${BASE_URL}/discover/movie?with_networks=213&sort_by=popularity.desc&page=1`);
-  if (data?.results?.length) return data.results.map(mapTmdbToMovie);
+  if (data?.results?.length) return data.results.map((m: any) => ({ ...mapTmdbToMovie(m), ottProvider: 'Netflix' as const }));
   const tvData = await safeFetch(`${BASE_URL}/discover/tv?with_networks=213&sort_by=popularity.desc&page=1`);
-  return tvData?.results ? tvData.results.map(mapTmdbToMovie) : [];
+  return tvData?.results ? tvData.results.map((m: any) => ({ ...mapTmdbToMovie(m), ottProvider: 'Netflix' as const })) : [];
 };
 
-// 3.3 Fetch Netflix Top 10 Today
+// 3.4 Fetch Netflix Top 10 Today
 export const fetchNetflixTop10 = async (): Promise<Movie[]> => {
+  const daily = await fetchLiveDailyNetflixMovies();
+  if (daily.top10.length > 0) return daily.top10;
   const movies = await fetchNetflixTrending();
   return movies.slice(0, 10);
 };

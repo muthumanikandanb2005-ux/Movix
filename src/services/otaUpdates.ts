@@ -10,25 +10,27 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.0.9';
-export const LATEST_RELEASE_VERSION_CODE = 200900;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.0';
+export const LATEST_RELEASE_VERSION_CODE = 201000;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
-  releaseDate: '2026-11-09',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Cinema Edition`,
+  releaseDate: '2026-11-10',
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - XPlayer Cinema Suite`,
   changelog: [
-    'All player options completely hidden during playback (pure cinema)',
-    'In-player audio language switcher (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish)',
-    'Universal mobile fitting (Notch, Dynamic Island, Punch-Hole, Curved screens)',
-    'Ultra-fast direct server loading (Server 3 default, 500ms VidLink Pro 4K)',
-    'Trending Movies on Netflix carousel & settings option'
+    'XPlayer Sound Volume Control (0% to 150% Boost) with Mute toggle & presets',
+    'XPlayer Screen Brightness Control (20% to 150%) with hardware display sync',
+    'Dedicated In-Player Audio Track & Multi-Language switcher (Hindi 5.1, Tamil, Telugu, Malayalam, Kannada, English, Spanish)',
+    'Real-time live daily Netflix trending movies (fresh daily catalogue from TMDB API)',
+    'All player controls auto-hidden while movie plays for clean unobstructed cinema view',
+    'On-screen vertical brightness and volume capsule sliders',
+    'Universal mobile fitting (Notch, Dynamic Island, Punch-Hole, Curved screens)'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.0.8'
+  currentVersion: '2.0.9'
 };
 
 const VERSION_MIRRORS = [
@@ -44,11 +46,11 @@ export const getCurrentAppVersion = (): { versionName: string; versionCode: numb
   if (android && typeof android.getAppVersion === 'function') {
     try {
       const vn = android.getAppVersion();
-      const vc = android.getAppVersionCode ? android.getAppVersionCode() : 200800;
-      return { versionName: vn || '2.0.8', versionCode: vc || 200800 };
+      const vc = android.getAppVersionCode ? android.getAppVersionCode() : 201000;
+      return { versionName: vn || '2.1.0', versionCode: vc || 201000 };
     } catch {}
   }
-  return { versionName: '2.0.8', versionCode: 200800 };
+  return { versionName: '2.1.0', versionCode: 201000 };
 };
 
 export const checkForAppUpdates = async (force = false): Promise<AppUpdateInfo | null> => {

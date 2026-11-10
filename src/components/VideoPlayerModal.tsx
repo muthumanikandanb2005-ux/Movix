@@ -1,8 +1,9 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  X, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, 
-  Server, Lock, Unlock, Sun, Gauge, Scan, Check, Languages, Globe, AlertCircle, Smartphone 
+  X, Play, Pause, Volume2, VolumeX, Volume1, Maximize, RotateCcw, RotateCw, 
+  Server, Lock, Unlock, Sun, SunMedium, Gauge, Scan, Check, Languages, Globe, AlertCircle, Smartphone,
+  SlidersHorizontal, Clock, Sparkles
 } from 'lucide-react';
 import { Movie, StreamSource, VideoQuality, AudioLanguage } from '../types';
 import { getStreamingSources, getTvStreamingSources } from '../services/tmdb';
@@ -70,6 +71,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showPlayerOptionsMenu, setShowPlayerOptionsMenu] = useState(false);
+  const [sleepTimer, setSleepTimer] = useState<number | null>(null);
+  const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Gesture OSD overlays (Signature XPlayer Feature)
   const [gestureOsd, setGestureOsd] = useState<{
@@ -110,16 +114,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   // Auto-hide controls after 3 seconds to provide clean unobstructed cinema view
   const resetControlsTimeout = useCallback(() => {
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    if (!isLocked && !showLanguageMenu && !showServerMenu && !showQualityMenu && !showSpeedMenu) {
+    if (!isLocked && !showLanguageMenu && !showServerMenu && !showQualityMenu && !showSpeedMenu && !showPlayerOptionsMenu) {
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
         setShowServerMenu(false);
         setShowSpeedMenu(false);
         setShowQualityMenu(false);
         setShowLanguageMenu(false);
+        setShowPlayerOptionsMenu(false);
       }, 3000);
     }
-  }, [isLocked, showLanguageMenu, showServerMenu, showQualityMenu, showSpeedMenu]);
+  }, [isLocked, showLanguageMenu, showServerMenu, showQualityMenu, showSpeedMenu, showPlayerOptionsMenu]);
 
   useEffect(() => {
     resetControlsTimeout();
@@ -155,6 +160,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     return () => {
       window.removeEventListener('resize', handleOrientation);
       window.removeEventListener('orientationchange', handleOrientation);
+      if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
       if (androidAdMob && typeof androidAdMob.setPlayerActive === 'function') {
         androidAdMob.setPlayerActive(false);
       } else if (androidAdMob && typeof androidAdMob.showBannerAd === 'function') {
@@ -400,6 +406,74 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     setHasError(false);
     setGestureOsd({ type: 'info', value: `Switched to ${sources[nextIdx].name.split(' ')[1]}`, icon: '🔄' });
     setTimeout(() => setGestureOsd(null), 1500);
+  };
+
+  // Dedicated Sound / Volume Controller (0% to 150% Boost)
+  const handleVolumeChange = (newVol: number) => {
+    const clamped = Math.max(0, Math.min(1.5, Math.round(newVol * 100) / 100));
+    setVolume(clamped);
+    setIsMuted(clamped === 0);
+    if (videoRef.current) {
+      videoRef.current.volume = Math.min(1, clamped);
+      videoRef.current.muted = clamped === 0;
+    }
+    const androidAdMob = (window as any).AndroidAdMob;
+    if (androidAdMob && typeof androidAdMob.setDeviceVolume === 'function') {
+      androidAdMob.setDeviceVolume(Math.min(1, clamped));
+    }
+    setGestureOsd({
+      type: 'volume',
+      value: clamped > 1.0 ? `${Math.round(clamped * 100)}% Boost 🚀` : `${Math.round(clamped * 100)}%`,
+      icon: clamped === 0 ? '🔇' : clamped > 1.0 ? '🔊' : '🔉',
+      percent: Math.min(100, Math.round((clamped / 1.5) * 100))
+    });
+    setTimeout(() => setGestureOsd(null), 1200);
+    resetControlsTimeout();
+  };
+
+  const toggleMute = () => {
+    if (isMuted || volume === 0) {
+      handleVolumeChange(1.0);
+    } else {
+      handleVolumeChange(0);
+    }
+  };
+
+  // Dedicated Screen Brightness Controller (20% to 150%)
+  const handleBrightnessChange = (newBright: number) => {
+    const clamped = Math.max(20, Math.min(150, Math.round(newBright)));
+    setBrightness(clamped);
+    const androidAdMob = (window as any).AndroidAdMob;
+    if (androidAdMob && typeof androidAdMob.setDeviceBrightness === 'function') {
+      androidAdMob.setDeviceBrightness(clamped / 150);
+    }
+    setGestureOsd({
+      type: 'brightness',
+      value: `${Math.round((clamped / 150) * 100)}%`,
+      icon: clamped < 40 ? '🌙' : '☀️',
+      percent: Math.round((clamped / 150) * 100)
+    });
+    setTimeout(() => setGestureOsd(null), 1200);
+    resetControlsTimeout();
+  };
+
+  // Sleep Timer Controller
+  const setTimerMinutes = (minutes: number | null) => {
+    if (sleepTimerRef.current) {
+      clearTimeout(sleepTimerRef.current);
+      sleepTimerRef.current = null;
+    }
+    setSleepTimer(minutes);
+    if (minutes !== null && minutes > 0) {
+      sleepTimerRef.current = setTimeout(() => {
+        handleClose();
+      }, minutes * 60 * 1000);
+      setGestureOsd({ type: 'info', value: `Sleep Timer: ${minutes}m`, icon: '⏱️' });
+    } else {
+      setGestureOsd({ type: 'info', value: 'Sleep Timer: Off', icon: '⏱️' });
+    }
+    setTimeout(() => setGestureOsd(null), 1500);
+    resetControlsTimeout();
   };
 
   // 1-Tap Landscape / Portrait Screen Rotation (Signature XPlayer Feature)
@@ -701,6 +775,24 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <span className="hidden sm:inline">Server</span>
           </button>
 
+          {/* XPlayer Options Center Drawer Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPlayerOptionsMenu(!showPlayerOptionsMenu);
+              setShowQualityMenu(false);
+              setShowServerMenu(false);
+              setShowSpeedMenu(false);
+              setShowLanguageMenu(false);
+              resetControlsTimeout();
+            }}
+            className="px-2.5 py-1.5 rounded-full bg-gradient-to-r from-red-600 to-[#E50914] hover:from-red-500 hover:to-red-600 text-white text-xs font-bold flex items-center space-x-1.5 border border-white/20 active:scale-95 shadow-lg"
+            title="XPlayer Options"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-white" />
+            <span className="hidden xs:inline">Options</span>
+          </button>
+
           {/* Close Player */}
           <button
             onClick={(e) => {
@@ -715,7 +807,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       </div>
 
       {/* Click-shield backdrop to close open dropdowns without touching the iframe */}
-      {(showQualityMenu || showLanguageMenu || showServerMenu || showSpeedMenu) && (
+      {(showQualityMenu || showLanguageMenu || showServerMenu || showSpeedMenu || showPlayerOptionsMenu) && (
         <div 
           onClick={(e) => {
             e.stopPropagation();
@@ -723,9 +815,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             setShowLanguageMenu(false);
             setShowServerMenu(false);
             setShowSpeedMenu(false);
+            setShowPlayerOptionsMenu(false);
             resetControlsTimeout();
           }}
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-[2px]"
         />
       )}
 
@@ -869,8 +962,274 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
       )}
 
+      {/* 5.1 XPLAYER ALL-IN-ONE OPTIONS CENTER MODAL */}
+      {showPlayerOptionsMenu && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[94vw] max-w-lg max-h-[85vh] overflow-y-auto bg-[#0d111a]/98 backdrop-blur-2xl border border-white/20 rounded-3xl p-4 sm:p-6 shadow-2xl text-white animate-in zoom-in-95 duration-200 scrollbar-none no-scrollbar"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#E50914] flex items-center justify-center text-white shadow-md">
+                <SlidersHorizontal className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-white leading-tight">
+                  XPlayer Cinema Controls
+                </h3>
+                <p className="text-[10px] sm:text-[11px] text-white/60">
+                  {movie.title} • {currentQuality}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPlayerOptionsMenu(false)}
+              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {/* 1. SOUND & VOLUME (0% - 150% BOOST) */}
+            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-white/90 flex items-center space-x-1.5">
+                  <Volume2 className="w-4 h-4 text-emerald-400" />
+                  <span>Sound Volume: {Math.round(volume * 100)}%{volume > 1.0 ? ' (Boost 🚀)' : ''}</span>
+                </span>
+                <button
+                  onClick={toggleMute}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all ${
+                    isMuted || volume === 0
+                      ? 'bg-red-500/30 text-red-400 border-red-500/40'
+                      : 'bg-white/10 text-white/80 border-white/20'
+                  }`}
+                >
+                  {isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+                </button>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1.5"
+                step="0.05"
+                value={isMuted ? 0 : volume}
+                onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#E50914]"
+              />
+              <div className="flex items-center justify-between mt-2 pt-1 border-t border-white/5">
+                {[
+                  { label: 'Mute', val: 0 },
+                  { label: '50%', val: 0.5 },
+                  { label: '100%', val: 1.0 },
+                  { label: '150% 🚀', val: 1.5 }
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => handleVolumeChange(preset.val)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
+                      (isMuted && preset.val === 0) || (!isMuted && Math.abs(volume - preset.val) < 0.08)
+                        ? 'bg-[#E50914] text-white shadow'
+                        : 'bg-white/5 hover:bg-white/10 text-white/70'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. SCREEN BRIGHTNESS (20% - 150%) */}
+            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-white/90 flex items-center space-x-1.5">
+                  <SunMedium className="w-4 h-4 text-amber-400" />
+                  <span>Brightness: {Math.round((brightness / 150) * 100)}%</span>
+                </span>
+                <span className="text-[10px] text-white/50 font-mono">Hardware Sync</span>
+              </div>
+              <input
+                type="range"
+                min="20"
+                max="150"
+                step="5"
+                value={brightness}
+                onChange={(e) => handleBrightnessChange(parseInt(e.target.value))}
+                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              />
+              <div className="flex items-center justify-between mt-2 pt-1 border-t border-white/5">
+                {[
+                  { label: 'Night 25%', val: 38 },
+                  { label: 'Normal 50%', val: 75 },
+                  { label: 'Cinema 80%', val: 120 },
+                  { label: 'Max 100%', val: 150 }
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => handleBrightnessChange(preset.val)}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all ${
+                      Math.abs(brightness - preset.val) < 15
+                        ? 'bg-amber-600 text-white shadow'
+                        : 'bg-white/5 hover:bg-white/10 text-white/70'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. AUDIO TRACK & LANGUAGE CHANGE OPTION */}
+            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-white/90 flex items-center space-x-1.5">
+                  <Globe className="w-4 h-4 text-cyan-400" />
+                  <span>Audio Track & Language:</span>
+                </span>
+                <span className="text-[10px] font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                  {currentLanguage}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto no-scrollbar">
+                {AVAILABLE_LANGUAGES.map((lang) => {
+                  const isSelected = currentLanguage === lang.id;
+                  return (
+                    <button
+                      key={lang.id}
+                      onClick={() => handleLanguageChange(lang.id)}
+                      className={`py-1.5 px-2.5 rounded-xl text-[11px] font-semibold flex items-center justify-between transition-all ${
+                        isSelected
+                          ? 'bg-[#E50914] text-white shadow-md'
+                          : 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/5'
+                      }`}
+                    >
+                      <span className="truncate">{lang.icon} {lang.label.split(' ')[0]}</span>
+                      {isSelected && <Check className="w-3 h-3 flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 4. PLAYBACK SPEED & SCREEN FIT */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Speed */}
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
+                <span className="text-[11px] font-bold text-white/80 block mb-1.5">
+                  Speed: {playbackSpeed}x
+                </span>
+                <div className="grid grid-cols-3 gap-1">
+                  {[0.75, 1.0, 1.25, 1.5, 2.0].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => changeSpeed(s)}
+                      className={`py-1 rounded-lg text-[10px] font-bold ${
+                        playbackSpeed === s ? 'bg-[#E50914] text-white' : 'bg-white/5 hover:bg-white/10 text-white/70'
+                      }`}
+                    >
+                      {s}x
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Screen Fit */}
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
+                <span className="text-[11px] font-bold text-white/80 block mb-1.5">
+                  Screen Fitting:
+                </span>
+                <div className="space-y-1">
+                  {[
+                    { id: 'contain', label: '16:9 Fit' },
+                    { id: 'cover', label: '100% Crop' },
+                    { id: 'fill', label: 'Stretch' }
+                  ].map((mode) => (
+                    <button
+                      key={mode.id}
+                      onClick={() => {
+                        setAspectMode(mode.id as AspectMode);
+                        resetControlsTimeout();
+                      }}
+                      className={`w-full py-1 px-2 rounded-lg text-[10px] font-bold flex items-center justify-between ${
+                        aspectMode === mode.id ? 'bg-[#E50914] text-white' : 'bg-white/5 hover:bg-white/10 text-white/70'
+                      }`}
+                    >
+                      <span>{mode.label}</span>
+                      {aspectMode === mode.id && <Check className="w-3 h-3" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 5. SLEEP TIMER */}
+            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-white/90 flex items-center space-x-1.5">
+                  <Clock className="w-4 h-4 text-purple-400" />
+                  <span>Sleep Timer:</span>
+                </span>
+                <span className="text-[10px] text-white/60">
+                  {sleepTimer ? `${sleepTimer}m remaining` : 'Disabled'}
+                </span>
+              </div>
+              <div className="grid grid-cols-5 gap-1.5">
+                {[
+                  { label: 'Off', val: null },
+                  { label: '15m', val: 15 },
+                  { label: '30m', val: 30 },
+                  { label: '45m', val: 45 },
+                  { label: '60m', val: 60 }
+                ].map((t) => (
+                  <button
+                    key={t.label}
+                    onClick={() => setTimerMinutes(t.val)}
+                    className={`py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                      sleepTimer === t.val
+                        ? 'bg-purple-600 text-white shadow'
+                        : 'bg-white/5 hover:bg-white/10 text-white/70'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 6. QUICK ACTIONS: ROTATE & SCREEN LOCK */}
+            <div className="flex items-center space-x-2 pt-1">
+              <button
+                onClick={() => {
+                  toggleOrientation();
+                  setShowPlayerOptionsMenu(false);
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center space-x-1.5 border border-white/10 active:scale-95"
+              >
+                <RotateCw className="w-3.5 h-3.5" />
+                <span>Rotate Screen</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setIsLocked(!isLocked);
+                  setShowPlayerOptionsMenu(false);
+                  setShowControls(true);
+                  resetControlsTimeout();
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center space-x-1.5 border border-white/10 active:scale-95"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Lock Screen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 6. SCREEN LOCK BUTTON (XPlayer Signature - Completely hidden while movie plays) */}
-      <div className={`absolute left-5 top-1/2 -translate-y-1/2 z-50 transition-opacity duration-300 ${
+      <div className={`absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-50 transition-opacity duration-300 ${
         showControls ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         <button
@@ -889,6 +1248,61 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         >
           {isLocked ? <Lock className="w-5 h-5 text-white" /> : <Unlock className="w-5 h-5" />}
         </button>
+      </div>
+
+      {/* 6.1 ON-SCREEN VERTICAL BRIGHTNESS SLIDER CAPSULE (XPLAYER SIGNATURE - Hidden while movie plays) */}
+      <div className={`absolute left-16 sm:left-20 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center bg-black/80 backdrop-blur-md px-2 py-3 rounded-full border border-white/20 shadow-2xl transition-opacity duration-300 pointer-events-auto ${
+        showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}>
+        <SunMedium className="w-4 h-4 text-amber-400 mb-2" />
+        <input
+          type="range"
+          min="20"
+          max="150"
+          step="5"
+          value={brightness}
+          onChange={(e) => handleBrightnessChange(parseInt(e.target.value))}
+          className="h-24 sm:h-28 w-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-500 [writing-mode:vertical-lr] [direction:rtl]"
+          title="Brightness Control"
+        />
+        <span className="text-[9px] font-bold text-white/80 mt-2 font-mono">
+          {Math.round((brightness / 150) * 100)}%
+        </span>
+      </div>
+
+      {/* 6.2 ON-SCREEN VERTICAL SOUND / VOLUME SLIDER CAPSULE (XPLAYER SIGNATURE - Hidden while movie plays) */}
+      <div className={`absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center bg-black/80 backdrop-blur-md px-2 py-3 rounded-full border border-white/20 shadow-2xl transition-opacity duration-300 pointer-events-auto ${
+        showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleMute();
+          }}
+          className="mb-2 text-white/80 hover:text-white"
+          title={isMuted ? "Unmute" : "Mute"}
+        >
+          {isMuted || volume === 0 ? (
+            <VolumeX className="w-4 h-4 text-red-500" />
+          ) : volume > 1.0 ? (
+            <Volume2 className="w-4 h-4 text-emerald-400" />
+          ) : (
+            <Volume1 className="w-4 h-4 text-white" />
+          )}
+        </button>
+        <input
+          type="range"
+          min="0"
+          max="1.5"
+          step="0.05"
+          value={isMuted ? 0 : volume}
+          onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+          className="h-24 sm:h-28 w-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#E50914] [writing-mode:vertical-lr] [direction:rtl]"
+          title="Sound Volume Control (0-150% Boost)"
+        />
+        <span className="text-[9px] font-bold text-white/80 mt-2 font-mono">
+          {Math.round(volume * 100)}%
+        </span>
       </div>
 
       {/* 7. XPLAYER GESTURE OSD DISPLAY OVERLAY (Brightness / Volume / Seek Level) */}
@@ -1064,6 +1478,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 setShowServerMenu(false);
                 setShowQualityMenu(false);
                 setShowSpeedMenu(false);
+                setShowPlayerOptionsMenu(false);
                 resetControlsTimeout();
               }}
               className="ml-1 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-blue-600/80 hover:bg-blue-600 text-white shadow-md flex items-center space-x-1 active:scale-95 transition-all"
@@ -1071,6 +1486,24 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             >
               <Globe className="w-3 h-3 text-white" />
               <span>{currentLanguage}</span>
+            </button>
+
+            {/* XPlayer Options Drawer Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPlayerOptionsMenu(!showPlayerOptionsMenu);
+                setShowLanguageMenu(false);
+                setShowServerMenu(false);
+                setShowQualityMenu(false);
+                setShowSpeedMenu(false);
+                resetControlsTimeout();
+              }}
+              className="ml-1 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-gradient-to-r from-red-600 to-[#E50914] text-white shadow-md flex items-center space-x-1 active:scale-95 transition-all"
+              title="Open XPlayer Options"
+            >
+              <SlidersHorizontal className="w-3 h-3 text-white" />
+              <span>Options</span>
             </button>
 
             {/* Rewarded Ad VIP Server Booster Button */}
@@ -1203,11 +1636,30 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   setShowServerMenu(false);
                   setShowQualityMenu(false);
                   setShowLanguageMenu(false);
+                  setShowPlayerOptionsMenu(false);
                 }}
                 className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
               >
                 <Gauge className="w-3.5 h-3.5" />
                 <span>{playbackSpeed}x</span>
+              </button>
+
+              {/* XPlayer Options Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPlayerOptionsMenu(!showPlayerOptionsMenu);
+                  setShowSpeedMenu(false);
+                  setShowServerMenu(false);
+                  setShowQualityMenu(false);
+                  setShowLanguageMenu(false);
+                  resetControlsTimeout();
+                }}
+                className="px-2 py-1 rounded-md bg-gradient-to-r from-red-600 to-[#E50914] text-[11px] font-bold text-white flex items-center space-x-1 shadow-md active:scale-95"
+                title="XPlayer Options"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Options</span>
               </button>
 
               {/* Fullscreen Toggle */}
