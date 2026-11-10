@@ -393,11 +393,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </ul>
 
                     <button
-                      onClick={() => triggerApkInstall(updateInfo.downloadUrl)}
+                      onClick={() => triggerApkInstall(updateInfo.rawApkUrl || updateInfo.downloadUrl)}
                       className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-lg shadow-red-900/40 active:scale-95 transition-all mt-1"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Download & Install APK Update</span>
+                      <span>Download & Install APK Directly In App</span>
                     </button>
                   </div>
                 )}

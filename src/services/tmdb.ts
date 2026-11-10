@@ -202,6 +202,24 @@ export const mapTmdbToMovie = (item: any): Movie => {
 
   const streamSources = getStreamingSources(item.id);
 
+  const origLang = item.original_language || 'en';
+  let availableLanguages: AudioLanguage[] = ['Hindi', 'English'];
+  if (origLang === 'hi') {
+    availableLanguages = ['Hindi', 'Tamil', 'Telugu', 'Malayalam', 'Kannada', 'English'];
+  } else if (origLang === 'ta') {
+    availableLanguages = ['Tamil', 'Hindi', 'Telugu', 'Malayalam', 'Kannada', 'English'];
+  } else if (origLang === 'te') {
+    availableLanguages = ['Telugu', 'Hindi', 'Tamil', 'Malayalam', 'Kannada', 'English'];
+  } else if (origLang === 'ml') {
+    availableLanguages = ['Malayalam', 'Tamil', 'Telugu', 'Hindi', 'Kannada', 'English'];
+  } else if (origLang === 'kn') {
+    availableLanguages = ['Kannada', 'Telugu', 'Tamil', 'Hindi', 'Malayalam', 'English'];
+  } else if (origLang === 'es') {
+    availableLanguages = ['Spanish', 'English', 'Hindi'];
+  } else {
+    availableLanguages = ['English', 'Hindi', 'Tamil', 'Telugu', 'Spanish'];
+  }
+
   return {
     id: `tmdb-${item.id}`,
     tmdbId: item.id,
@@ -215,6 +233,7 @@ export const mapTmdbToMovie = (item: any): Movie => {
     description: item.overview || 'Experience this narrative in uncompressed 4K HDR with Dolby surround on Movix.',
     poster,
     backdrop,
+    availableLanguages,
     videoUrl: streamSources[0].url,
     streamSources
   };

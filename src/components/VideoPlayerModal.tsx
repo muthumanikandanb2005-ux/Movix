@@ -18,14 +18,14 @@ interface VideoPlayerModalProps {
 
 type AspectMode = 'contain' | 'cover' | 'fill';
 
-const AVAILABLE_LANGUAGES: { id: AudioLanguage; label: string; icon: string }[] = [
-  { id: 'Hindi', label: 'Hindi (हिंदी 5.1)', icon: '🇮🇳' },
-  { id: 'Tamil', label: 'Tamil (தமிழ் Dub)', icon: '🇮🇳' },
-  { id: 'Telugu', label: 'Telugu (తెలుగు Dub)', icon: '🇮🇳' },
-  { id: 'Malayalam', label: 'Malayalam (മലയാളം)', icon: '🇮🇳' },
-  { id: 'Kannada', label: 'Kannada (ಕನ್ನಡ)', icon: '🇮🇳' },
-  { id: 'English', label: 'English (Original 5.1)', icon: '🇬🇧' },
-  { id: 'Spanish', label: 'Spanish (Español)', icon: '🇪🇸' }
+const AVAILABLE_LANGUAGES: { id: AudioLanguage; label: string; native: string; icon: string }[] = [
+  { id: 'Hindi', label: 'Hindi', native: 'हिंदी 5.1', icon: '🇮🇳' },
+  { id: 'Tamil', label: 'Tamil', native: 'தமிழ் Dub', icon: '🇮🇳' },
+  { id: 'Telugu', label: 'Telugu', native: 'తెలుగు Dub', icon: '🇮🇳' },
+  { id: 'Malayalam', label: 'Malayalam', native: 'മലയാളം', icon: '🇮🇳' },
+  { id: 'Kannada', label: 'Kannada', native: 'ಕನ್ನಡ', icon: '🇮🇳' },
+  { id: 'English', label: 'English', native: 'Original 5.1', icon: '🇬🇧' },
+  { id: 'Spanish', label: 'Spanish', native: 'Español', icon: '🇪🇸' }
 ];
 
 export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ 
@@ -648,20 +648,36 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
       onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
-      {/* Tap area to summon controls when hidden (zero visible buttons while playing, 100% pure cinema unobstructed screen) */}
+      {/* Tap area to summon controls when hidden */}
       {!showControls && (
-        <div 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowControls(true);
-            resetControlsTimeout();
-          }}
-          className={currentSource.type === 'video' 
-            ? "absolute inset-0 z-30 cursor-pointer"
-            : "absolute top-0 left-0 right-0 h-16 z-30 cursor-pointer"
-          }
-          aria-label="Tap to summon controls"
-        />
+        <>
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowControls(true);
+              resetControlsTimeout();
+            }}
+            className="absolute inset-0 z-30 cursor-pointer"
+            aria-label="Tap to summon controls"
+          />
+          {/* Quick Language Indicator Pill (Always accessible during cinema playback) */}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLanguageMenu(true);
+              setShowControls(true);
+              resetControlsTimeout();
+            }}
+            style={{ top: 'max(env(safe-area-inset-top, 0px), 12px)' }}
+            className="absolute left-1/2 -translate-x-1/2 z-40 bg-black/75 hover:bg-black/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-2xl active:scale-95 transition-all"
+            title="Current Audio Language (Tap to Change)"
+          >
+            <Globe className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Audio: {currentLanguage}</span>
+            <span className="text-white/40">•</span>
+            <span className="text-[10px] text-cyan-300 font-normal">Change</span>
+          </button>
+        </>
       )}
 
       {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
@@ -700,22 +716,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
 
         <div className="flex items-center space-x-2">
-          {/* Quality Switcher Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowQualityMenu(!showQualityMenu);
-              setShowServerMenu(false);
-              setShowSpeedMenu(false);
-              setShowLanguageMenu(false);
-            }}
-            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95"
-            title="Select Quality"
-          >
-            <span>{currentQuality}</span>
-          </button>
-
-          {/* Language / Audio Switcher Button */}
+          {/* 1. Language / Audio Switcher Button (PROMINENT & HIGHLIGHTED) */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -723,59 +724,46 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setShowQualityMenu(false);
               setShowServerMenu(false);
               setShowSpeedMenu(false);
+              setShowPlayerOptionsMenu(false);
               resetControlsTimeout();
             }}
-            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1.5 border border-white/10 active:scale-95"
+            className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center space-x-1.5 border border-blue-400/40 active:scale-95 shadow-lg flex-shrink-0"
             title="Audio Language"
           >
-            <Globe className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-            <span className="text-[11px] font-bold">{currentLanguage}</span>
+            <Globe className="w-3.5 h-3.5 text-cyan-300 flex-shrink-0 animate-pulse" />
+            <span className="font-extrabold">{currentLanguage}</span>
           </button>
 
-          {/* 1-Tap Screen Rotate (XPlayer Signature) */}
+          {/* 2. Quality Switcher Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowQualityMenu(!showQualityMenu);
+              setShowServerMenu(false);
+              setShowSpeedMenu(false);
+              setShowLanguageMenu(false);
+              setShowPlayerOptionsMenu(false);
+              resetControlsTimeout();
+            }}
+            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95 flex-shrink-0"
+            title="Select Quality"
+          >
+            <span>{currentQuality}</span>
+          </button>
+
+          {/* 3. 1-Tap Screen Rotate (Desktop/Tablet) */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               toggleOrientation();
             }}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95"
+            className="hidden sm:flex p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 flex-shrink-0"
             title={isLandscape ? "Switch to Portrait" : "Rotate to Landscape"}
           >
             <RotateCw className="w-4 h-4 text-white" />
           </button>
 
-          {/* Playback Speed Switcher Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowSpeedMenu(!showSpeedMenu);
-              setShowQualityMenu(false);
-              setShowServerMenu(false);
-              setShowLanguageMenu(false);
-            }}
-            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1 border border-white/10 active:scale-95"
-            title="Playback Speed"
-          >
-            <Gauge className="w-3.5 h-3.5 text-white/80" />
-            <span>{playbackSpeed}x</span>
-          </button>
-
-          {/* Server Switcher Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowServerMenu(!showServerMenu);
-              setShowQualityMenu(false);
-              setShowSpeedMenu(false);
-              setShowLanguageMenu(false);
-            }}
-            className="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center space-x-1 border border-white/10 active:scale-95"
-          >
-            <Server className="w-3.5 h-3.5 text-red-500" />
-            <span className="hidden sm:inline">Server</span>
-          </button>
-
-          {/* XPlayer Options Center Drawer Button */}
+          {/* 4. XPlayer Options Center Drawer Button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -786,20 +774,21 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setShowLanguageMenu(false);
               resetControlsTimeout();
             }}
-            className="px-2.5 py-1.5 rounded-full bg-gradient-to-r from-red-600 to-[#E50914] hover:from-red-500 hover:to-red-600 text-white text-xs font-bold flex items-center space-x-1.5 border border-white/20 active:scale-95 shadow-lg"
+            className="px-2.5 py-1.5 rounded-full bg-gradient-to-r from-red-600 to-[#E50914] hover:from-red-500 hover:to-red-600 text-white text-xs font-bold flex items-center space-x-1.5 border border-white/20 active:scale-95 shadow-lg flex-shrink-0"
             title="XPlayer Options"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-white" />
             <span className="hidden xs:inline">Options</span>
           </button>
 
-          {/* Close Player */}
+          {/* 5. Close Player */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleClose();
             }}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90"
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90 flex-shrink-0"
+            title="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -854,20 +843,36 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
       )}
 
-      {/* 3. MULTI-LANGUAGE AUDIO DRAWER */}
+      {/* 3. MULTI-LANGUAGE AUDIO MODAL (CENTERED & RESPONSIVE) */}
       {showLanguageMenu && (
         <div 
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-16 right-4 sm:right-16 z-50 w-72 max-w-[calc(100vw-32px)] bg-[#121622]/98 backdrop-blur-2xl border border-white/20 rounded-2xl p-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[94vw] max-w-sm max-h-[85vh] overflow-y-auto bg-[#0E121D]/98 backdrop-blur-2xl border border-white/20 rounded-3xl p-5 shadow-2xl text-white animate-in zoom-in-95 duration-200 scrollbar-none no-scrollbar"
         >
-          <div className="text-xs font-bold text-white/70 mb-2 px-1 flex items-center justify-between">
-            <span className="flex items-center space-x-1">
-              <Globe className="w-3.5 h-3.5 text-white/70" />
-              <span>Audio Language:</span>
-            </span>
-            <span className="text-[10px] text-white/60 font-mono">Dolby Audio</span>
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                <Globe className="w-4 h-4 text-cyan-300" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-white leading-tight">
+                  Audio Track & Language
+                </h3>
+                <p className="text-[10px] text-white/60">
+                  {movie.title} • Dolby Audio 5.1
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowLanguageMenu(false)}
+              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <div className="space-y-1.5 max-h-64 overflow-y-auto scrollbar-none no-scrollbar">
+
+          <div className="space-y-2">
             {[...AVAILABLE_LANGUAGES]
               .sort((a, b) => {
                 const aOk = movie.availableLanguages?.includes(a.id) ? 1 : 0;
@@ -881,27 +886,43 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   <button
                     key={lang.id}
                     onClick={() => handleLanguageChange(lang.id)}
-                    className={`w-full py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
+                    className={`w-full py-2.5 px-3 rounded-2xl text-xs font-bold flex items-center justify-between transition-all ${
                       isSelected
-                        ? 'bg-[#E50914] text-white shadow-md'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border border-blue-400/40 ring-2 ring-blue-500/30'
                         : isSupported
-                        ? 'bg-white/10 text-white hover:bg-white/15 border border-white/20'
-                        : 'bg-white/5 hover:bg-white/10 text-white/80'
+                        ? 'bg-white/10 text-white hover:bg-white/15 border border-white/15'
+                        : 'bg-white/5 hover:bg-white/10 text-white/70 border border-white/5'
                     }`}
                   >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xl">{lang.icon}</span>
+                      <div className="text-left">
+                        <div className="text-xs font-bold leading-tight">
+                          {lang.label} ({lang.native})
+                        </div>
+                        <div className="text-[10px] text-white/50">
+                          {isSelected ? 'Active Track • Dolby 5.1' : isSupported ? 'HD Audio • Ready' : 'Multi-Audio Stream'}
+                        </div>
+                      </div>
+                    </div>
                     <div className="flex items-center space-x-2">
-                      <span>{lang.icon}</span>
-                      <span>{lang.label}</span>
                       {isSupported && !isSelected && (
-                        <span className="text-[9px] px-1 py-0.2 rounded bg-white/20 text-white/80 font-extrabold uppercase">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-extrabold uppercase">
                           Ready
                         </span>
                       )}
+                      {isSelected && (
+                        <div className="w-6 h-6 rounded-full bg-white text-blue-600 flex items-center justify-center shadow">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      )}
                     </div>
-                    {isSelected && <Check className="w-3.5 h-3.5" />}
                   </button>
                 );
               })}
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-white/10 text-[10px] text-white/50 text-center">
+            💡 Tap any language to switch audio track instantly
           </div>
         </div>
       )}
@@ -1088,25 +1109,35 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   <Globe className="w-4 h-4 text-cyan-400" />
                   <span>Audio Track & Language:</span>
                 </span>
-                <span className="text-[10px] font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                <span className="text-[10px] font-bold text-cyan-300 bg-blue-950/80 px-2.5 py-0.5 rounded-full border border-blue-500/40">
                   {currentLanguage}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto no-scrollbar">
+              <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto no-scrollbar">
                 {AVAILABLE_LANGUAGES.map((lang) => {
                   const isSelected = currentLanguage === lang.id;
+                  const isSupported = movie.availableLanguages?.includes(lang.id);
                   return (
                     <button
                       key={lang.id}
                       onClick={() => handleLanguageChange(lang.id)}
-                      className={`py-1.5 px-2.5 rounded-xl text-[11px] font-semibold flex items-center justify-between transition-all ${
+                      className={`py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
                         isSelected
-                          ? 'bg-[#E50914] text-white shadow-md'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md border border-blue-400/40'
+                          : isSupported
+                          ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
                           : 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/5'
                       }`}
                     >
-                      <span className="truncate">{lang.icon} {lang.label.split(' ')[0]}</span>
-                      {isSelected && <Check className="w-3 h-3 flex-shrink-0" />}
+                      <div className="flex items-center space-x-1.5 truncate">
+                        <span>{lang.icon}</span>
+                        <span className="truncate">{lang.label} ({lang.native})</span>
+                      </div>
+                      {isSelected ? (
+                        <Check className="w-3.5 h-3.5 flex-shrink-0 text-white" />
+                      ) : isSupported ? (
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" title="Supported" />
+                      ) : null}
                     </button>
                   );
                 })}
@@ -1442,35 +1473,11 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
       {/* 10. QUICK SERVER MIRROR SWITCHER BAR (Auto-hidden while movie plays; 1-tap failover on summon) */}
       {currentSource.type !== 'video' && (
-        <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-40 transition-opacity duration-300 pointer-events-auto ${
+        <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-40 transition-opacity duration-300 pointer-events-auto max-w-[96vw] ${
           showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}>
-          <div className="flex items-center space-x-1.5 bg-black/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-2xl">
-            <Server className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-            <span className="text-[11px] font-bold text-white/70 mr-1 hidden sm:inline">Stream Mirror:</span>
-            {sources.map((src, idx) => (
-              <button
-                key={idx}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveSourceIndex(idx);
-                  setIsBuffering(false);
-                  setHasStartedPlaying(true);
-                  setGestureOsd({ type: 'info', value: `Connected: Server ${idx + 1}`, icon: '🔄' });
-                  setTimeout(() => setGestureOsd(null), 1400);
-                  resetControlsTimeout();
-                }}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide transition-all active:scale-95 ${
-                  activeSourceIndex === idx
-                    ? 'bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white shadow-md'
-                    : 'bg-white/10 text-white/80 hover:bg-white/20'
-                }`}
-              >
-                {src.type === 'video' ? 'Direct 4K' : `S${idx + 1}`}
-              </button>
-            ))}
-
-            {/* Quick Audio Language Switcher */}
+          <div className="flex items-center space-x-2 bg-black/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-2xl overflow-x-auto no-scrollbar scrollbar-none">
+            {/* Quick Audio Language Switcher (FIRST & PROMINENT) */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -1481,11 +1488,11 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 setShowPlayerOptionsMenu(false);
                 resetControlsTimeout();
               }}
-              className="ml-1 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-blue-600/80 hover:bg-blue-600 text-white shadow-md flex items-center space-x-1 active:scale-95 transition-all"
-              title="Change Audio Language"
+              className="px-3 py-1 rounded-full text-xs font-black tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg flex items-center space-x-1.5 active:scale-95 transition-all border border-blue-400/50 flex-shrink-0"
+              title="Change Audio Track / Language"
             >
-              <Globe className="w-3 h-3 text-white" />
-              <span>{currentLanguage}</span>
+              <Globe className="w-3.5 h-3.5 text-cyan-300 flex-shrink-0 animate-pulse" />
+              <span>Language: {currentLanguage}</span>
             </button>
 
             {/* XPlayer Options Drawer Button */}
@@ -1499,12 +1506,38 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 setShowSpeedMenu(false);
                 resetControlsTimeout();
               }}
-              className="ml-1 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-gradient-to-r from-red-600 to-[#E50914] text-white shadow-md flex items-center space-x-1 active:scale-95 transition-all"
+              className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-gradient-to-r from-red-600 to-[#E50914] text-white shadow-md flex items-center space-x-1 active:scale-95 transition-all flex-shrink-0"
               title="Open XPlayer Options"
             >
               <SlidersHorizontal className="w-3 h-3 text-white" />
               <span>Options</span>
             </button>
+
+            <span className="text-white/20 text-xs flex-shrink-0">|</span>
+            <span className="text-[11px] font-bold text-white/70 mr-0.5 hidden sm:inline flex-shrink-0">Stream Mirror:</span>
+
+            {/* Stream Mirrors */}
+            {sources.map((src, idx) => (
+              <button
+                key={idx}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveSourceIndex(idx);
+                  setIsBuffering(false);
+                  setHasStartedPlaying(true);
+                  setGestureOsd({ type: 'info', value: `Connected: Server ${idx + 1}`, icon: '🔄' });
+                  setTimeout(() => setGestureOsd(null), 1400);
+                  resetControlsTimeout();
+                }}
+                className={`px-2 py-1 rounded-full text-[10px] font-bold tracking-wide transition-all active:scale-95 flex-shrink-0 ${
+                  activeSourceIndex === idx
+                    ? 'bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white shadow-md'
+                    : 'bg-white/10 text-white/80 hover:bg-white/20'
+                }`}
+              >
+                {src.type === 'video' ? 'Direct 4K' : `S${idx + 1}`}
+              </button>
+            ))}
 
             {/* Rewarded Ad VIP Server Booster Button */}
             <button
@@ -1521,7 +1554,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 setActiveSourceIndex(0); // Switch to ultra-fast Server 1 (VidLink Pro 4K)
                 resetControlsTimeout();
               }}
-              className="ml-1 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-md flex items-center space-x-1 active:scale-95 transition-all"
+              className="px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-md flex items-center space-x-1 active:scale-95 transition-all flex-shrink-0"
               title="Watch Ad for 4K VIP Pass"
             >
               <span>⭐</span>
@@ -1642,6 +1675,22 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               >
                 <Gauge className="w-3.5 h-3.5" />
                 <span>{playbackSpeed}x</span>
+              </button>
+
+              {/* Audio Language Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowLanguageMenu(!showLanguageMenu);
+                  setShowSpeedMenu(false);
+                  setShowPlayerOptionsMenu(false);
+                  resetControlsTimeout();
+                }}
+                className="px-2.5 py-1 rounded-md bg-blue-600/90 hover:bg-blue-600 text-[11px] font-bold text-white flex items-center space-x-1 shadow active:scale-95"
+                title="Change Audio Language"
+              >
+                <Globe className="w-3.5 h-3.5 text-cyan-300" />
+                <span>{currentLanguage}</span>
               </button>
 
               {/* XPlayer Options Button */}

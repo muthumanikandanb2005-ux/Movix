@@ -10,27 +10,27 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.0';
-export const LATEST_RELEASE_VERSION_CODE = 201000;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.1';
+export const LATEST_RELEASE_VERSION_CODE = 201100;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-10',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - XPlayer Cinema Suite`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Direct In-App OTA & Accurate Multi-Language`,
   changelog: [
-    'XPlayer Sound Volume Control (0% to 150% Boost) with Mute toggle & presets',
-    'XPlayer Screen Brightness Control (20% to 150%) with hardware display sync',
-    'Dedicated In-Player Audio Track & Multi-Language switcher (Hindi 5.1, Tamil, Telugu, Malayalam, Kannada, English, Spanish)',
-    'Real-time live daily Netflix trending movies (fresh daily catalogue from TMDB API)',
-    'All player controls auto-hidden while movie plays for clean unobstructed cinema view',
-    'On-screen vertical brightness and volume capsule sliders',
-    'Universal mobile fitting (Notch, Dynamic Island, Punch-Hole, Curved screens)'
+    'Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)',
+    'Prominent Audio Language switcher button in player top bar and quick mirror bar',
+    'Centered responsive Multi-Language Audio modal with accurate Dolby 5.1/Original dub badges',
+    'Continuous on-screen audio language status pill during playback',
+    'Accurate multi-language mapping across all TMDB and Netflix movie feeds',
+    'XPlayer Sound Boost (150%) & Brightness with hardware sync',
+    'Universal mobile screen notch & punch hole edge-to-edge fitting'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.0.9'
+  currentVersion: '2.1.0'
 };
 
 const VERSION_MIRRORS = [
@@ -119,15 +119,19 @@ export const checkForAppUpdates = async (force = false): Promise<AppUpdateInfo |
   };
 };
 
-export const triggerApkInstall = (downloadUrl: string): void => {
-  const finalUrl = downloadUrl || DEFAULT_UPDATE_INFO.downloadUrl;
+export const triggerApkInstall = (downloadUrl?: string): void => {
+  const finalUrl = downloadUrl || DEFAULT_UPDATE_INFO.rawApkUrl || DEFAULT_UPDATE_INFO.downloadUrl;
   const android = (window as any).AndroidAdMob;
+  if (android && typeof android.downloadAndInstallUpdate === 'function') {
+    android.downloadAndInstallUpdate(finalUrl);
+    return;
+  }
   if (android && typeof android.openUpdateUrl === 'function') {
     android.openUpdateUrl(finalUrl);
     return;
   }
 
-  // Web/Browser fallback: create an anchor and click to trigger file download
+  // Web/Browser fallback: create an anchor and click to trigger file download (only on desktop/browser)
   const link = document.createElement('a');
   link.href = finalUrl;
   link.download = finalUrl.split('/').pop() || `movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`;

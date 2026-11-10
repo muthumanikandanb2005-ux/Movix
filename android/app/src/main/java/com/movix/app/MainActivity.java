@@ -16,6 +16,12 @@ import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
 import com.getcapacitor.BridgeWebViewClient;
@@ -529,28 +535,134 @@ public class MainActivity extends BridgeActivity {
 
         @JavascriptInterface
         public void openUpdateUrl(String url) {
-            new Handler(Looper.getMainLooper()).post(() -> {
+            // Strictly in-app OTA download and direct install - NEVER navigates to GitHub website
+            downloadAndInstallUpdate(url);
+        }
+
+        @JavascriptInterface
+        public void downloadAndInstallUpdate(final String urlString) {
+            new Thread(() -> {
+                InputStream input = null;
+                FileOutputStream output = null;
+                HttpURLConnection connection = null;
                 try {
-                    if (url != null && url.endsWith(".apk")) {
-                        try {
-                            android.app.DownloadManager dm = (android.app.DownloadManager) getSystemService(android.content.Context.DOWNLOAD_SERVICE);
-                            if (dm != null) {
-                                android.app.DownloadManager.Request request = new android.app.DownloadManager.Request(Uri.parse(url));
-                                request.setTitle("Movix Update");
-                                request.setDescription("Downloading latest Movix update package...");
-                                request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                                request.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, "movix-update.apk");
-                                request.setMimeType("application/vnd.android.package-archive");
-                                dm.enqueue(request);
-                            }
-                        } catch (Exception ignored) {}
+                    postOtaProgress(5, 0, 100);
+
+                    URL url = new URL(urlString);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setInstanceFollowRedirects(true);
+                    connection.setConnectTimeout(15000);
+                    connection.setReadTimeout(30000);
+                    connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android " + android.os.Build.VERSION.RELEASE + "; MovixApp)");
+                    connection.connect();
+
+                    int responseCode = connection.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP || 
+                        responseCode == HttpURLConnection.HTTP_MOVED_PERM || 
+                        responseCode == 307 || responseCode == 308) {
+                        String newUrl = connection.getHeaderField("Location");
+                        if (newUrl != null) {
+                            connection.disconnect();
+                            url = new URL(newUrl);
+                            connection = (HttpURLConnection) url.openConnection();
+                            connection.setInstanceFollowRedirects(true);
+                            connection.setConnectTimeout(15000);
+                            connection.setReadTimeout(30000);
+                            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android " + android.os.Build.VERSION.RELEASE + "; MovixApp)");
+                            connection.connect();
+                        }
                     }
-                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
-                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
+
+                    int fileLength = connection.getContentLength();
+                    input = connection.getInputStream();
+
+                    // Save to internal cache dir (always accessible and shareable via FileProvider)
+                    File updateFile = new File(getCacheDir(), "movix-update.apk");
+                    if (updateFile.exists()) {
+                        updateFile.delete();
+                    }
+                    output = new FileOutputStream(updateFile);
+
+                    byte[] data = new byte[8192];
+                    long total = 0;
+                    int count;
+                    int lastPercent = 5;
+
+                    while ((count = input.read(data)) != -1) {
+                        total += count;
+                        output.write(data, 0, count);
+
+                        if (fileLength > 0) {
+                            int currentPercent = (int) ((total * 100) / fileLength);
+                            if (currentPercent >= lastPercent + 5 || currentPercent >= 99) {
+                                lastPercent = currentPercent;
+                                postOtaProgress(Math.min(99, currentPercent), total, fileLength);
+                            }
+                        }
+                    }
+
+                    output.flush();
+                    output.close();
+                    output = null;
+                    input.close();
+                    input = null;
+
+                    postOtaProgress(100, total, fileLength > 0 ? fileLength : total);
+
+                    // Launch System Package Installer directly without opening external browser or GitHub!
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        try {
+                            Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
+                                MainActivity.this,
+                                getPackageName() + ".fileprovider",
+                                updateFile
+                            );
+
+                            android.content.Intent installIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                            installIntent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                            installIntent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            installIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(installIntent);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            try {
+                                android.app.DownloadManager dm = (android.app.DownloadManager) getSystemService(android.content.Context.DOWNLOAD_SERVICE);
+                                if (dm != null) {
+                                    android.app.DownloadManager.Request req = new android.app.DownloadManager.Request(Uri.parse(urlString));
+                                    req.setTitle("Movix Update");
+                                    req.setDescription("Downloading latest Movix update package...");
+                                    req.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                    req.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, "movix-update.apk");
+                                    req.setMimeType("application/vnd.android.package-archive");
+                                    dm.enqueue(req);
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    });
+
                 } catch (Exception e) {
                     e.printStackTrace();
+                    postOtaProgress(-1, 0, 0);
+                } finally {
+                    try {
+                        if (output != null) output.close();
+                        if (input != null) input.close();
+                        if (connection != null) connection.disconnect();
+                    } catch (Exception ignored) {}
                 }
+            }).start();
+        }
+
+        private void postOtaProgress(int percent, long currentBytes, long totalBytes) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                try {
+                    if (bridge != null && bridge.getWebView() != null) {
+                        String js = String.format(java.util.Locale.US,
+                            "if (window.onOtaProgress) { window.onOtaProgress(%d, %d, %d); }",
+                            percent, currentBytes, totalBytes);
+                        bridge.getWebView().evaluateJavascript(js, null);
+                    }
+                } catch (Exception ignored) {}
             });
         }
 
@@ -559,7 +671,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.1.0";
+                return "2.1.1";
             }
         }
 
@@ -568,7 +680,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 201000;
+                return 201100;
             }
         }
     }

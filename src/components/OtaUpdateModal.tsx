@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Sparkles, X, CheckCircle2, ArrowRight } from 'lucide-react';
 import { AppUpdateInfo, triggerApkInstall } from '../services/otaUpdates';
 
@@ -11,25 +11,25 @@ export const OtaUpdateModal: React.FC<OtaUpdateModalProps> = ({ update, onClose 
   const [isInstalling, setIsInstalling] = useState(false);
   const [installProgress, setInstallProgress] = useState(0);
 
+  useEffect(() => {
+    (window as any).onOtaProgress = (percent: number) => {
+      if (percent < 0) {
+        setIsInstalling(false);
+        return;
+      }
+      setIsInstalling(true);
+      setInstallProgress(percent);
+    };
+
+    return () => {
+      delete (window as any).onOtaProgress;
+    };
+  }, []);
+
   const handleInstall = () => {
     setIsInstalling(true);
-    setInstallProgress(15);
-
-    const interval = setInterval(() => {
-      setInstallProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(interval);
-          return 90;
-        }
-        return prev + 25;
-      });
-    }, 200);
-
-    setTimeout(() => {
-      clearInterval(interval);
-      setInstallProgress(100);
-      triggerApkInstall(update.downloadUrl);
-    }, 900);
+    setInstallProgress(10);
+    triggerApkInstall(update.rawApkUrl || update.downloadUrl);
   };
 
   return (

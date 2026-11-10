@@ -43,7 +43,8 @@
             android:value="ca-app-pub-5684555136963044~1297480157"/>
     </application>
 
-    <!-- Permissions for Streaming & Ad Delivery -->
+    <!-- Permissions for Streaming, Ad Delivery & In-App Direct Updates -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>
