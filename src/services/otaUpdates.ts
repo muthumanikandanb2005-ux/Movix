@@ -10,8 +10,8 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.4';
-export const LATEST_RELEASE_VERSION_CODE = 201400;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.5';
+export const LATEST_RELEASE_VERSION_CODE = 201500;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
@@ -31,10 +31,12 @@ export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.1.3'
+  currentVersion: '2.1.4'
 };
 
 const VERSION_MIRRORS = [
+  'https://api.github.com/repos/muthumanikandanb2005-ux/Movix/releases/latest',
+  'https://cdn.jsdelivr.net/gh/muthumanikandanb2005-ux/Movix@main/version.json',
   'https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/version.json',
   'https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/refs/heads/main/version.json',
   'https://github.com/muthumanikandanb2005-ux/Movix/raw/main/version.json',
@@ -75,12 +77,14 @@ export const checkForAppUpdates = async (force = false): Promise<AppUpdateInfo |
           const tag = data.tag_name.replace('v', '');
           const apkAsset = (data.assets || []).find((a: any) => a.name && a.name.endsWith('.apk'));
           const downloadUrl = apkAsset?.browser_download_url || `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/${data.tag_name}/movix-app-${data.tag_name}.apk`;
-          const isNewer = tag !== current.versionName;
+          const parts = tag.split('.').map((p: string) => parseInt(p, 10));
+          const parsedCode = (parts[0] || 2) * 100000 + (parts[1] || 0) * 10000 + (parts[2] || 0) * 100;
+          const isNewer = parsedCode > current.versionCode || tag !== current.versionName;
           return {
             hasUpdate: force ? true : isNewer,
             versionName: tag,
-            versionCode: current.versionCode + 100,
-            releaseDate: data.published_at ? data.published_at.split('T')[0] : '2026-11-09',
+            versionCode: parsedCode,
+            releaseDate: data.published_at ? data.published_at.split('T')[0] : '2026-11-10',
             title: data.name || `Movix ${data.tag_name}`,
             changelog: DEFAULT_UPDATE_INFO.changelog,
             downloadUrl,

@@ -1,19 +1,19 @@
 {
-  "versionName": "2.1.4",
-  "versionCode": 201400,
+  "versionName": "2.1.5",
+  "versionCode": 201500,
   "releaseDate": "2026-11-10",
-  "title": "Movix v2.1.4 - Accurate Movie Audio Languages & Direct OTA",
+  "title": "Movix v2.1.5 - Strict Audio Languages & High-Speed Direct OTA",
   "changelog": [
     "Strict Movie Language Filtering: Only genuinely available audio tracks for each movie are shown; unavailable dummy languages completely removed",
     "Accurate Audio Track Selection: Audio language dynamically reflects the movie original soundtrack and verified dubbed releases",
-    "Instant In-App Direct OTA Updates: One-tap background package download & installation",
+    "Instant In-App Direct OTA Updates: High-speed multi-mirror background package download & direct installation",
     "100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays",
     "Instant Tap-to-Summon: Screen tap seamlessly restores Language, Options, Quality, and Volume controls",
     "True Edge-to-Edge Fullscreen Playback: Adaptive display cutout support across notch, punch-hole, and curved displays",
     "Universal Aspect Ratio Fill: 1-tap zoom/crop to fill modern 19.5:9 and 20:9 phone displays with zero letterboxing",
     "Live Daily Netflix TMDB Trends: Continuously updated real-time trending movies"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.1.4/movix-app-v2.1.4.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.1.4.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.1.5/movix-app-v2.1.5.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.1.5.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }
