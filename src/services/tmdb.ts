@@ -203,21 +203,45 @@ export const mapTmdbToMovie = (item: any): Movie => {
   const streamSources = getStreamingSources(item.id);
 
   const origLang = item.original_language || 'en';
-  let availableLanguages: AudioLanguage[] = ['Hindi', 'English'];
-  if (origLang === 'hi') {
-    availableLanguages = ['Hindi', 'Tamil', 'Telugu', 'Malayalam', 'Kannada', 'English'];
+  let availableLanguages: AudioLanguage[] = ['English'];
+
+  // Specific Pan-India blockbusters with verified multi-language audio releases
+  const MULTI_LANG_IDS = [
+    1022789, // Kalki 2898 AD
+    770906,  // Salaar: Part 1 - Ceasefire
+    587412,  // K.G.F: Chapter 2
+    579974,  // RRR
+    801688,  // Jawan
+    894803,  // Sita Ramam
+    693134,  // Dune: Part Two
+    533535,  // Deadpool & Wolverine
+  ];
+
+  if (MULTI_LANG_IDS.includes(item.id)) {
+    if (origLang === 'te') {
+      availableLanguages = ['Telugu', 'Hindi', 'Tamil', 'Malayalam', 'Kannada'];
+    } else if (origLang === 'ta') {
+      availableLanguages = ['Tamil', 'Telugu', 'Hindi', 'Malayalam', 'Kannada'];
+    } else if (origLang === 'hi') {
+      availableLanguages = ['Hindi', 'Tamil', 'Telugu'];
+    } else {
+      availableLanguages = ['English', 'Hindi'];
+    }
+  } else if (origLang === 'hi') {
+    availableLanguages = ['Hindi'];
   } else if (origLang === 'ta') {
-    availableLanguages = ['Tamil', 'Hindi', 'Telugu', 'Malayalam', 'Kannada', 'English'];
+    availableLanguages = ['Tamil'];
   } else if (origLang === 'te') {
-    availableLanguages = ['Telugu', 'Hindi', 'Tamil', 'Malayalam', 'Kannada', 'English'];
+    availableLanguages = ['Telugu'];
   } else if (origLang === 'ml') {
-    availableLanguages = ['Malayalam', 'Tamil', 'Telugu', 'Hindi', 'Kannada', 'English'];
+    availableLanguages = ['Malayalam'];
   } else if (origLang === 'kn') {
-    availableLanguages = ['Kannada', 'Telugu', 'Tamil', 'Hindi', 'Malayalam', 'English'];
+    availableLanguages = ['Kannada'];
   } else if (origLang === 'es') {
-    availableLanguages = ['Spanish', 'English', 'Hindi'];
+    availableLanguages = ['Spanish'];
   } else {
-    availableLanguages = ['English', 'Hindi', 'Tamil', 'Telugu', 'Spanish'];
+    // English & international movies: strictly show English only
+    availableLanguages = ['English'];
   }
 
   return {

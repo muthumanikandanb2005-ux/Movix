@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   X, Play, Pause, Volume2, VolumeX, Volume1, Maximize, RotateCcw, RotateCw, 
@@ -38,13 +38,46 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Resolution & Language state (hydrated with user settings preferences)
+  // Strictly determine languages that are genuinely available for this movie
+  const validLanguages: AudioLanguage[] = useMemo(() => {
+    if (movie.availableLanguages && movie.availableLanguages.length > 0) {
+      return movie.availableLanguages;
+    }
+    const genre = (movie.genre || '').toLowerCase();
+    if (genre.includes('tamil') || genre.includes('kollywood')) return ['Tamil'];
+    if (genre.includes('telugu') || genre.includes('tollywood')) return ['Telugu'];
+    if (genre.includes('hindi') || genre.includes('bollywood')) return ['Hindi'];
+    if (genre.includes('malayalam') || genre.includes('mollywood')) return ['Malayalam'];
+    if (genre.includes('kannada')) return ['Kannada'];
+    return ['English'];
+  }, [movie]);
+
+  // Resolution & Language state (hydrated strictly with valid movie languages)
   const [currentQuality, setCurrentQuality] = useState<VideoQuality>(() => {
     return (localStorage.getItem('movix_pref_quality') as VideoQuality) || initialQuality;
   });
   const [currentLanguage, setCurrentLanguage] = useState<AudioLanguage>(() => {
-    return (localStorage.getItem('movix_pref_language') as AudioLanguage) || initialLanguage;
+    const pref = (localStorage.getItem('movix_pref_language') as AudioLanguage);
+    if (pref && validLanguages.includes(pref)) {
+      return pref;
+    }
+    if (validLanguages.includes(initialLanguage)) {
+      return initialLanguage;
+    }
+    return validLanguages[0] || 'English';
   });
+
+  // Keep currentLanguage strictly locked to a valid language for this movie
+  useEffect(() => {
+    if (!validLanguages.includes(currentLanguage)) {
+      const pref = (localStorage.getItem('movix_pref_language') as AudioLanguage);
+      if (pref && validLanguages.includes(pref)) {
+        setCurrentLanguage(pref);
+      } else {
+        setCurrentLanguage(validLanguages[0] || 'English');
+      }
+    }
+  }, [movie, validLanguages, currentLanguage]);
 
   // Player state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -851,7 +884,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   Audio Track & Language
                 </h3>
                 <p className="text-[10px] text-white/60">
-                  {movie.title} • Dolby Audio 5.1
+                  {movie.title} • {validLanguages.length > 1 ? `${validLanguages.length} Languages Available` : `${validLanguages[0]} Original Audio`}
                 </p>
               </div>
             </div>
@@ -863,26 +896,20 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             </button>
           </div>
 
+          {/* List of STRICTLY AVAILABLE languages only */}
           <div className="space-y-2">
-            {[...AVAILABLE_LANGUAGES]
-              .sort((a, b) => {
-                const aOk = movie.availableLanguages?.includes(a.id) ? 1 : 0;
-                const bOk = movie.availableLanguages?.includes(b.id) ? 1 : 0;
-                return bOk - aOk;
-              })
+            {AVAILABLE_LANGUAGES
+              .filter((lang) => validLanguages.includes(lang.id))
               .map((lang) => {
                 const isSelected = currentLanguage === lang.id;
-                const isSupported = movie.availableLanguages?.includes(lang.id);
                 return (
                   <button
                     key={lang.id}
                     onClick={() => handleLanguageChange(lang.id)}
-                    className={`w-full py-2.5 px-3 rounded-2xl text-xs font-bold flex items-center justify-between transition-all ${
+                    className={`w-full py-2.5 px-3.5 rounded-2xl text-xs font-bold flex items-center justify-between transition-all ${
                       isSelected
                         ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border border-blue-400/40 ring-2 ring-blue-500/30'
-                        : isSupported
-                        ? 'bg-white/10 text-white hover:bg-white/15 border border-white/15'
-                        : 'bg-white/5 hover:bg-white/10 text-white/70 border border-white/5'
+                        : 'bg-white/10 text-white hover:bg-white/15 border border-white/15'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -892,28 +919,32 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                           {lang.label} ({lang.native})
                         </div>
                         <div className="text-[10px] text-white/50">
-                          {isSelected ? 'Active Track • Dolby 5.1' : isSupported ? 'HD Audio • Ready' : 'Multi-Audio Stream'}
+                          {isSelected ? 'Active Track • Dolby 5.1' : 'Available Audio Track • Ready'}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {isSupported && !isSelected && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-extrabold uppercase">
-                          Ready
-                        </span>
-                      )}
-                      {isSelected && (
+                      {isSelected ? (
                         <div className="w-6 h-6 rounded-full bg-white text-blue-600 flex items-center justify-center shadow">
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </div>
+                      ) : (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-extrabold uppercase">
+                          Ready
+                        </span>
                       )}
                     </div>
                   </button>
                 );
               })}
           </div>
-          <div className="mt-3 pt-2.5 border-t border-white/10 text-[10px] text-white/50 text-center">
-            💡 Tap any language to switch audio track instantly
+
+          <div className="mt-3 pt-2.5 border-t border-white/10 text-[10px] text-white/60 text-center">
+            {validLanguages.length === 1 ? (
+              <span>🎬 This movie is exclusively available in <strong>{validLanguages[0]}</strong>.</span>
+            ) : (
+              <span>💡 Tap to switch between <strong>{validLanguages.length} available languages</strong>.</span>
+            )}
           </div>
         </div>
       )}
@@ -1093,21 +1124,20 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               </div>
             </div>
 
-            {/* 3. AUDIO TRACK & LANGUAGE CHANGE OPTION */}
+            {/* 3. AUDIO TRACK & LANGUAGE CHANGE OPTION (STRICTLY AVAILABLE ONLY) */}
             <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-white/90 flex items-center space-x-1.5">
                   <Globe className="w-4 h-4 text-cyan-400" />
-                  <span>Audio Track & Language:</span>
+                  <span>Available Audio Language:</span>
                 </span>
                 <span className="text-[10px] font-bold text-cyan-300 bg-blue-950/80 px-2.5 py-0.5 rounded-full border border-blue-500/40">
                   {currentLanguage}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto no-scrollbar">
-                {AVAILABLE_LANGUAGES.map((lang) => {
+                {AVAILABLE_LANGUAGES.filter((lang) => validLanguages.includes(lang.id)).map((lang) => {
                   const isSelected = currentLanguage === lang.id;
-                  const isSupported = movie.availableLanguages?.includes(lang.id);
                   return (
                     <button
                       key={lang.id}
@@ -1115,9 +1145,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                       className={`py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
                         isSelected
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md border border-blue-400/40'
-                          : isSupported
-                          ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
-                          : 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/5'
+                          : 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
                       }`}
                     >
                       <div className="flex items-center space-x-1.5 truncate">
@@ -1126,9 +1154,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                       </div>
                       {isSelected ? (
                         <Check className="w-3.5 h-3.5 flex-shrink-0 text-white" />
-                      ) : isSupported ? (
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" title="Supported" />
-                      ) : null}
+                      ) : (
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" title="Ready" />
+                      )}
                     </button>
                   );
                 })}
@@ -1485,10 +1513,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 resetControlsTimeout();
               }}
               className="px-3 py-1 rounded-full text-xs font-black tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg flex items-center space-x-1.5 active:scale-95 transition-all border border-blue-400/50 flex-shrink-0"
-              title="Change Audio Track / Language"
+              title="Available Audio Languages"
             >
               <Globe className="w-3.5 h-3.5 text-cyan-300 flex-shrink-0 animate-pulse" />
               <span>Language: {currentLanguage}</span>
+              {validLanguages.length > 1 && (
+                <span className="text-[9px] bg-white/20 px-1 py-0.2 rounded-full font-mono ml-0.5">
+                  +{validLanguages.length - 1}
+                </span>
+              )}
             </button>
 
             {/* XPlayer Options Drawer Button */}

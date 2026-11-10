@@ -10,28 +10,28 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.3';
-export const LATEST_RELEASE_VERSION_CODE = 201300;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.4';
+export const LATEST_RELEASE_VERSION_CODE = 201400;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-10',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Direct In-App OTA Update`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Accurate Movie Audio Languages & Direct OTA`,
   changelog: [
+    'Strict Movie Language Filtering: Only genuinely available audio tracks for the movie are shown; unavailable dummy languages completely removed',
+    'Accurate Audio Track Selection: Audio language dynamically reflects the movie original soundtrack and verified dubbed releases',
     'Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)',
     '100% Zero-Overlay Cinema Playback: All options, controls, and audio pills completely hidden while playing',
     'Instant Tap-to-Summon: Screen tap seamlessly restores Language, Options, Quality, and Volume controls',
     'True Edge-to-Edge Fullscreen Playback: Adaptive display cutout support across notch, punch-hole, and curved displays',
     'Universal Aspect Ratio Fill: 1-tap zoom/crop to fill modern 19.5:9 and 20:9 phone displays with zero letterboxing',
-    'Prominent Audio Language switcher button in player top bar and quick mirror bar',
-    'Centered responsive Multi-Language Audio modal with accurate Dolby 5.1/Original dub badges',
     'XPlayer Sound Boost (150%) & Brightness with hardware sync'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.1.2'
+  currentVersion: '2.1.3'
 };
 
 const VERSION_MIRRORS = [

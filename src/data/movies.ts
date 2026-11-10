@@ -86,7 +86,7 @@ export const ottNewReleases: Movie[] = [
     backdrop: 'https://image.tmdb.org/t/p/original/by8z9Fe8y7p4jo2YlW2SZDnptyT.jpg',
     videoUrl: getStreamingSources(533535)[0].url,
     streamSources: getStreamingSources(533535),
-    availableLanguages: ['English', 'Hindi', 'Tamil', 'Telugu'],
+    availableLanguages: ['English', 'Hindi'],
     cast: ['Ryan Reynolds', 'Hugh Jackman', 'Emma Corrin'],
     director: 'Shawn Levy'
   },
@@ -107,7 +107,7 @@ export const ottNewReleases: Movie[] = [
     backdrop: 'https://image.tmdb.org/t/p/original/iYqSQaWDttQIQzsxg9xHyg0bttG.jpg',
     videoUrl: getStreamingSources(945961)[0].url,
     streamSources: getStreamingSources(945961),
-    availableLanguages: ['English', 'Hindi', 'Tamil', 'Telugu'],
+    availableLanguages: ['English'],
     cast: ['Cailee Spaeny', 'David Jonsson', 'Archie Renaux'],
     director: 'Fede Alvarez'
   },
@@ -128,7 +128,7 @@ export const ottNewReleases: Movie[] = [
     backdrop: 'https://image.tmdb.org/t/p/original/7I6VUdPj6tQECNHdviJkUHD2u89.jpg',
     videoUrl: getStreamingSources(603692)[0].url,
     streamSources: getStreamingSources(603692),
-    availableLanguages: ['English', 'Hindi', 'Tamil', 'Telugu'],
+    availableLanguages: ['English'],
     cast: ['Keanu Reeves', 'Donnie Yen', 'Bill Skarsgard'],
     director: 'Chad Stahelski'
   }
@@ -499,7 +499,7 @@ export const netflixTop10: Movie[] = [
     backdrop: '/assets/backdrop_red_notice.jpg',
     videoUrl: getStreamingSources(512195)[0].url,
     streamSources: getStreamingSources(512195),
-    availableLanguages: ['English', 'Hindi', 'Tamil', 'Telugu'],
+    availableLanguages: ['English', 'Hindi'],
     cast: ['Dwayne Johnson', 'Ryan Reynolds', 'Gal Gadot'],
     director: 'Rawson Marshall Thurber'
   },
