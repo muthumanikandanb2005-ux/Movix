@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://movix-ui-app.vercel.app"><img src="https://img.shields.io/badge/Live_Web_Player-Launch_Cinema-E50914?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Web Player" /></a>
+  <a href="https://movix-webplayer.netlify.app"><img src="https://img.shields.io/badge/Netlify_Web_Player-Launch_Cinema-00C7B7?style=for-the-badge&logo=netlify&logoColor=white" alt="Netlify Web Player" /></a>
   <a href="https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.2/movix-app-v2.2.2.apk"><img src="https://img.shields.io/badge/Download_APK-v2.2.2_(16.0_MB)-success?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
   <a href="https://github.com/muthumanikandanb2005-ux/Movix/releases/tag/v2.2.2"><img src="https://img.shields.io/badge/Google_Play_Protect-Certified_Clean-10B981?style=for-the-badge&logo=googleplay&logoColor=white" alt="Play Protect Clean" /></a>
   <a href="https://github.com/muthumanikandanb2005-ux/Movix/stargazers"><img src="https://img.shields.io/github/stars/muthumanikandanb2005-ux/Movix?style=for-the-badge&color=gold" alt="GitHub Stars" /></a>
@@ -49,8 +49,8 @@
       <h3>💻 Desktop Web Cinema Player (Windows & macOS)</h3>
       <p>No installation required! Experience theater mode, full keyboard hotkeys, and mouse auto-hiding directly in your desktop browser or install as a native desktop PWA.</p>
       <p>
-        <a href="https://movix-ui-app.vercel.app">
-          <img src="https://img.shields.io/badge/🌐_Open_Web_Cinema_Player-movix--ui--app.vercel.app-646CFF?style=for-the-badge&logo=vercel&logoColor=white" alt="Open Web Player" />
+        <a href="https://movix-webplayer.netlify.app">
+          <img src="https://img.shields.io/badge/🌐_Open_Netlify_Cinema_Player-movix--webplayer.netlify.app-00C7B7?style=for-the-badge&logo=netlify&logoColor=white" alt="Open Netlify Web Player" />
         </a>
       </p>
     </td>
@@ -154,7 +154,7 @@
 
 ## 💻 How to Install Desktop App (Windows & Mac PWA)
 
-1. Open [**https://movix-ui-app.vercel.app**](https://movix-ui-app.vercel.app) in **Chrome**, **Microsoft Edge**, or **Safari**.
+1. Open [**https://movix-webplayer.netlify.app**](https://movix-webplayer.netlify.app) in **Chrome**, **Microsoft Edge**, or **Safari**.
 2. Look for the **Install App** icon in the address bar (or in Safari, click **File** / **Share** → **Add to Dock**).
 3. Click **Install**.
 4. MOVIX will now launch in its own dedicated, standalone borderless desktop window with keyboard shortcuts enabled!
