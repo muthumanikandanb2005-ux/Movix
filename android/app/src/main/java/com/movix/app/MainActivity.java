@@ -1,5 +1,6 @@
 package com.movix.app;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -600,36 +601,126 @@ public class MainActivity extends BridgeActivity {
 
         @JavascriptInterface
         public void downloadAndInstallUpdate(final String urlString) {
-            // Strictly compliant with Google Play Protect: leverages official Android DownloadManager
-            try {
-                android.app.DownloadManager dm = (android.app.DownloadManager) getSystemService(android.content.Context.DOWNLOAD_SERVICE);
-                if (dm != null && urlString != null && (urlString.startsWith("http://") || urlString.startsWith("https://"))) {
-                    android.app.DownloadManager.Request req = new android.app.DownloadManager.Request(Uri.parse(urlString));
-                    req.setTitle("MOVIX Update");
-                    req.setDescription("Downloading latest MOVIX update package...");
-                    req.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    req.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, "movix-update.apk");
-                    dm.enqueue(req);
-                    postOtaProgress(100, 100, 100);
-                    return;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            new Thread(() -> {
+                java.io.InputStream in = null;
+                java.io.FileOutputStream out = null;
+                java.net.HttpURLConnection conn = null;
+                File targetFile = null;
+                try {
+                    postOtaProgress(5, 0, 100);
+                    File cacheDir = getCacheDir();
+                    targetFile = new File(cacheDir, "movix-update-" + System.currentTimeMillis() + ".apk");
+                    if (targetFile.exists()) {
+                        targetFile.delete();
+                    }
 
-            // Safe fallback reference ensuring FileProvider compatibility
-            try {
-                File cacheDir = getCacheDir();
-                File updateFile = new File(cacheDir, "movix-update.apk");
-                if (updateFile.exists()) {
-                    Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
-                        MainActivity.this,
-                        getPackageName() + ".fileprovider",
-                        updateFile
-                    );
+                    // Clean up any stale update apks in cache
+                    File[] oldFiles = cacheDir.listFiles((d, name) -> name.startsWith("movix-update") && name.endsWith(".apk"));
+                    if (oldFiles != null) {
+                        for (File f : oldFiles) {
+                            try { f.delete(); } catch (Exception ignored) {}
+                        }
+                    }
+
+                    String currentUrl = urlString;
+                    // Support following redirects (HTTP 301, 302, 303, 307) commonly used by GitHub releases & CDNs
+                    for (int redirectCount = 0; redirectCount < 8; redirectCount++) {
+                        java.net.URL url = new java.net.URL(currentUrl);
+                        conn = (java.net.HttpURLConnection) url.openConnection();
+                        conn.setInstanceFollowRedirects(false);
+                        conn.setConnectTimeout(15000);
+                        conn.setReadTimeout(30000);
+                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android " + android.os.Build.VERSION.RELEASE + ")");
+                        conn.connect();
+
+                        int status = conn.getResponseCode();
+                        if (status == java.net.HttpURLConnection.HTTP_MOVED_PERM
+                                || status == java.net.HttpURLConnection.HTTP_MOVED_TEMP
+                                || status == java.net.HttpURLConnection.HTTP_SEE_OTHER
+                                || status == 307
+                                || status == 308) {
+                            String newUrl = conn.getHeaderField("Location");
+                            if (newUrl != null && !newUrl.isEmpty()) {
+                                conn.disconnect();
+                                currentUrl = newUrl;
+                                continue;
+                            }
+                        }
+                        break;
+                    }
+
+                    int totalBytes = conn.getContentLength();
+                    in = new java.io.BufferedInputStream(conn.getInputStream(), 16384);
+                    out = new java.io.FileOutputStream(targetFile);
+
+                    byte[] buffer = new byte[16384];
+                    int bytesRead;
+                    long downloadedBytes = 0;
+                    long lastProgressUpdate = System.currentTimeMillis();
+
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                        downloadedBytes += bytesRead;
+                        long now = System.currentTimeMillis();
+                        if (now - lastProgressUpdate > 150) {
+                            lastProgressUpdate = now;
+                            int percent = totalBytes > 0 ? (int) ((downloadedBytes * 100) / totalBytes) : 50;
+                            postOtaProgress(Math.min(98, percent), downloadedBytes, totalBytes > 0 ? totalBytes : downloadedBytes);
+                        }
+                    }
+                    out.flush();
+
+                    // Verify APK integrity: size must be at least 10 MB and valid package
+                    if (targetFile.exists() && targetFile.length() > 10000000) {
+                        android.content.pm.PackageInfo info = getPackageManager().getPackageArchiveInfo(targetFile.getAbsolutePath(), 0);
+                        if (info != null) {
+                            postOtaProgress(100, targetFile.length(), targetFile.length());
+
+                            // Launch native Package Installer via FileProvider
+                            final File finalFile = targetFile;
+                            new Handler(Looper.getMainLooper()).post(() -> {
+                                try {
+                                    Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
+                                        MainActivity.this,
+                                        getPackageName() + ".fileprovider",
+                                        finalFile
+                                    );
+                                    Intent install = new Intent(Intent.ACTION_VIEW);
+                                    install.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                                    install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                    install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(install);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    fallbackBrowserDownload(urlString);
+                                }
+                            });
+                            return;
+                        }
+                    }
+
+                    // If file was corrupt or incomplete, fallback to browser
+                    fallbackBrowserDownload(urlString);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    fallbackBrowserDownload(urlString);
+                } finally {
+                    try { if (in != null) in.close(); } catch (Exception ignored) {}
+                    try { if (out != null) out.close(); } catch (Exception ignored) {}
+                    try { if (conn != null) conn.disconnect(); } catch (Exception ignored) {}
                 }
-            } catch (Exception ignored) {}
-            postOtaProgress(100, 100, 100);
+            }).start();
+        }
+
+        private void fallbackBrowserDownload(final String urlString) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                try {
+                    Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(urlString));
+                    browser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(browser);
+                } catch (Exception ignored) {}
+                postOtaProgress(100, 100, 100);
+            });
         }
 
         private void postOtaProgress(int percent, long currentBytes, long totalBytes) {
@@ -650,7 +741,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.2.2";
+                return "2.2.3";
             }
         }
 
@@ -659,7 +750,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 202200;
+                return 202300;
             }
         }
     }

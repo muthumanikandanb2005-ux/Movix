@@ -34,6 +34,7 @@ patch_*.py
 update_*.py
 
 .vercel
+.netlify
 *.apk
 movix-app-*.apk
 scratch/
