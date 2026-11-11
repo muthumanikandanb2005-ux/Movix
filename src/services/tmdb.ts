@@ -61,7 +61,7 @@ export const getStreamingSources = (
     },
     {
       name: `Server 2 (VidSrc Cinema 4K)`,
-      url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
+      url: `https://vidsrc.pm/embed/movie/${tmdbId}?audio=${langCode}&lang=${langCode}`,
       type: 'embed',
       quality
     },
@@ -73,7 +73,7 @@ export const getStreamingSources = (
     },
     {
       name: `Server 4 (AutoEmbed Cinema HD)`,
-      url: `https://autoembed.co/movie/tmdb/${tmdbId}`,
+      url: `https://autoembed.co/movie/tmdb/${tmdbId}?lang=${langCode}`,
       type: 'embed',
       quality
     },
@@ -85,13 +85,13 @@ export const getStreamingSources = (
     },
     {
       name: `Server 6 (CineSrc Multi-Language HD)`,
-      url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}`,
+      url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
       type: 'embed',
       quality
     },
     {
       name: `Server 7 (VidLink Pro 4K Multi-Audio)`,
-      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true`,
+      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
@@ -131,7 +131,7 @@ export const getTvStreamingSources = (
     },
     {
       name: 'Server 2 (VidSrc TV Cinema 4K)',
-      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}`,
+      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}?audio=${langCode}&lang=${langCode}`,
       type: 'embed',
       quality
     },
@@ -143,7 +143,7 @@ export const getTvStreamingSources = (
     },
     {
       name: 'Server 4 (AutoEmbed TV Cinema HD)',
-      url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}`,
+      url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}?lang=${langCode}`,
       type: 'embed',
       quality
     },
@@ -154,8 +154,8 @@ export const getTvStreamingSources = (
       quality
     },
     {
-      name: 'Server 6 (VidLink TV 4K)',
-      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true`,
+      name: 'Server 6 (VidLink TV 4K Multi-Audio)',
+      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     }

@@ -88,11 +88,11 @@ public class MainActivity extends BridgeActivity {
             webSettings.setDomStorageEnabled(true);
             webSettings.setDatabaseEnabled(true);
             webSettings.setAllowFileAccess(false);
-            webSettings.setAllowContentAccess(false);
+            webSettings.setAllowContentAccess(true);
             webSettings.setUseWideViewPort(true);
             webSettings.setLoadWithOverviewMode(true);
             webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
-            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
             webSettings.setJavaScriptCanOpenWindowsAutomatically(false);
             webSettings.setSupportMultipleWindows(false);
 
@@ -156,11 +156,8 @@ public class MainActivity extends BridgeActivity {
                         return true;
                     }
 
-                    if ("https".equalsIgnoreCase(scheme) && "localhost".equalsIgnoreCase(uri.getHost())) {
-                        return false;
-                    }
-
-                    return true;
+                    // Allow video streaming streams and iframe redirects to load smoothly
+                    return false;
                 }
             });
         }
@@ -653,7 +650,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.2.1";
+                return "2.2.2";
             }
         }
 
@@ -662,7 +659,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 202100;
+                return 202200;
             }
         }
     }

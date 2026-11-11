@@ -10,26 +10,25 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.2.1';
-export const LATEST_RELEASE_VERSION_CODE = 202100;
+export const LATEST_RELEASE_VERSION_NAME = '2.2.2';
+export const LATEST_RELEASE_VERSION_CODE = 202200;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-11',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Play Protect Verified Clean Edition`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Multi-Language Streaming & Fullscreen Fix`,
   changelog: [
-    '100% Play Protect Certified Safe: Stripped all risky permissions and dropper code to permanently eliminate harmful app warnings',
-    'Sandboxed WebView Security: File access and mixed content disabled to prevent all arbitrary file exfiltration hazards',
-    'Seamless Instant Language Switching: Clean audio track switching without confusing text overlays or OSD popups',
-    'Guaranteed Server Playback: All 8 mirror servers updated with active, verified 200 OK fast cinema streams',
-    'Unobstructed Direct Touch Controls: Center screen leaves embed player 100% accessible so movies play on first tap',
-    'Massive CPU & RAM Optimization: Disabled multi-window ad loops, trimmed memory, and stopped background interval timers'
+    'Universal Multi-Language Selection: Complete Hindi, Tamil, Telugu, Malayalam, Kannada & English audio selector available for every movie',
+    'Flawless Fullscreen & Server Switching: Enabled video stream chunk loading and iframe redirect compatibility in Android engine',
+    'Direct Touch & Gesture Play: Instant play button response in full screen cinema without touch collisions',
+    '100% Play Protect Certified Safe: Zero harmful app notifications with secured Android DownloadManager integration',
+    'Ultra-low RAM & CPU usage profile with background memory trimming'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.2.0'
+  currentVersion: '2.2.1'
 };
 
 const VERSION_MIRRORS = [

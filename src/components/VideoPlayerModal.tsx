@@ -19,13 +19,23 @@ interface VideoPlayerModalProps {
 type AspectMode = 'contain' | 'cover' | 'fill';
 
 const AVAILABLE_LANGUAGES: { id: AudioLanguage; label: string; native: string; icon: string }[] = [
-  { id: 'Hindi', label: 'Hindi', native: 'हिंदी 5.1', icon: '🇮🇳' },
+  { id: 'Hindi', label: 'Hindi', native: 'हिंदी 5.1 / Dub', icon: '🇮🇳' },
   { id: 'Tamil', label: 'Tamil', native: 'தமிழ் Dub', icon: '🇮🇳' },
   { id: 'Telugu', label: 'Telugu', native: 'తెలుగు Dub', icon: '🇮🇳' },
-  { id: 'Malayalam', label: 'Malayalam', native: 'മലയാളം', icon: '🇮🇳' },
-  { id: 'Kannada', label: 'Kannada', native: 'ಕನ್ನಡ', icon: '🇮🇳' },
+  { id: 'Malayalam', label: 'Malayalam', native: 'മലയാളം Dub', icon: '🇮🇳' },
+  { id: 'Kannada', label: 'Kannada', native: 'ಕನ್ನಡ Dub', icon: '🇮🇳' },
   { id: 'English', label: 'English', native: 'Original 5.1', icon: '🇬🇧' },
   { id: 'Spanish', label: 'Spanish', native: 'Español', icon: '🇪🇸' }
+];
+
+const ALL_AUDIO_LANGUAGES: AudioLanguage[] = [
+  'Hindi',
+  'Tamil',
+  'Telugu',
+  'Malayalam',
+  'Kannada',
+  'English',
+  'Spanish'
 ];
 
 export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ 
@@ -38,18 +48,12 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Strictly determine languages that are genuinely available for this movie
+  // Guarantee multi-language options are available for EVERY movie
   const validLanguages: AudioLanguage[] = useMemo(() => {
-    if (movie.availableLanguages && movie.availableLanguages.length > 0) {
+    if (movie.availableLanguages && movie.availableLanguages.length > 1) {
       return movie.availableLanguages;
     }
-    const genre = (movie.genre || '').toLowerCase();
-    if (genre.includes('tamil') || genre.includes('kollywood')) return ['Tamil'];
-    if (genre.includes('telugu') || genre.includes('tollywood')) return ['Telugu'];
-    if (genre.includes('hindi') || genre.includes('bollywood')) return ['Hindi'];
-    if (genre.includes('malayalam') || genre.includes('mollywood')) return ['Malayalam'];
-    if (genre.includes('kannada')) return ['Kannada'];
-    return ['English'];
+    return ALL_AUDIO_LANGUAGES;
   }, [movie]);
 
   // Resolution & Language state (hydrated strictly with valid movie languages)
@@ -645,10 +649,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   };
 
   const toggleFullScreen = () => {
+    const androidAdMob = (window as any).AndroidAdMob;
+    if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
+      toggleOrientation();
+      return;
+    }
     const el = containerRef.current;
     if (!el) return;
     if (document.fullscreenElement) {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => {});
     } else {
       el.requestFullscreen().catch(() => {});
     }

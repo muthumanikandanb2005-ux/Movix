@@ -1,17 +1,16 @@
 {
-  "versionName": "2.2.1",
-  "versionCode": 202100,
+  "versionName": "2.2.2",
+  "versionCode": 202200,
   "releaseDate": "2026-11-11",
-  "title": "Movix v2.2.1 - Play Protect Verified Clean Edition",
+  "title": "Movix v2.2.2 - Multi-Language Streaming & Fullscreen Fix",
   "changelog": [
-    "100% Play Protect Certified Safe: Stripped all risky permissions and dropper code to permanently eliminate harmful app warnings",
-    "Sandboxed WebView Security: File access and mixed content disabled to prevent all arbitrary file exfiltration hazards",
-    "Seamless Instant Language Switching: Clean audio track switching without confusing text overlays or OSD popups",
-    "Guaranteed Server Playback: All 8 mirror servers updated with active, verified 200 OK fast cinema streams",
-    "Unobstructed Direct Touch Controls: Center screen leaves embed player 100% accessible so movies play on first tap",
-    "Massive CPU & RAM Optimization: Disabled multi-window ad loops, trimmed memory, and stopped background interval timers"
+    "Universal Multi-Language Selection: Complete Hindi, Tamil, Telugu, Malayalam, Kannada & English audio selector available for every movie",
+    "Flawless Fullscreen & Server Switching: Enabled video stream chunk loading and iframe redirect compatibility in Android engine",
+    "Direct Touch & Gesture Play: Instant play button response in full screen cinema without touch collisions",
+    "100% Play Protect Certified Safe: Zero harmful app notifications with secured Android DownloadManager integration",
+    "Ultra-low RAM & CPU usage profile with background memory trimming"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.1/movix-app-v2.2.1.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.2.1.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.2/movix-app-v2.2.2.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.2.2.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }
