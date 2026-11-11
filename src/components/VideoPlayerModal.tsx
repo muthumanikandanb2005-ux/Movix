@@ -3,11 +3,12 @@ import { createPortal } from 'react-dom';
 import { 
   X, Play, Pause, Volume2, VolumeX, Volume1, Maximize, RotateCcw, RotateCw, 
   Server, Lock, Unlock, Sun, SunMedium, Gauge, Scan, Check, Languages, Globe, AlertCircle, Smartphone,
-  SlidersHorizontal, Clock, Sparkles
+  SlidersHorizontal, Clock, Sparkles, Tv, Keyboard, Share2, CheckCheck
 } from 'lucide-react';
 import { Movie, StreamSource, VideoQuality, AudioLanguage } from '../types';
 import { getStreamingSources, getTvStreamingSources } from '../services/tmdb';
 import { saveResumeProgress } from '../services/continueWatching';
+import { DesktopShortcutsModal } from './DesktopShortcutsModal';
 
 interface VideoPlayerModalProps {
   movie: Movie;
@@ -102,6 +103,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [isLandscape, setIsLandscape] = useState(
     typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false
   );
+
+  // Desktop Web Player states (Windows & Mac)
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [isCursorHidden, setIsCursorHidden] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const mouseMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Drawers
   const [showServerMenu, setShowServerMenu] = useState(false);
@@ -663,6 +671,187 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
   };
 
+  // Desktop Web Player Mouse Movement & Auto-Hide Cursor
+  const handleMouseMove = useCallback(() => {
+    setIsCursorHidden(false);
+    setShowControls(true);
+    resetControlsTimeout();
+    if (mouseMoveTimeoutRef.current) clearTimeout(mouseMoveTimeoutRef.current);
+    mouseMoveTimeoutRef.current = setTimeout(() => {
+      if (isPlaying || hasStartedPlaying) {
+        setIsCursorHidden(true);
+        setShowControls(false);
+      }
+    }, 2500);
+  }, [isPlaying, hasStartedPlaying, resetControlsTimeout]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (isPlaying || hasStartedPlaying) {
+      setIsCursorHidden(true);
+      setShowControls(false);
+    }
+  }, [isPlaying, hasStartedPlaying]);
+
+  // Deep link sharing for Web Player (Windows & Mac)
+  const handleCopyLink = useCallback(() => {
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const shareMid = movie.tmdbId || (typeof movie.id === 'string' && movie.id.startsWith('tmdb-') ? movie.id.replace('tmdb-', '') : movie.id);
+      const shareUrl = `${origin}/?watch=${shareMid}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl);
+      }
+      setCopiedLink(true);
+      setGestureOsd({ type: 'info', value: 'Web Player Link Copied! 📋', icon: '🔗' });
+      setTimeout(() => {
+        setCopiedLink(false);
+        setGestureOsd(null);
+      }, 2000);
+    } catch {}
+  }, [movie]);
+
+  // Desktop Cinema Hotkeys (Windows & macOS)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (targetTag === 'input' || targetTag === 'textarea') return;
+
+      if (e.key === 'Escape') {
+        if (showShortcutsModal) {
+          setShowShortcutsModal(false);
+          return;
+        }
+        if (showLanguageMenu || showServerMenu || showQualityMenu || showSpeedMenu || showPlayerOptionsMenu) {
+          setShowLanguageMenu(false);
+          setShowServerMenu(false);
+          setShowQualityMenu(false);
+          setShowSpeedMenu(false);
+          setShowPlayerOptionsMenu(false);
+          return;
+        }
+        if (isTheaterMode) {
+          setIsTheaterMode(false);
+          return;
+        }
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+          return;
+        }
+        handleClose();
+        return;
+      }
+
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setShowShortcutsModal(prev => !prev);
+        return;
+      }
+
+      if (e.code === 'Space' || e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        togglePlay();
+        return;
+      }
+
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullScreen();
+        return;
+      }
+
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        setIsTheaterMode(prev => !prev);
+        setGestureOsd({
+          type: 'info',
+          value: !isTheaterMode ? 'Theater Mode ON 🎬' : 'Theater Mode OFF',
+          icon: '🎬'
+        });
+        setTimeout(() => setGestureOsd(null), 1200);
+        return;
+      }
+
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleMute();
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' || e.key === 'j' || e.key === 'J') {
+        e.preventDefault();
+        skipSeconds(-10);
+        setGestureOsd({ type: 'seek', value: '-10s', icon: '⏪' });
+        setTimeout(() => setGestureOsd(null), 1000);
+        return;
+      }
+
+      if (e.key === 'ArrowRight' || e.key === 'l' || e.key === 'L') {
+        e.preventDefault();
+        skipSeconds(10);
+        setGestureOsd({ type: 'seek', value: '+10s', icon: '⏩' });
+        setTimeout(() => setGestureOsd(null), 1000);
+        return;
+      }
+
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleVolumeChange(Math.min(1.5, volume + 0.1));
+        return;
+      }
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleVolumeChange(Math.max(0, volume - 0.1));
+        return;
+      }
+
+      if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        setShowLanguageMenu(prev => !prev);
+        setShowServerMenu(false);
+        setShowQualityMenu(false);
+        setShowSpeedMenu(false);
+        setShowPlayerOptionsMenu(false);
+        resetControlsTimeout();
+        return;
+      }
+
+      if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        setShowServerMenu(prev => !prev);
+        setShowLanguageMenu(false);
+        setShowQualityMenu(false);
+        setShowSpeedMenu(false);
+        setShowPlayerOptionsMenu(false);
+        resetControlsTimeout();
+        return;
+      }
+
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        const pct = parseInt(e.key, 10) * 10;
+        if (videoRef.current && videoRef.current.duration) {
+          const newTime = (pct / 100) * videoRef.current.duration;
+          videoRef.current.currentTime = newTime;
+          setProgress(pct);
+          setGestureOsd({ type: 'seek', value: `${pct}%`, icon: '⏱️' });
+          setTimeout(() => setGestureOsd(null), 1000);
+        }
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (mouseMoveTimeoutRef.current) clearTimeout(mouseMoveTimeoutRef.current);
+    };
+  }, [
+    showShortcutsModal, showLanguageMenu, showServerMenu, showQualityMenu, showSpeedMenu, showPlayerOptionsMenu,
+    isTheaterMode, isLocked, isMuted, volume, togglePlay, toggleFullScreen, toggleMute, skipSeconds, handleVolumeChange,
+    handleClose, resetControlsTimeout
+  ]);
+
   const getObjectFitClass = () => {
     switch (aspectMode) {
       case 'cover': return 'object-cover';
@@ -683,14 +872,35 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   const playerContent = (
     <div 
-      ref={containerRef}
-      id="movix-xplayer-container" 
-      className="fixed inset-0 z-50 bg-black select-none overflow-hidden w-screen h-screen w-full h-full min-h-[100dvh] max-h-[100dvh]"
-      style={{ filter: `brightness(${brightness}%)` }}
-      onTouchStart={currentSource.type === 'video' ? handleTouchStart : undefined}
-      onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
-      onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
+      id="movix-xplayer-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && isTheaterMode) {
+          setIsTheaterMode(false);
+        }
+      }}
+      className={`fixed inset-0 z-50 select-none overflow-hidden transition-all duration-300 ${
+        isCursorHidden && !showControls ? 'cursor-none' : 'cursor-default'
+      } ${
+        isTheaterMode 
+          ? 'bg-[#05070B]/95 backdrop-blur-2xl flex items-center justify-center p-2 sm:p-6 lg:p-10' 
+          : 'bg-black w-screen h-screen w-full h-full min-h-[100dvh] max-h-[100dvh]'
+      }`}
     >
+      <div 
+        ref={containerRef}
+        id="movix-xplayer-container" 
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className={`relative select-none overflow-hidden transition-all duration-300 ${
+          isTheaterMode 
+            ? 'w-full max-w-6xl aspect-video rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.9)] border border-white/20 bg-black' 
+            : 'w-full h-full bg-black'
+        }`}
+        style={{ filter: `brightness(${brightness}%)` }}
+        onTouchStart={currentSource.type === 'video' ? handleTouchStart : undefined}
+        onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
+        onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
+      >
       {/* Tap-to-summon controls without blocking video player touch interactions */}
       {!showControls && (
         <>
@@ -735,7 +945,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
       <div 
         style={{
-          paddingTop: 'max(env(safe-area-inset-top, 0px), 24px)',
+          paddingTop: isTheaterMode ? '14px' : 'max(env(safe-area-inset-top, 0px), 24px)',
           paddingLeft: 'max(env(safe-area-inset-left, 0px), 16px)',
           paddingRight: 'max(env(safe-area-inset-right, 0px), 16px)'
         }}
@@ -760,6 +970,11 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               <span className="px-1.5 py-0.2 rounded bg-white/10 text-white/90 text-[9px] font-medium">
                 {currentLanguage}
               </span>
+              {isTheaterMode && (
+                <span className="hidden sm:inline-flex px-1.5 py-0.2 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[9px] font-bold uppercase">
+                  Theater Mode
+                </span>
+              )}
             </div>
             <h2 className="text-white font-bold text-sm sm:text-base leading-tight truncate">
               {movie.title}
@@ -780,7 +995,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               resetControlsTimeout();
             }}
             className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center space-x-1.5 border border-blue-400/40 active:scale-95 shadow-lg flex-shrink-0"
-            title="Audio Language"
+            title="Audio Language (A)"
           >
             <Globe className="w-3.5 h-3.5 text-cyan-300 flex-shrink-0 animate-pulse" />
             <span className="font-extrabold">Audio: {currentLanguage}</span>
@@ -815,6 +1030,54 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <RotateCw className="w-4 h-4 text-white" />
           </button>
 
+          {/* 3.1 Desktop Theater Mode Toggle (Windows & Mac) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsTheaterMode(!isTheaterMode);
+              setGestureOsd({
+                type: 'info',
+                value: !isTheaterMode ? 'Theater Mode ON 🎬' : 'Theater Mode OFF',
+                icon: '🎬'
+              });
+              setTimeout(() => setGestureOsd(null), 1200);
+              resetControlsTimeout();
+            }}
+            className={`hidden sm:flex p-2 rounded-full border active:scale-95 flex-shrink-0 transition-all ${
+              isTheaterMode 
+                ? 'bg-red-600/90 border-red-500 text-white shadow-lg shadow-red-600/30 ring-2 ring-red-500/50' 
+                : 'bg-white/10 hover:bg-white/20 border-white/10 text-white'
+            }`}
+            title="Toggle Theater Mode (T)"
+          >
+            <Tv className="w-4 h-4" />
+          </button>
+
+          {/* 3.2 Desktop Shortcuts Guide (?) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowShortcutsModal(true);
+              resetControlsTimeout();
+            }}
+            className="hidden sm:flex p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 flex-shrink-0"
+            title="Keyboard Shortcuts (?)"
+          >
+            <Keyboard className="w-4 h-4 text-amber-300" />
+          </button>
+
+          {/* 3.3 Share / Copy Web Player Deep Link */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCopyLink();
+            }}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 flex-shrink-0 transition-all"
+            title="Copy Web Player Link"
+          >
+            {copiedLink ? <CheckCheck className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4" />}
+          </button>
+
           {/* 4. XPlayer Options Center Drawer Button */}
           <button
             onClick={(e) => {
@@ -840,7 +1103,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               handleClose();
             }}
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90 flex-shrink-0"
-            title="Close"
+            title="Close (Esc)"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1759,6 +2022,37 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 <span>Options</span>
               </button>
 
+              {/* Desktop Theater Mode Toggle (Windows & Mac) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsTheaterMode(!isTheaterMode);
+                  resetControlsTimeout();
+                }}
+                className={`hidden sm:flex px-2 py-1 rounded-md text-[11px] font-bold items-center space-x-1 border active:scale-95 transition-all ${
+                  isTheaterMode 
+                    ? 'bg-red-600 border-red-500 text-white shadow-md' 
+                    : 'bg-white/10 hover:bg-white/20 border-white/10 text-white'
+                }`}
+                title="Toggle Theater Mode (T)"
+              >
+                <Tv className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Theater</span>
+              </button>
+
+              {/* Desktop Shortcuts Guide Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowShortcutsModal(true);
+                  resetControlsTimeout();
+                }}
+                className="hidden sm:flex text-white/80 hover:text-white transition-colors p-1"
+                title="Keyboard Shortcuts (?)"
+              >
+                <Keyboard className="w-4 h-4 text-amber-300" />
+              </button>
+
               {/* Fullscreen Toggle */}
               <button
                 onClick={(e) => {
@@ -1766,6 +2060,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   toggleFullScreen();
                 }}
                 className="text-white/80 hover:text-white transition-colors p-1"
+                title="Fullscreen (F)"
               >
                 <Maximize className="w-4 h-4" />
               </button>
@@ -1773,8 +2068,14 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </div>
         </div>
       )}
+
+      {/* Desktop Web Player Shortcuts Modal */}
+      {showShortcutsModal && (
+        <DesktopShortcutsModal onClose={() => setShowShortcutsModal(false)} />
+      )}
     </div>
-  );
+  </div>
+);
 
   return createPortal(playerContent, document.body);
 };

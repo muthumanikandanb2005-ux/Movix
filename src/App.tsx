@@ -16,6 +16,7 @@ import { DownloadsView } from './components/DownloadsView';
 import { MyListView } from './components/MyListView';
 import { SettingsModal } from './components/SettingsModal';
 import { OtaUpdateModal } from './components/OtaUpdateModal';
+import { DesktopShortcutsModal } from './components/DesktopShortcutsModal';
 import { checkForAppUpdates, AppUpdateInfo } from './services/otaUpdates';
 import {
   featuredIndianMovie,
@@ -75,6 +76,7 @@ export const App: React.FC = () => {
     return (localStorage.getItem('movix_pref_language') as AudioLanguage) || 'Hindi';
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
 
   const [playingMovie, setPlayingMovie] = useState<Movie | null>(null);
   const [interstitialTarget, setInterstitialTarget] = useState<Movie | null>(null);
@@ -276,6 +278,111 @@ export const App: React.FC = () => {
     }
   }, [downloads]);
 
+  // Synchronize URL query params (?watch=<id>) for Web Player deep linking & sharing
+  const updateUrlForMovie = useCallback((movie: Movie | null) => {
+    try {
+      if (typeof window === 'undefined') return;
+      const url = new URL(window.location.href);
+      if (movie) {
+        const mid = movie.tmdbId || (typeof movie.id === 'string' && movie.id.startsWith('tmdb-') ? movie.id.replace('tmdb-', '') : movie.id);
+        url.searchParams.set('watch', String(mid));
+      } else {
+        url.searchParams.delete('watch');
+        url.searchParams.delete('play');
+      }
+      window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+    } catch {}
+  }, []);
+
+  // Web Player direct deep linking on startup or browser navigation (Windows & Mac)
+  useEffect(() => {
+    const checkDeepLink = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const watchParam = params.get('watch') || params.get('play');
+        if (!watchParam) return;
+
+        const numId = parseInt(watchParam, 10);
+        const allCandidates = [
+          featuredIndianMovie,
+          ...ottNewReleases,
+          ...indianBlockbusters,
+          ...hollywoodBlockbusters,
+          ...romanceMovies,
+          ...thrillerMovies,
+          ...sciFiPicks,
+          ...netflixTop10,
+          ...netflixTrendingNow,
+          ...netflixOriginals,
+          ...liveTrending,
+          ...liveNowPlaying,
+          ...liveIndian,
+          ...liveSouthIndian,
+          ...liveHollywood,
+          ...liveRomance,
+          ...liveThriller,
+          ...liveAction,
+          ...liveNetflix,
+          ...liveNetflixOriginals
+        ];
+
+        const found = allCandidates.find(
+          (m) => m.tmdbId === numId || String(m.id) === watchParam || String(m.id) === `tmdb-${watchParam}`
+        );
+
+        if (found) {
+          setPlayingMovie(found);
+        } else if (numId > 0) {
+          setPlayingMovie({
+            id: `tmdb-${numId}`,
+            tmdbId: numId,
+            title: `Movix Stream #${numId}`,
+            year: 2026,
+            genre: 'Cinema',
+            duration: '2h 15m',
+            rating: 8.5,
+            description: 'Streaming in high definition on Movix Web Player (Windows & Mac).',
+            poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=80',
+            backdrop: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&q=80',
+            videoUrl: getQualityVideoUrl(numId, activeQuality),
+            availableLanguages: ['Hindi', 'Tamil', 'Telugu', 'Malayalam', 'Kannada', 'English', 'Spanish']
+          });
+        }
+      } catch (e) {
+        console.warn('Deep link parse error:', e);
+      }
+    };
+
+    checkDeepLink();
+    window.addEventListener('popstate', checkDeepLink);
+    return () => window.removeEventListener('popstate', checkDeepLink);
+  }, [
+    liveTrending,
+    liveNowPlaying,
+    liveIndian,
+    liveSouthIndian,
+    liveHollywood,
+    liveNetflix,
+    activeQuality
+  ]);
+
+  // Global desktop keyboard shortcuts (? for help) when player is not actively running
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (playingMovie) return;
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (targetTag === 'input' || targetTag === 'textarea') return;
+
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setIsShortcutsModalOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [playingMovie]);
+
   // 1. User taps Play or Stream -> Plays Sponsored Advertisement, then launches Player
   const handleRequestPlay = useCallback((movie: Movie) => {
     setInterstitialTarget(movie);
@@ -293,9 +400,10 @@ export const App: React.FC = () => {
   const handleDismissAd = useCallback(() => {
     if (interstitialTarget) {
       setPlayingMovie(interstitialTarget);
+      updateUrlForMovie(interstitialTarget);
       setInterstitialTarget(null);
     }
-  }, [interstitialTarget]);
+  }, [interstitialTarget, updateUrlForMovie]);
 
   // Stable movie selector callback for 60fps carousels
   const handleSelectMovie = useCallback((movie: Movie) => {
@@ -334,6 +442,7 @@ export const App: React.FC = () => {
         onProfileClick={() => setIsSettingsOpen(true)}
         onSettingsClick={() => setIsSettingsOpen(true)}
         onVipClick={handleWatchAdVip}
+        onShortcutsClick={() => setIsShortcutsModalOpen(true)}
         onOtaCheck={() => {
           showToast('🚀 Checking for Movix updates...');
           setIsSettingsOpen(true);
@@ -647,7 +756,10 @@ export const App: React.FC = () => {
           movie={playingMovie}
           initialQuality={activeQuality}
           initialLanguage={activeLanguage}
-          onClose={() => setPlayingMovie(null)}
+          onClose={() => {
+            setPlayingMovie(null);
+            updateUrlForMovie(null);
+          }}
         />
       )}
 
@@ -679,6 +791,11 @@ export const App: React.FC = () => {
             setOtaUpdateAvailable(null);
           }}
         />
+      )}
+
+      {/* Desktop Web Player Shortcuts Modal */}
+      {isShortcutsModalOpen && (
+        <DesktopShortcutsModal onClose={() => setIsShortcutsModalOpen(false)} />
       )}
 
       {/* Toast Notification */}

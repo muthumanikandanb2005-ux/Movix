@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Search, Sparkles, Settings } from 'lucide-react';
+import { Search, Sparkles, Settings, Keyboard } from 'lucide-react';
 
 interface HeaderProps {
   onSearchClick: () => void;
@@ -7,6 +7,7 @@ interface HeaderProps {
   onSettingsClick?: () => void;
   onVipClick?: () => void;
   onOtaCheck?: () => void;
+  onShortcutsClick?: () => void;
   hasUpdate?: boolean;
 }
 
@@ -16,6 +17,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSettingsClick,
   onVipClick,
   onOtaCheck,
+  onShortcutsClick,
   hasUpdate
 }) => {
   const tapCountRef = useRef(0);
@@ -68,6 +70,18 @@ export const Header: React.FC<HeaderProps> = ({
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>VIP 4K</span>
         </button>
+
+        {/* Desktop Web Player Hotkeys Button (Windows & Mac) */}
+        {onShortcutsClick && (
+          <button
+            onClick={onShortcutsClick}
+            className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 active:scale-95 transition-all text-[11px] font-bold shadow-sm"
+            title="Desktop Web Player Hotkeys (?)"
+          >
+            <Keyboard className="w-3.5 h-3.5 text-amber-300" />
+            <span>Hotkeys</span>
+          </button>
+        )}
 
         <button 
           onClick={onSearchClick}

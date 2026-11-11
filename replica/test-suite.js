@@ -213,6 +213,24 @@ async function runTests() {
   assert(playerContent.includes('validLanguages') && tmdbContent.includes('MULTI_LANG_IDS'), 'LANG-2', 'Movie database and TMDB mapper accurately provide verified available language arrays');
   assert(tmdbContent.includes('AutoEmbed Fast 4K VIP') && tmdbContent.includes('VidLink Pro'), 'LANG-3', 'AutoEmbed Fast 4K VIP set as Server 1 default with multi-server mirrors');
 
+  // ----------------------------------------------------
+  // TEST SUITE 8: Web Player for Windows & Mac (Hotkeys, Theater Mode, PWA & Deep Linking)
+  // ----------------------------------------------------
+  console.log('\n--- SUITE 8: Desktop Web Player (Windows & Mac) ---');
+  const manifestPath = path.resolve('public/manifest.json');
+  assert(fs.existsSync(manifestPath), 'WEB-1', 'public/manifest.json exists for Windows and Mac PWA installation');
+  const manifestContent = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  assert(manifestContent.display === 'standalone' && manifestContent.name.toLowerCase().includes('movix'), 'WEB-2', 'PWA manifest defines standalone cinema display');
+
+  const shortcutsModalPath = path.resolve('src/components/DesktopShortcutsModal.tsx');
+  assert(fs.existsSync(shortcutsModalPath), 'WEB-3', 'DesktopShortcutsModal.tsx exists');
+  const shortcutsContent = fs.readFileSync(shortcutsModalPath, 'utf8');
+  assert(shortcutsContent.includes('macOS') && shortcutsContent.includes('Windows') && shortcutsContent.includes('Space'), 'WEB-4', 'Shortcuts modal provides OS-adaptive desktop hotkeys guide');
+
+  assert(playerContent.includes('isTheaterMode') && playerContent.includes('handleMouseMove') && playerContent.includes('cursor-none'), 'WEB-5', 'Player provides Theater Mode and cursor auto-hiding during cinema playback');
+  assert(playerContent.includes('handleKeyDown') && playerContent.includes("e.key === 't' || e.key === 'T'") && playerContent.includes("e.key === 'f' || e.key === 'F'"), 'WEB-6', 'Desktop keyboard hotkeys wired for play/pause, theater mode, fullscreen, and mute');
+  assert(appContent.includes("params.get('watch')") && appContent.includes('updateUrlForMovie'), 'WEB-7', 'URL deep linking and link synchronization enabled for desktop browser sharing');
+
   console.log('\n====================================================');
   console.log(`TEST SUMMARY: ${passedTests} PASSED, ${failedTests} FAILED`);
   console.log('====================================================');
