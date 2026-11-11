@@ -1,18 +1,18 @@
 {
-  "versionName": "2.1.6",
-  "versionCode": 201600,
-  "releaseDate": "2026-11-10",
-  "title": "Movix v2.1.6 - Multi-Audio Stream Engine & Direct OTA",
+  "versionName": "2.1.7",
+  "versionCode": 201700,
+  "releaseDate": "2026-11-11",
+  "title": "Movix v2.1.7 - Instant High-Speed Playback & Auto-Failover",
   "changelog": [
-    "True Regional Multi-Audio Engine: Server 1 (VidLink Pro Multi-Audio) set as default with direct regional dubbed audio support",
-    "Unblocked Player Audio Controls: Direct click-through to internal audio track switcher without overlay interference",
-    "Elevated Quick Mirror Bar: Clean bottom spacing so video player controls, gears, and track options are 100% accessible",
+    "Guaranteed Instant Video Playback: Server 1 (AutoEmbed Fast 4K VIP) set as default with sub-second stream loading",
+    "Smart Stream Auto-Recovery: Automatic failover prompt connects to alternative mirrors if any connection is slow",
+    "1-Tap Fullscreen Tap-to-Summon: Screen tap seamlessly restores all player controls, volume boost, and server mirrors",
     "Strict Movie Language Filtering: Only genuinely available audio tracks for each movie are shown",
     "Instant In-App Direct OTA Updates: High-speed multi-mirror background package download & direct installation",
     "100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays",
     "True Edge-to-Edge Fullscreen Playback: Adaptive display cutout support across notch, punch-hole, and curved displays"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.1.6/movix-app-v2.1.6.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.1.6.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.1.7/movix-app-v2.1.7.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.1.7.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }

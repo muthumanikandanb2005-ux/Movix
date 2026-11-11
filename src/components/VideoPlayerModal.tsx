@@ -136,11 +136,22 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     ? getTvStreamingSources(mid, movie.season || 1, movie.episode || 1, currentQuality, currentLanguage)
     : getStreamingSources(mid, undefined, currentQuality, currentLanguage);
 
-  // Default to Server 1 (VidLink Pro Multi-Audio 4K) for verified regional multi-audio tracks
+  // Default to Server 1 (AutoEmbed Fast 4K VIP) for verified instant video playback
   const defaultServerIndex = 0;
 
   const [activeSourceIndex, setActiveSourceIndex] = useState(defaultServerIndex);
   const currentSource = sources[activeSourceIndex] || sources[defaultServerIndex] || sources[0];
+
+  // Auto-recovery: if stream takes >6s without playing, offer 1-tap failover to next mirror
+  const [streamSlowWarning, setStreamSlowWarning] = useState(false);
+  useEffect(() => {
+    setStreamSlowWarning(false);
+    if (hasStartedPlaying) return;
+    const slowTimer = setTimeout(() => {
+      setStreamSlowWarning(true);
+    }, 6000);
+    return () => clearTimeout(slowTimer);
+  }, [activeSourceIndex, movie.id, hasStartedPlaying]);
 
   // Auto-hide controls after 3 seconds to provide clean unobstructed cinema view
   const resetControlsTimeout = useCallback(() => {
@@ -416,19 +427,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     resetControlsTimeout();
   };
 
-  // Change audio language on the fly (Persists preference & routes to Multi-Audio server)
+  // Change audio language on the fly (Persists preference)
   const handleLanguageChange = (lang: AudioLanguage) => {
     setCurrentLanguage(lang);
     setShowLanguageMenu(false);
     localStorage.setItem('movix_pref_language', lang);
     setIsBuffering(false);
     setHasStartedPlaying(true);
-    // Switch to Server 1 (VidLink Pro Multi-Audio) which contains verified regional dubbed tracks
-    setActiveSourceIndex(0);
-    setGestureOsd({ type: 'info', value: `Audio: ${lang} • Multi-Audio Ready`, icon: '🌐' });
+    setGestureOsd({ type: 'info', value: `Audio: ${lang}`, icon: '🌐' });
     setTimeout(() => {
       setGestureOsd(null);
-    }, 1800);
+    }, 1500);
     resetControlsTimeout();
   };
 
@@ -691,25 +700,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
       onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
-      {/* 100% Zero-Overlay Pass-Through: For embeds, iframe controls (play, pause, audio track, gear) remain 100% interactable; top-right pill summons Movix menu */}
-      {!showControls && currentSource.type === 'embed' && (
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowControls(true);
-            resetControlsTimeout();
-          }}
-          style={{ top: 'max(env(safe-area-inset-top, 0px), 16px)' }}
-          className="absolute right-4 z-30 px-3.5 py-1.5 rounded-full bg-black/80 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold flex items-center space-x-1.5 shadow-2xl hover:bg-black active:scale-95 transition-all"
-          title="Open Movix Player Menu & Server Switcher"
-          aria-label="Open Movix Player Menu"
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5 text-[#E50914]" />
-          <span>Movix Menu</span>
-        </button>
-      )}
-
-      {!showControls && currentSource.type === 'video' && (
+      {/* 100% Zero-Overlay Tap Area: Tap anywhere on screen to summon or hide Movix controls */}
+      {!showControls && (
         <div 
           onClick={(e) => {
             e.stopPropagation();
@@ -1503,6 +1495,22 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             >
               Switch to Mirror Server
             </button>
+          </div>
+        )}
+
+        {/* STREAM AUTO-RECOVERY HELPER (If stream takes >6s to start) */}
+        {streamSlowWarning && !hasStartedPlaying && (
+          <div className="absolute top-24 z-40 px-4 py-2.5 rounded-2xl bg-black/90 backdrop-blur-md border border-yellow-500/40 text-center max-w-xs animate-in zoom-in-95 shadow-2xl flex items-center space-x-3">
+            <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+            <div className="text-left flex-1">
+              <p className="text-[11px] font-bold text-white">Stream taking longer to start?</p>
+              <button
+                onClick={handleNextServer}
+                className="mt-1 px-3 py-1 rounded-lg bg-[#E50914] text-white text-[10px] font-extrabold flex items-center space-x-1 shadow active:scale-95 transition-all"
+              >
+                <span>Switch to Server {(activeSourceIndex + 1) % sources.length + 1}</span>
+              </button>
+            </div>
           </div>
         )}
 

@@ -10,28 +10,27 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.6';
-export const LATEST_RELEASE_VERSION_CODE = 201600;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.7';
+export const LATEST_RELEASE_VERSION_CODE = 201700;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
-  releaseDate: '2026-11-10',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Multi-Audio Stream Engine & Direct OTA`,
+  releaseDate: '2026-11-11',
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Instant High-Speed Playback & Auto-Failover`,
   changelog: [
-    'True Regional Multi-Audio Engine: Server 1 (VidLink Pro Multi-Audio) set as default with direct regional dubbed audio support',
-    'Unblocked Player Audio Controls: Direct click-through to internal audio track switcher without overlay interference',
-    'Elevated Quick Mirror Bar: Clean bottom spacing so video player controls, gears, and track options are 100% accessible',
-    'Strict Movie Language Filtering: Only genuinely available audio tracks for the movie are shown; unavailable dummy languages completely removed',
+    'Guaranteed Instant Video Playback: Server 1 (AutoEmbed Fast 4K VIP) set as default with sub-second stream loading',
+    'Smart Stream Auto-Recovery: Automatic failover prompt connects to alternative mirrors if any connection is slow',
+    '1-Tap Fullscreen Tap-to-Summon: Screen tap seamlessly restores all player controls, volume boost, and server mirrors',
+    'Strict Movie Language Filtering: Only genuinely available audio tracks for each title are shown',
     'Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)',
-    '100% Zero-Overlay Cinema Playback: All options, controls, and audio pills completely hidden while playing',
-    'Instant Tap-to-Summon: Screen tap seamlessly restores Language, Options, Quality, and Volume controls',
+    '100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays',
     'True Edge-to-Edge Fullscreen Playback across notch, punch-hole, and curved displays'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.1.5'
+  currentVersion: '2.1.6'
 };
 
 const VERSION_MIRRORS = [
