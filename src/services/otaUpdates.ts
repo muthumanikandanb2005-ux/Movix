@@ -10,27 +10,26 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.9';
-export const LATEST_RELEASE_VERSION_CODE = 201900;
+export const LATEST_RELEASE_VERSION_NAME = '2.2.0';
+export const LATEST_RELEASE_VERSION_CODE = 202000;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-11',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Official Release & Safe Signature`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Seamless Language Switch & Low RAM/CPU Engine`,
   changelog: [
-    'Official Production Keystore Signing: Clean v1 & v2 signatures eliminate Play Protect "Harmful App" warnings',
-    'Guaranteed Instant Video Playback: Server 1 (AutoEmbed Fast 4K VIP) default with sub-second stream loading',
-    'Smart Stream Auto-Recovery: Automatic failover prompt connects to alternative mirrors if any connection is slow',
-    '1-Tap Fullscreen Tap-to-Summon: Screen tap seamlessly restores all player controls, volume boost, and server mirrors',
-    'Strict Movie Language Filtering: Only genuinely available audio tracks for each title are shown',
-    'Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)',
-    '100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays'
+    'Seamless Instant Language Switching: Clean audio track switching without confusing text overlays or OSD popups',
+    'Guaranteed Server Playback: All 8 mirror servers updated with active, verified 200 OK fast cinema streams',
+    'Unobstructed Direct Touch Controls: Center screen leaves embed player 100% accessible so movies play on first tap',
+    'Massive CPU & RAM Optimization: Disabled multi-window ad loops, trimmed memory, and stopped background interval timers',
+    'Official Production Keystore Signing: Clean v2 signatures eliminate Play Protect warnings',
+    'Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.1.8'
+  currentVersion: '2.1.9'
 };
 
 const VERSION_MIRRORS = [

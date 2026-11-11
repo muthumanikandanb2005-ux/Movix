@@ -55,42 +55,48 @@ export const getStreamingSources = (
   const sources: StreamSource[] = [
     {
       name: `Server 1 (AutoEmbed Fast 4K VIP - Instant Playback)`,
-      url: `https://player.autoembed.me/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
+      url: `https://player.autoembed.me/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}&autoplay=true`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 2 (VidSrc To Cinema 4K)`,
-      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
+      name: `Server 2 (VidSrc Cinema 4K)`,
+      url: `https://vidsrc.pm/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 3 (2Embed VIP Cinema)`,
-      url: `https://www.2embed.cc/embed/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 4 (SuperEmbed Multi-Server HD)`,
+      name: `Server 3 (SuperEmbed Multi-Server HD)`,
       url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 5 (CineSrc Multi-Language HD)`,
+      name: `Server 4 (AutoEmbed Cinema HD)`,
+      url: `https://autoembed.co/movie/tmdb/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 5 (2Embed VIP Cinema)`,
+      url: `https://www.2embed.cc/embed/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 6 (CineSrc Multi-Language HD)`,
       url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 6 (VidLink Pro 4K Multi-Audio)`,
+      name: `Server 7 (VidLink Pro 4K Multi-Audio)`,
       url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 7 (Direct CDN ${quality} - Ad-Free Stream)`,
+      name: `Server 8 (Direct CDN ${quality} - Ad-Free Stream)`,
       url: getQualityVideoUrl(tmdbId, quality),
       type: 'video',
       quality
@@ -99,7 +105,7 @@ export const getStreamingSources = (
 
   if (trailerKey) {
     sources.push({
-      name: 'Server 8 (Official 4K Trailer)',
+      name: 'Server 9 (Official 4K Trailer)',
       url: `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&playsinline=1&rel=0`,
       type: 'trailer'
     });
@@ -119,30 +125,36 @@ export const getTvStreamingSources = (
   return [
     {
       name: 'Server 1 (AutoEmbed TV Fast VIP)',
-      url: `https://player.autoembed.me/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}`,
+      url: `https://player.autoembed.me/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}&autoplay=true`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 2 (VidSrc To TV Cinema)',
-      url: `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`,
+      name: 'Server 2 (VidSrc TV Cinema 4K)',
+      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 3 (2Embed TV VIP)',
-      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: 'Server 4 (SuperEmbed TV Cinema)',
+      name: 'Server 3 (SuperEmbed TV Cinema)',
       url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 5 (VidLink TV 4K)',
+      name: 'Server 4 (AutoEmbed TV Cinema HD)',
+      url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: 'Server 5 (2Embed TV VIP)',
+      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: 'Server 6 (VidLink TV 4K)',
       url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true`,
       type: 'embed',
       quality

@@ -93,8 +93,8 @@ public class MainActivity extends BridgeActivity {
             webSettings.setLoadWithOverviewMode(true);
             webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
             webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-            webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
-            webSettings.setSupportMultipleWindows(true);
+            webSettings.setJavaScriptCanOpenWindowsAutomatically(false);
+            webSettings.setSupportMultipleWindows(false);
 
             // Enable third-party cookies for cross-origin media streaming tokens & iframes
             try {
@@ -113,28 +113,7 @@ public class MainActivity extends BridgeActivity {
             webView.setWebChromeClient(new BridgeWebChromeClient(getBridge()) {
                 @Override
                 public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
-                    if (resultMsg == null) return false;
-                    // Provide a headless isolated dummy WebView to satisfy embed players' window.open sandbox checks
-                    // while preventing any rogue popup or ad trap from ever opening Chrome
-                    try {
-                        WebView dummyWebView = new WebView(MainActivity.this);
-                        dummyWebView.setWebViewClient(new android.webkit.WebViewClient() {
-                            @Override
-                            public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
-                                return true;
-                            }
-                            @Override
-                            public boolean shouldOverrideUrlLoading(WebView v, String u) {
-                                return true;
-                            }
-                        });
-                        WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
-                        if (transport != null) {
-                            transport.setWebView(dummyWebView);
-                            resultMsg.sendToTarget();
-                            return true;
-                        }
-                    } catch (Exception ignored) {}
+                    // Strictly block popup windows from opening Chrome or spawning extra WebViews in memory
                     return false;
                 }
             });
@@ -275,6 +254,51 @@ public class MainActivity extends BridgeActivity {
         if (hasFocus && isVideoPlayerOpen) {
             enableImmersiveMode();
         }
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                getBridge().getWebView().freeMemory();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                getBridge().getWebView().freeMemory();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mAdView != null) {
+            mAdView.pause();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mAdView != null) {
+            mAdView.resume();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (mAdView != null) {
+            mAdView.destroy();
+            mAdView = null;
+        }
+        super.onDestroy();
     }
 
     private void loadInterstitialAd() {
@@ -719,7 +743,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.1.9";
+                return "2.2.0";
             }
         }
 
@@ -728,7 +752,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 201900;
+                return 202000;
             }
         }
     }

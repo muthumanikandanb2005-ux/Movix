@@ -142,16 +142,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [activeSourceIndex, setActiveSourceIndex] = useState(defaultServerIndex);
   const currentSource = sources[activeSourceIndex] || sources[defaultServerIndex] || sources[0];
 
-  // Auto-recovery: if stream takes >6s without playing, offer 1-tap failover to next mirror
-  const [streamSlowWarning, setStreamSlowWarning] = useState(false);
-  useEffect(() => {
-    setStreamSlowWarning(false);
-    if (hasStartedPlaying) return;
-    const slowTimer = setTimeout(() => {
-      setStreamSlowWarning(true);
-    }, 6000);
-    return () => clearTimeout(slowTimer);
-  }, [activeSourceIndex, movie.id, hasStartedPlaying]);
+
 
   // Auto-hide controls after 3 seconds to provide clean unobstructed cinema view
   const resetControlsTimeout = useCallback(() => {
@@ -215,13 +206,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   }, []);
 
   // Screen Lock & controls auto-hide logic
-  const watchSecondsRef = useRef<number>(0);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      watchSecondsRef.current += 1;
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const startTimeRef = useRef<number>(Date.now());
 
   const handleClose = useCallback(() => {
     const androidAdMob = (window as any).AndroidAdMob;
@@ -230,7 +215,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
     // High-eCPM post-roll interstitial monetization:
     // When closing the player after watching for at least 10 seconds or starting playback, show interstitial
-    if (watchSecondsRef.current >= 10 || hasStartedPlaying) {
+    const elapsedSec = (Date.now() - startTimeRef.current) / 1000;
+    if (elapsedSec >= 10 || hasStartedPlaying) {
       if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
         androidAdMob.showInterstitialAd();
       }
@@ -434,10 +420,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     localStorage.setItem('movix_pref_language', lang);
     setIsBuffering(false);
     setHasStartedPlaying(true);
-    setGestureOsd({ type: 'info', value: `Audio: ${lang}`, icon: '🌐' });
-    setTimeout(() => {
-      setGestureOsd(null);
-    }, 1500);
     resetControlsTimeout();
   };
 
@@ -446,8 +428,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const nextIdx = (activeSourceIndex + 1) % sources.length;
     setActiveSourceIndex(nextIdx);
     setHasError(false);
-    setGestureOsd({ type: 'info', value: `Switched to ${sources[nextIdx].name.split(' ')[1]}`, icon: '🔄' });
-    setTimeout(() => setGestureOsd(null), 1500);
+    setIsBuffering(false);
+    setHasStartedPlaying(true);
   };
 
   // Dedicated Sound / Volume Controller (0% to 150% Boost)
@@ -700,17 +682,45 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onTouchMove={currentSource.type === 'video' ? handleTouchMove : undefined}
       onTouchEnd={currentSource.type === 'video' ? handleTouchEnd : undefined}
     >
-      {/* 100% Zero-Overlay Tap Area: Tap anywhere on screen to summon or hide Movix controls */}
+      {/* Tap-to-summon controls without blocking video player touch interactions */}
       {!showControls && (
-        <div 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowControls(true);
-            resetControlsTimeout();
-          }}
-          className="absolute inset-0 z-30 cursor-pointer"
-          aria-label="Tap to summon controls"
-        />
+        <>
+          {currentSource.type === 'video' ? (
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowControls(true);
+                resetControlsTimeout();
+              }}
+              className="absolute inset-0 z-30 cursor-pointer"
+              aria-label="Tap to summon controls"
+            />
+          ) : (
+            <>
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowControls(true);
+                  resetControlsTimeout();
+                }}
+                className="absolute top-0 left-0 right-0 h-16 z-30 cursor-pointer"
+                aria-label="Tap to summon controls"
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowControls(true);
+                  resetControlsTimeout();
+                }}
+                className="absolute top-3.5 right-4 z-40 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white/80 hover:text-white text-[11px] font-bold flex items-center space-x-1 shadow-lg active:scale-95 transition-all"
+                aria-label="Show controls"
+              >
+                <span>⚙️</span>
+                <span>Controls</span>
+              </button>
+            </>
+          )}
+        </>
       )}
 
       {/* 1. TOP CONTROL BAR (ABSOLUTE OVERLAY - NEVER DISTORTS VIDEO SIZING) */}
@@ -946,24 +956,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   </button>
                 );
               })}
-          </div>
-
-          <div className="mt-3 p-3 rounded-2xl bg-gradient-to-r from-blue-950/60 via-[#10192A] to-blue-950/60 border border-blue-500/30 text-left space-y-1.5 animate-in fade-in">
-            <div className="flex items-center space-x-1.5 text-blue-300 text-xs font-bold">
-              <span>🎧</span>
-              <span>Multi-Audio Stream Guidance:</span>
-            </div>
-            <p className="text-[11px] text-white/80 leading-relaxed">
-              When you select an audio language, MOVIX routes directly to our <strong>Multi-Audio 4K Server (VidLink Pro)</strong>. If a regional dub is available for this title, you can also tap the <strong>Audio / Settings (⚙️)</strong> icon directly in the video player's bottom control bar to switch audio tracks on the fly without reloading!
-            </p>
-          </div>
-
-          <div className="mt-2.5 pt-2 border-t border-white/10 text-[10px] text-white/60 text-center">
-            {validLanguages.length === 1 ? (
-              <span>🎬 This movie is exclusively available in <strong>{validLanguages[0]}</strong>.</span>
-            ) : (
-              <span>💡 Tap to switch between <strong>{validLanguages.length} available languages</strong>.</span>
-            )}
           </div>
         </div>
       )}
@@ -1432,8 +1424,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             style={{ 
               transform: getIframeTransform(), 
               transformOrigin: 'center center',
-              transition: 'transform 0.25s ease-out',
-              willChange: 'transform' 
+              transition: 'transform 0.25s ease-out'
             }}
             className="w-full h-full border-0 absolute inset-0 z-10"
           />
@@ -1498,21 +1489,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </div>
         )}
 
-        {/* STREAM AUTO-RECOVERY HELPER (If stream takes >6s to start) */}
-        {streamSlowWarning && !hasStartedPlaying && (
-          <div className="absolute top-24 z-40 px-4 py-2.5 rounded-2xl bg-black/90 backdrop-blur-md border border-yellow-500/40 text-center max-w-xs animate-in zoom-in-95 shadow-2xl flex items-center space-x-3">
-            <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
-            <div className="text-left flex-1">
-              <p className="text-[11px] font-bold text-white">Stream taking longer to start?</p>
-              <button
-                onClick={handleNextServer}
-                className="mt-1 px-3 py-1 rounded-lg bg-[#E50914] text-white text-[10px] font-extrabold flex items-center space-x-1 shadow active:scale-95 transition-all"
-              >
-                <span>Switch to Server {(activeSourceIndex + 1) % sources.length + 1}</span>
-              </button>
-            </div>
-          </div>
-        )}
+
 
         {/* CENTER PROMINENT TAP-TO-PLAY BUTTON (For Direct Video) */}
         {!isPlaying && !hasError && currentSource.type === 'video' && (
@@ -1589,8 +1566,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   setActiveSourceIndex(idx);
                   setIsBuffering(false);
                   setHasStartedPlaying(true);
-                  setGestureOsd({ type: 'info', value: `Connected: Server ${idx + 1}`, icon: '🔄' });
-                  setTimeout(() => setGestureOsd(null), 1400);
                   resetControlsTimeout();
                 }}
                 className={`px-2 py-1 rounded-full text-[10px] font-bold tracking-wide transition-all active:scale-95 flex-shrink-0 ${
