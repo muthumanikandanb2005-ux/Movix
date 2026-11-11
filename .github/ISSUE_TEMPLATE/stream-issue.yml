@@ -1,0 +1,50 @@
+name: "⚠️ Report Stream / Mirror Issue"
+description: "Report a broken video mirror, buffering issue, or audio desync"
+title: "[STREAM BUG]: "
+labels: ["bug", "stream-mirror"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us maintain fast, uninterrupted 4K streaming by reporting broken mirrors or audio issues.
+  - type: input
+    id: movie-title
+    attributes:
+      label: Movie / Series Title
+      placeholder: "e.g., Movie Title (Year)"
+    validations:
+      required: true
+  - type: dropdown
+    id: server
+    attributes:
+      label: Which Server Mirror had the issue?
+      options:
+        - "Server 1: AutoEmbed Fast 4K VIP"
+        - "Server 2: VidLink Pro 1080p"
+        - "Server 3: StreamBox Ultra"
+        - "Server 4: 2Embed VIP"
+        - "Server 5: Vidsrc ICU"
+        - "Server 6: Vidsrc CC"
+        - "Server 7: MultiEmbed CDN"
+        - "Server 8: Cinema HD Mirror"
+        - "All Servers / Don't Know"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Your Platform
+      options:
+        - "Android APK (Phone)"
+        - "Android APK (Tablet / TV)"
+        - "Web Player on Windows (Chrome / Edge / Firefox)"
+        - "Web Player on macOS (Safari / Chrome)"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem Description
+      placeholder: "What happened? (e.g. video black screen, audio not playing in Tamil, buffering error)"
+    validations:
+      required: true

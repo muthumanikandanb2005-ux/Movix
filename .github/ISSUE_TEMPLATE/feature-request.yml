@@ -1,0 +1,26 @@
+name: "💡 Feature Request"
+description: "Suggest a new feature, player control, or improvement for MOVIX"
+title: "[FEATURE]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      placeholder: "A clear and concise description of what the problem is."
+    validations:
+      required: false
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the feature you would like
+      placeholder: "A clear and concise description of what you want to happen."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: "Any alternative solutions or features you've considered."
+    validations:
+      required: false

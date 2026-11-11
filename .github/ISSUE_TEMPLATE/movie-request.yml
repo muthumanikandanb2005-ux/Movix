@@ -1,0 +1,42 @@
+name: "🎬 Movie / Series Request"
+description: "Request a new movie, TV series, or regional dubbed audio track to be added to MOVIX"
+title: "[REQUEST]: "
+labels: ["content-request", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for requesting content on **MOVIX**! Please provide the details below so we can verify streaming mirrors and multi-language audio availability.
+  - type: input
+    id: title
+    attributes:
+      label: Movie / Series Title
+      placeholder: "e.g., Movie Title (Year)"
+    validations:
+      required: true
+  - type: input
+    id: year
+    attributes:
+      label: Release Year
+      placeholder: "e.g., 2025"
+    validations:
+      required: false
+  - type: checkboxes
+    id: languages
+    attributes:
+      label: Requested Audio Languages
+      options:
+        - label: "Hindi (हिंदी 5.1 / Dub)"
+        - label: "Tamil (தமிழ் Dub)"
+        - label: "Telugu (తెలుగు Dub)"
+        - label: "Malayalam (മലയാളം Dub)"
+        - label: "Kannada (ಕನ್ನಡ Dub)"
+        - label: "English (Original 5.1)"
+        - label: "Spanish (Español)"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes / TMDB Link
+      placeholder: "Link to TMDB or IMDb page if available"
+    validations:
+      required: false
