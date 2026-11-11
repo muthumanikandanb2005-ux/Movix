@@ -10,8 +10,8 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.7';
-export const LATEST_RELEASE_VERSION_CODE = 201700;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.8';
+export const LATEST_RELEASE_VERSION_CODE = 201800;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
@@ -30,15 +30,15 @@ export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.1.6'
+  currentVersion: '2.1.7'
 };
 
 const VERSION_MIRRORS = [
-  'https://api.github.com/repos/muthumanikandanb2005-ux/Movix/releases/latest',
-  'https://cdn.jsdelivr.net/gh/muthumanikandanb2005-ux/Movix@main/version.json',
   'https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/version.json',
+  'https://cdn.jsdelivr.net/gh/muthumanikandanb2005-ux/Movix@main/version.json',
   'https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/refs/heads/main/version.json',
   'https://github.com/muthumanikandanb2005-ux/Movix/raw/main/version.json',
+  'https://api.github.com/repos/muthumanikandanb2005-ux/Movix/releases/latest',
   '/version.json'
 ];
 
