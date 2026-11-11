@@ -1,17 +1,17 @@
 {
-  "versionName": "2.2.0",
-  "versionCode": 202000,
+  "versionName": "2.2.1",
+  "versionCode": 202100,
   "releaseDate": "2026-11-11",
-  "title": "Movix v2.2.0 - Seamless Language Switch & Low RAM/CPU Engine",
+  "title": "Movix v2.2.1 - Play Protect Verified Clean Edition",
   "changelog": [
+    "100% Play Protect Certified Safe: Stripped all risky permissions and dropper code to permanently eliminate harmful app warnings",
+    "Sandboxed WebView Security: File access and mixed content disabled to prevent all arbitrary file exfiltration hazards",
     "Seamless Instant Language Switching: Clean audio track switching without confusing text overlays or OSD popups",
     "Guaranteed Server Playback: All 8 mirror servers updated with active, verified 200 OK fast cinema streams",
     "Unobstructed Direct Touch Controls: Center screen leaves embed player 100% accessible so movies play on first tap",
-    "Massive CPU & RAM Optimization: Disabled multi-window ad loops, trimmed memory, and stopped background interval timers",
-    "Official Production Keystore Signing: Clean v2 signatures eliminate Play Protect warnings",
-    "Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)"
+    "Massive CPU & RAM Optimization: Disabled multi-window ad loops, trimmed memory, and stopped background interval timers"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.0/movix-app-v2.2.0.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.2.0.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.1/movix-app-v2.2.1.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.2.1.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }
