@@ -651,6 +651,15 @@ public class MainActivity extends BridgeActivity {
                     // Launch System Package Installer directly without opening external browser or GitHub!
                     new Handler(Looper.getMainLooper()).post(() -> {
                         try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                if (!getPackageManager().canRequestPackageInstalls()) {
+                                    android.content.Intent manageIntent = new android.content.Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                                    manageIntent.setData(Uri.parse("package:" + getPackageName()));
+                                    manageIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(manageIntent);
+                                }
+                            }
+
                             Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
                                 MainActivity.this,
                                 getPackageName() + ".fileprovider",
@@ -710,7 +719,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.1.8";
+                return "2.1.9";
             }
         }
 
@@ -719,7 +728,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 201800;
+                return 201900;
             }
         }
     }

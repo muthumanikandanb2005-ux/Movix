@@ -10,27 +10,27 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.1.8';
-export const LATEST_RELEASE_VERSION_CODE = 201800;
+export const LATEST_RELEASE_VERSION_NAME = '2.1.9';
+export const LATEST_RELEASE_VERSION_CODE = 201900;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-11',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Instant High-Speed Playback & Auto-Failover`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Official Release & Safe Signature`,
   changelog: [
-    'Guaranteed Instant Video Playback: Server 1 (AutoEmbed Fast 4K VIP) set as default with sub-second stream loading',
+    'Official Production Keystore Signing: Clean v1 & v2 signatures eliminate Play Protect "Harmful App" warnings',
+    'Guaranteed Instant Video Playback: Server 1 (AutoEmbed Fast 4K VIP) default with sub-second stream loading',
     'Smart Stream Auto-Recovery: Automatic failover prompt connects to alternative mirrors if any connection is slow',
     '1-Tap Fullscreen Tap-to-Summon: Screen tap seamlessly restores all player controls, volume boost, and server mirrors',
     'Strict Movie Language Filtering: Only genuinely available audio tracks for each title are shown',
     'Pure In-App Direct APK Download & Package Installation (Never leaves app to GitHub)',
-    '100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays',
-    'True Edge-to-Edge Fullscreen Playback across notch, punch-hole, and curved displays'
+    '100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.1.7'
+  currentVersion: '2.1.8'
 };
 
 const VERSION_MIRRORS = [

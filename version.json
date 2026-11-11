@@ -1,18 +1,18 @@
 {
-  "versionName": "2.1.8",
-  "versionCode": 201800,
+  "versionName": "2.1.9",
+  "versionCode": 201900,
   "releaseDate": "2026-11-11",
-  "title": "Movix v2.1.8 - Instant High-Speed Playback & Auto-Failover",
+  "title": "Movix v2.1.9 - Official Release & Safe Signature",
   "changelog": [
+    "Official Production Keystore Signing: Clean v1 & v2 signatures eliminate Play Protect \"Harmful App\" warnings",
     "Guaranteed Instant Video Playback: Server 1 (AutoEmbed Fast 4K VIP) set as default with sub-second stream loading",
     "Smart Stream Auto-Recovery: Automatic failover prompt connects to alternative mirrors if any connection is slow",
     "1-Tap Fullscreen Tap-to-Summon: Screen tap seamlessly restores all player controls, volume boost, and server mirrors",
     "Strict Movie Language Filtering: Only genuinely available audio tracks for each movie are shown",
     "Instant In-App Direct OTA Updates: High-speed multi-mirror background package download & direct installation",
-    "100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays",
-    "True Edge-to-Edge Fullscreen Playback: Adaptive display cutout support across notch, punch-hole, and curved displays"
+    "100% Zero-Overlay Cinema Playback: All options, controls, and pills are completely hidden while movie plays"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.1.8/movix-app-v2.1.8.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.1.8.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.1.9/movix-app-v2.1.9.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.1.9.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }

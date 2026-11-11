@@ -7,8 +7,8 @@ android {
         applicationId "com.movix.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 201800
-        versionName "2.1.8"
+        versionCode 201900
+        versionName "2.1.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +16,24 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            storeFile file('movix-release.keystore')
+            storePassword 'movixproduction'
+            keyAlias 'movixkey'
+            keyPassword 'movixproduction'
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            signingConfig signingConfigs.release
         }
     }
 }
