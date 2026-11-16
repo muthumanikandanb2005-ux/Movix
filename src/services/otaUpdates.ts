@@ -10,25 +10,25 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.2.4';
-export const LATEST_RELEASE_VERSION_CODE = 202400;
+export const LATEST_RELEASE_VERSION_NAME = '2.2.5';
+export const LATEST_RELEASE_VERSION_CODE = 202500;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-16',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Multi-Language Audio Servers & Smooth Netflix Audio`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Live Multi-Language Audio Servers & Instant Movie Playback`,
   changelog: [
-    'Multi-Language Streaming Servers: Complete multi-audio servers (Server 1-8) with dedicated Hindi, Tamil, Telugu, Malayalam, Kannada & English dubs',
-    'Netflix-Style Smooth Audio Changing: Instant audio track switching with real-time HUD notification and seamless playback position preservation',
-    'Dolby Digital Plus 5.1 & Atmos Audio Badging: High-fidelity surround audio support across all stream mirrors',
-    'Zero Interruption Playback: Changing audio language never resets video playback back to 0:00',
-    '100% Google Play Protect Certified Safe: Official keystore signed, zero risk profile'
+    '100% Live Streaming Servers: Upgraded all Server mirrors (AutoEmbed, VidLink, VidSrc Pro, SuperEmbed, 2Embed, CineSrc, Direct CDN 4K) with verified 200 OK stream availability',
+    'Multi-Language Audio Switching: Instant audio dub switching (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish, Korean, Punjabi) with exact second timestamp preservation',
+    'Dolby Digital Plus 5.1 & Atmos Real-Time Audio Banner: Live visual confirmation of surround sound tracks',
+    'Fast Playback Failover: Instant zero-stall stream loading across all mobile, TV, and desktop devices',
+    '100% Google Play Protect Certified Safe: Official keystore signed, clean zero risk profile'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.2.1'
+  currentVersion: '2.2.4'
 };
 
 const VERSION_MIRRORS = [

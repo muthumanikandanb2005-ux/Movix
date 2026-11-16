@@ -1,16 +1,16 @@
 {
-  "versionName": "2.2.4",
-  "versionCode": 202400,
+  "versionName": "2.2.5",
+  "versionCode": 202500,
   "releaseDate": "2026-11-16",
-  "title": "Movix v2.2.4 - Multi-Language Audio Servers & Smooth Netflix Audio",
+  "title": "Movix v2.2.5 - Live Multi-Language Audio Servers & Instant Movie Playback",
   "changelog": [
-    "Multi-Language Streaming Servers: Complete multi-audio servers (Server 1-8) with dedicated Hindi, Tamil, Telugu, Malayalam, Kannada & English dubs",
-    "Netflix-Style Smooth Audio Changing: Instant audio track switching with real-time HUD notification and seamless playback position preservation",
-    "Dolby Digital Plus 5.1 & Atmos Audio Badging: High-fidelity surround audio support across all stream mirrors",
-    "Zero Interruption Playback: Changing audio language never resets video playback back to 0:00",
-    "100% Google Play Protect Certified Safe: Official keystore signed, zero risk profile"
+    "100% Live Streaming Servers: Upgraded all Server mirrors (AutoEmbed, VidLink, VidSrc Pro, SuperEmbed, 2Embed, CineSrc, Direct CDN 4K) with verified 200 OK stream availability",
+    "Multi-Language Audio Switching: Instant audio dub switching (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish, Korean, Punjabi) with exact second timestamp preservation",
+    "Dolby Digital Plus 5.1 & Atmos Real-Time Audio Banner: Live visual confirmation of surround sound tracks",
+    "Fast Playback Failover: Instant zero-stall stream loading across all mobile, TV, and desktop devices",
+    "100% Google Play Protect Certified Safe: Official keystore signed, clean zero risk profile"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.4/movix-app-v2.2.4.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.2.4.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.5/movix-app-v2.2.5.apk",
+  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.2.5.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }
