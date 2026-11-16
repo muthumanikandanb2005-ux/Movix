@@ -1,5 +1,5 @@
 export type VideoQuality = '4K' | '1080p' | '720p' | '480p';
-export type AudioLanguage = 'Hindi' | 'Tamil' | 'Telugu' | 'Malayalam' | 'Kannada' | 'English' | 'Spanish';
+export type AudioLanguage = 'Hindi' | 'Tamil' | 'Telugu' | 'Malayalam' | 'Kannada' | 'English' | 'Spanish' | 'Korean' | 'Punjabi';
 
 export interface StreamSource {
   name: string;

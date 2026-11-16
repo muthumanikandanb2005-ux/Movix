@@ -56,7 +56,9 @@ const AVAILABLE_LANGUAGES: { id: AudioLanguage; label: string; icon: string }[] 
   { id: 'Malayalam', label: 'Malayalam (മലയാളം)', icon: '🇮🇳' },
   { id: 'Kannada', label: 'Kannada (ಕನ್ನಡ)', icon: '🇮🇳' },
   { id: 'English', label: 'English (Original 5.1)', icon: '🇬🇧' },
-  { id: 'Spanish', label: 'Spanish (Español)', icon: '🇪🇸' }
+  { id: 'Spanish', label: 'Spanish (Español)', icon: '🇪🇸' },
+  { id: 'Korean', label: 'Korean (한국어)', icon: '🇰🇷' },
+  { id: 'Punjabi', label: 'Punjabi (ਪੰਜਾਬੀ)', icon: '🇮🇳' }
 ];
 
 export const QualitySelectionModal: React.FC<QualitySelectionModalProps> = ({

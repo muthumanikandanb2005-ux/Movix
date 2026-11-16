@@ -42,7 +42,9 @@ export const LANG_CODE_MAP: Record<AudioLanguage, string> = {
   'Malayalam': 'ml',
   'Kannada': 'kn',
   'English': 'en',
-  'Spanish': 'es'
+  'Spanish': 'es',
+  'Korean': 'ko',
+  'Punjabi': 'pa'
 };
 
 export const getStreamingSources = (

@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   hasUpdate
 }) => {
   const tapCountRef = useRef(0);
-  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleLogoTap = () => {
     tapCountRef.current++;

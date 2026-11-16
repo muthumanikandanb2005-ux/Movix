@@ -26,7 +26,9 @@ const AVAILABLE_LANGUAGES: { id: AudioLanguage; label: string; native: string; i
   { id: 'Malayalam', label: 'Malayalam', native: 'മലയാളം Dub', icon: '🇮🇳' },
   { id: 'Kannada', label: 'Kannada', native: 'ಕನ್ನಡ Dub', icon: '🇮🇳' },
   { id: 'English', label: 'English', native: 'Original 5.1', icon: '🇬🇧' },
-  { id: 'Spanish', label: 'Spanish', native: 'Español', icon: '🇪🇸' }
+  { id: 'Spanish', label: 'Spanish', native: 'Español', icon: '🇪🇸' },
+  { id: 'Korean', label: 'Korean', native: '한국어 Original', icon: '🇰🇷' },
+  { id: 'Punjabi', label: 'Punjabi', native: 'ਪੰਜਾਬੀ Dub', icon: '🇮🇳' }
 ];
 
 const ALL_AUDIO_LANGUAGES: AudioLanguage[] = [
@@ -36,7 +38,9 @@ const ALL_AUDIO_LANGUAGES: AudioLanguage[] = [
   'Malayalam',
   'Kannada',
   'English',
-  'Spanish'
+  'Spanish',
+  'Korean',
+  'Punjabi'
 ];
 
 export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ 
@@ -48,8 +52,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const audioNoticeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioNoticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentSecondsRef = useRef<number>(0);
   const [, setCurrentSeconds] = useState<number>(0);
   const [netflixAudioNotice, setNetflixAudioNotice] = useState<{
@@ -120,7 +124,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [isCursorHidden, setIsCursorHidden] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const mouseMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mouseMoveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Drawers
   const [showServerMenu, setShowServerMenu] = useState(false);
@@ -129,7 +133,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showPlayerOptionsMenu, setShowPlayerOptionsMenu] = useState(false);
   const [sleepTimer, setSleepTimer] = useState<number | null>(null);
-  const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Gesture OSD overlays (Signature XPlayer Feature)
   const [gestureOsd, setGestureOsd] = useState<{

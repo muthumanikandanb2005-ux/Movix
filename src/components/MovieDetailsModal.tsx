@@ -72,7 +72,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   };
 
   const trailerKey = extendedData.trailerKey || movie.trailerKey;
-  const castList = extendedData.castMembers || (movie.cast ? movie.cast.map(name => ({ name, character: 'Cast' })) : []);
+  const castList: CastMember[] = extendedData.castMembers || (movie.cast ? movie.cast.map(name => ({ name, character: 'Cast', photo: undefined })) : []);
   const directorName = extendedData.director || movie.director;
   const similarMovies = extendedData.similar || [];
 

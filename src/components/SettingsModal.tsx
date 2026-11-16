@@ -23,7 +23,9 @@ const LANGUAGES: { id: AudioLanguage; label: string; native: string; flag: strin
   { id: 'Malayalam', label: 'Malayalam', native: 'മലയാളം (Original)', flag: '🇮🇳' },
   { id: 'Kannada', label: 'Kannada', native: 'ಕನ್ನಡ (Dub)', flag: '🇮🇳' },
   { id: 'English', label: 'English', native: 'English (Original 5.1)', flag: '🇬🇧' },
-  { id: 'Spanish', label: 'Spanish', native: 'Español (Castilian)', flag: '🇪🇸' }
+  { id: 'Spanish', label: 'Spanish', native: 'Español (Castilian)', flag: '🇪🇸' },
+  { id: 'Korean', label: 'Korean', native: '한국어 (Original)', flag: '🇰🇷' },
+  { id: 'Punjabi', label: 'Punjabi', native: 'ਪੰਜਾਬੀ (Dub)', flag: '🇮🇳' }
 ];
 
 const QUALITIES: { id: VideoQuality; label: string; desc: string; badge: string }[] = [
