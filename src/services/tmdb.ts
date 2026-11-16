@@ -35,7 +35,7 @@ export const getQualityVideoUrl = (tmdbId: number, quality: VideoQuality = '1080
   return pool[Math.abs(tmdbId) % pool.length];
 };
 
-const LANG_CODE_MAP: Record<AudioLanguage, string> = {
+export const LANG_CODE_MAP: Record<AudioLanguage, string> = {
   'Hindi': 'hi',
   'Tamil': 'ta',
   'Telugu': 'te',
@@ -54,49 +54,49 @@ export const getStreamingSources = (
   const langCode = LANG_CODE_MAP[language] || 'hi';
   const sources: StreamSource[] = [
     {
-      name: `Server 1 (AutoEmbed Fast 4K VIP - Instant Playback)`,
-      url: `https://player.autoembed.me/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}&autoplay=true`,
+      name: `Server 1 (AutoEmbed Fast 4K VIP - Multi-Audio Direct)`,
+      url: `https://player.autoembed.cc/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}&autoplay=true&multi=1`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 2 (VidSrc Cinema 4K)`,
-      url: `https://vidsrc.pm/embed/movie/${tmdbId}?audio=${langCode}&lang=${langCode}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 3 (SuperEmbed Multi-Server HD)`,
-      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 4 (AutoEmbed Cinema HD)`,
-      url: `https://autoembed.co/movie/tmdb/${tmdbId}?lang=${langCode}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 5 (2Embed VIP Cinema)`,
-      url: `https://www.2embed.cc/embed/${tmdbId}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 6 (CineSrc Multi-Language HD)`,
-      url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
-      type: 'embed',
-      quality
-    },
-    {
-      name: `Server 7 (VidLink Pro 4K Multi-Audio)`,
+      name: `Server 2 (VidLink Pro 4K Multi-Audio - In-Player Switcher)`,
       url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 8 (Direct CDN ${quality} - Ad-Free Stream)`,
+      name: `Server 3 (SmashyStream Multi-Dubs VIP - Dual Audio)`,
+      url: `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 4 (VidSrc Multi-Track Cinema 4K)`,
+      url: `https://vidsrc.cc/v2/embed/movie/${tmdbId}?audio=${langCode}&lang=${langCode}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 5 (2Embed VIP Cinema - Dual Audio)`,
+      url: `https://www.2embed.cc/embed/${tmdbId}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 6 (CineSrc Multi-Language HD - Regional Dubs)`,
+      url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 7 (SuperEmbed Multi-Server HD)`,
+      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 8 (Direct CDN ${quality} - Netflix Smooth Audio Engine)`,
       url: getQualityVideoUrl(tmdbId, quality),
       type: 'video',
       quality
@@ -124,39 +124,51 @@ export const getTvStreamingSources = (
   const langCode = LANG_CODE_MAP[language] || 'hi';
   return [
     {
-      name: 'Server 1 (AutoEmbed TV Fast VIP)',
-      url: `https://player.autoembed.me/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}&autoplay=true`,
+      name: 'Server 1 (AutoEmbed Fast 4K VIP - Multi-Audio TV)',
+      url: `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}&autoplay=true&multi=1`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 2 (VidSrc TV Cinema 4K)',
-      url: `https://vidsrc.pm/embed/tv/${tmdbId}/${season}/${episode}?audio=${langCode}&lang=${langCode}`,
+      name: 'Server 2 (VidLink Pro TV Multi-Audio - In-Player Switcher)',
+      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 3 (SuperEmbed TV Cinema)',
-      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}`,
+      name: 'Server 3 (SmashyStream TV Multi-Dubs VIP)',
+      url: `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}&season=${season}&episode=${episode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 4 (AutoEmbed TV Cinema HD)',
-      url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}?lang=${langCode}`,
+      name: 'Server 4 (VidSrc TV Multi-Track Cinema 4K)',
+      url: `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}?audio=${langCode}&lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 5 (2Embed TV VIP)',
+      name: 'Server 5 (2Embed TV VIP Cinema - Dual Audio)',
       url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 6 (VidLink TV 4K Multi-Audio)',
-      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&multiLang=true`,
+      name: 'Server 6 (CineSrc TV Regional Dubs HD)',
+      url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}`,
       type: 'embed',
+      quality
+    },
+    {
+      name: 'Server 7 (SuperEmbed TV Multi-Server HD)',
+      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}`,
+      type: 'embed',
+      quality
+    },
+    {
+      name: `Server 8 (Direct TV CDN ${quality} - Netflix Smooth Audio Engine)`,
+      url: getQualityVideoUrl(tmdbId, quality),
+      type: 'video',
       quality
     }
   ];

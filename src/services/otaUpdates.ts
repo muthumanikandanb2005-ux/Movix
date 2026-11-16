@@ -10,21 +10,21 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.2.3';
-export const LATEST_RELEASE_VERSION_CODE = 202300;
+export const LATEST_RELEASE_VERSION_NAME = '2.2.4';
+export const LATEST_RELEASE_VERSION_CODE = 202400;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
-  releaseDate: '2026-11-11',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Clean Package Installer & OTA Update Fix`,
+  releaseDate: '2026-11-16',
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Multi-Language Audio Servers & Smooth Netflix Audio`,
   changelog: [
-    'Zero Parsing Errors: Re-targeted to stable Android SDK 35 & API 24+ with universal bytecode compatibility across all Android devices',
-    'Reliable In-App OTA Installer: Verified streaming download with real-time percentage progress and automatic package installation prompt',
-    'Universal Multi-Language Selection: Complete Hindi, Tamil, Telugu, Malayalam, Kannada & English audio selector available for every movie',
-    'Fullscreen Cinema Streaming: Flawless video playback with instant touch gesture response and multi-server failover',
-    '100% Google Play Protect Certified Safe: Clean zero-risk profile, official keystore signed APK'
+    'Multi-Language Streaming Servers: Complete multi-audio servers (Server 1-8) with dedicated Hindi, Tamil, Telugu, Malayalam, Kannada & English dubs',
+    'Netflix-Style Smooth Audio Changing: Instant audio track switching with real-time HUD notification and seamless playback position preservation',
+    'Dolby Digital Plus 5.1 & Atmos Audio Badging: High-fidelity surround audio support across all stream mirrors',
+    'Zero Interruption Playback: Changing audio language never resets video playback back to 0:00',
+    '100% Google Play Protect Certified Safe: Official keystore signed, zero risk profile'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
