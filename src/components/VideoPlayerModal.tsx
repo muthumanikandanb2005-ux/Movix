@@ -1850,7 +1850,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
             ref={iframeRef}
-            key={`player-embed-${activeSourceIndex}-${mid}`}
+            key={`player-embed-${activeSourceIndex}-${mid}-${currentLanguage}`}
             src={getIframeSrc(currentSource.url, savedPlaybackTimeRef.current)}
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"

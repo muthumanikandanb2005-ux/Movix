@@ -57,7 +57,7 @@ export const getStreamingSources = (
   const sources: StreamSource[] = [
     {
       name: `Server 1 (AutoEmbed Fast 4K VIP - Multi-Audio Direct)`,
-      url: `https://player.autoembed.cc/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}&autoplay=true&multi=1`,
+      url: `https://autoembed.me/movie/tmdb/${tmdbId}?lang=${langCode}&audio=${langCode}&autoplay=true&multiLang=1`,
       type: 'embed',
       quality
     },
@@ -68,20 +68,20 @@ export const getStreamingSources = (
       quality
     },
     {
-      name: `Server 3 (SmashyStream Multi-Dubs VIP - Dual Audio)`,
-      url: `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}`,
+      name: `Server 3 (VidSrc Pro 4K Cinema - Multi-Track VIP)`,
+      url: `https://vidsrc.sh/embed/movie?tmdb=${tmdbId}&audio=${langCode}&lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 4 (VidSrc Multi-Track Cinema 4K)`,
-      url: `https://vidsrc.cc/v2/embed/movie/${tmdbId}?audio=${langCode}&lang=${langCode}`,
+      name: `Server 4 (SuperEmbed Multi-Server HD - Dubbed Cinema)`,
+      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
       name: `Server 5 (2Embed VIP Cinema - Dual Audio)`,
-      url: `https://www.2embed.cc/embed/${tmdbId}`,
+      url: `https://www.2embed.cc/embed/${tmdbId}?lang=${langCode}`,
       type: 'embed',
       quality
     },
@@ -92,8 +92,8 @@ export const getStreamingSources = (
       quality
     },
     {
-      name: `Server 7 (SuperEmbed Multi-Server HD)`,
-      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
+      name: `Server 7 (AutoEmbed Fast Stream VIP - Direct Dubs)`,
+      url: `https://autoembed.to/movie/tmdb/${tmdbId}?lang=${langCode}`,
       type: 'embed',
       quality
     },
@@ -127,7 +127,7 @@ export const getTvStreamingSources = (
   return [
     {
       name: 'Server 1 (AutoEmbed Fast 4K VIP - Multi-Audio TV)',
-      url: `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}&autoplay=true&multi=1`,
+      url: `https://autoembed.me/tv/tmdb/${tmdbId}-${season}-${episode}?lang=${langCode}&audio=${langCode}&autoplay=true&multiLang=1`,
       type: 'embed',
       quality
     },
@@ -138,32 +138,32 @@ export const getTvStreamingSources = (
       quality
     },
     {
-      name: 'Server 3 (SmashyStream TV Multi-Dubs VIP)',
-      url: `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}&season=${season}&episode=${episode}`,
+      name: 'Server 3 (VidSrc Pro TV Cinema - Multi-Track VIP)',
+      url: `https://vidsrc.sh/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}&audio=${langCode}&lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 4 (VidSrc TV Multi-Track Cinema 4K)',
-      url: `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}?audio=${langCode}&lang=${langCode}`,
+      name: 'Server 4 (SuperEmbed TV Multi-Server HD)',
+      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}&lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
       name: 'Server 5 (2Embed TV VIP Cinema - Dual Audio)',
-      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
+      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}&lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 6 (CineSrc TV Regional Dubs HD)',
-      url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}`,
+      name: 'Server 6 (VidBinge TV Multi-Language HD)',
+      url: `https://vidbinge.dev/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 7 (SuperEmbed TV Multi-Server HD)',
-      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}`,
+      name: 'Server 7 (AutoEmbed TV Fast Stream)',
+      url: `https://autoembed.to/tv/tmdb/${tmdbId}-${season}-${episode}?lang=${langCode}`,
       type: 'embed',
       quality
     },
