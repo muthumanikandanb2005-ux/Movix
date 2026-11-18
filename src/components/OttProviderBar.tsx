@@ -50,7 +50,7 @@ export const OttProviderBar: React.FC<CategoryBarProps> = memo(({ selectedCatego
       </div>
 
       <div 
-        className="flex space-x-2.5 overflow-x-auto pb-2 scrollbar-none no-scrollbar -mx-5 px-5"
+        className="flex space-x-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar -mx-5 px-5"
         style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
       >
         {CATEGORIES.map((c) => {
@@ -59,10 +59,10 @@ export const OttProviderBar: React.FC<CategoryBarProps> = memo(({ selectedCatego
             <button
               key={c.id}
               onClick={() => onSelectCategory(c.id)}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border active:scale-95 flex-shrink-0 shadow-sm ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all active:scale-95 flex-shrink-0 shadow-sm ${
                 isSelected
-                  ? 'bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white border-transparent shadow-lg shadow-red-900/40 ring-2 ring-red-500/50'
-                  : 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10'
+                  ? 'bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white shadow-lg shadow-red-900/40 ring-2 ring-red-500/50'
+                  : 'bg-white/5 hover:bg-white/10 border border-white/10 text-white/85 backdrop-blur-md'
               }`}
             >
               <span className="text-sm">{c.icon}</span>

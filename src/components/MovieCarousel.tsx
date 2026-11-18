@@ -51,8 +51,8 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = memo(({
             key={movie.id}
             onClick={() => onSelectMovie(movie)}
             style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-            className={`flex-shrink-0 aspect-[2/3] rounded-xl overflow-hidden relative cursor-pointer group bg-[#151922] transition-transform duration-150 active:scale-95 shadow-md border border-white/[0.06] ${
-              showRank ? 'w-[100px] sm:w-[120px]' : 'w-[128px] sm:w-[150px]'
+            className={`flex-shrink-0 aspect-[2/3] rounded-2xl overflow-hidden relative cursor-pointer group bg-[#121622] transition-transform duration-150 active:scale-95 shadow-lg border border-white/10 group-hover:border-white/25 ${
+              showRank ? 'w-[105px] sm:w-[125px]' : 'w-[132px] sm:w-[155px]'
             }`}
           >
             {/* Poster Image with async decoding for 0 frame drops */}
@@ -84,29 +84,29 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = memo(({
             )}
 
             {/* Dark gradient overlay for card title legibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-85 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
             
             {/* Quality badge on Top-Left */}
-            <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-wider bg-black/85 text-white shadow-md border border-white/20">
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-black/80 backdrop-blur-md text-white shadow-md border border-white/20">
               4K UHD
             </div>
 
             {/* Rating badge on Top-Right */}
-            <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/85 text-[9px] font-bold text-amber-400 border border-white/10">
+            <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-md text-[9px] font-bold text-amber-400 border border-white/10">
               ★ {movie.rating.toFixed(1)}
             </div>
 
             {/* Bottom Details Overlay */}
-            <div className="absolute bottom-2 left-2 right-2 flex flex-col">
+            <div className="absolute bottom-2 left-2.5 right-2.5 flex flex-col">
               {movie.badge && (
                 <span className="text-[8px] font-bold text-red-400 uppercase tracking-wider truncate mb-0.5">
                   {movie.badge}
                 </span>
               )}
-              <h4 className="text-white text-xs font-bold leading-tight line-clamp-1 group-hover:text-red-400 transition-colors">
+              <h4 className="text-white text-xs font-bold leading-tight line-clamp-1 group-hover:text-[#E50914] transition-colors">
                 {movie.title}
               </h4>
-              <span className="text-[10px] text-white/50 truncate">
+              <span className="text-[10px] text-white/60 truncate font-medium">
                 {movie.year} • {movie.genre.split('/')[0].trim()}
               </span>
             </div>

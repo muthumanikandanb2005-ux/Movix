@@ -41,33 +41,33 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between safe-header pb-3 bg-gradient-to-b from-[#080A0F]/98 via-[#080A0F]/85 to-transparent backdrop-blur-[3px]">
+    <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between safe-header pb-3 pt-2.5 px-4 sm:px-6 bg-[#080A0F]/90 backdrop-blur-xl border-b border-white/[0.08] transition-all">
       {/* Brand Logo with 3D M Icon */}
       <div 
         onClick={handleLogoTap}
         className="flex items-center space-x-2.5 cursor-pointer select-none group"
         title="Movix Cinema (Tap 5x for Hidden Updates)"
       >
-        <div className="relative w-8 h-8 flex-shrink-0 drop-shadow-[0_2px_8px_rgba(168,85,247,0.4)]">
+        <div className="relative w-8 h-8 flex-shrink-0 drop-shadow-[0_2px_12px_rgba(229,9,20,0.4)]">
           <img 
             src="/assets/movix_3d_logo.png" 
             alt="Movix 3D Logo" 
             className="w-full h-full object-contain group-hover:scale-105 transition-transform"
           />
         </div>
-        <span className="text-[#E50914] text-2xl sm:text-3xl font-black tracking-tighter uppercase font-display drop-shadow-[0_2px_8px_rgba(229,9,20,0.5)]">
+        <span className="text-[#E50914] text-2xl sm:text-3xl font-black tracking-tighter uppercase font-display drop-shadow-[0_2px_12px_rgba(229,9,20,0.6)]">
           MOVIX
         </span>
       </div>
 
       {/* Action Icons & VIP Monetization Pill */}
-      <div className="flex items-center space-x-2.5 sm:space-x-3">
+      <div className="flex items-center space-x-2 sm:space-x-3">
         <button
           onClick={onVipClick}
-          className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-red-500/20 border border-amber-500/40 text-amber-300 hover:border-amber-400 active:scale-95 transition-all text-[11px] font-bold shadow-sm"
+          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/25 via-amber-600/20 to-red-600/20 border border-amber-500/50 text-amber-300 hover:border-amber-400 active:scale-95 transition-all text-xs font-black shadow-md shadow-amber-950/40"
           title="Watch Ad & Unlock VIP 4K"
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
           <span>VIP 4K</span>
         </button>
 
@@ -75,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onShortcutsClick && (
           <button
             onClick={onShortcutsClick}
-            className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 active:scale-95 transition-all text-[11px] font-bold shadow-sm"
+            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 active:scale-95 transition-all text-xs font-bold shadow-sm"
             title="Desktop Web Player Hotkeys (?)"
           >
             <Keyboard className="w-3.5 h-3.5 text-amber-300" />
@@ -86,10 +86,10 @@ export const Header: React.FC<HeaderProps> = ({
         <button 
           onClick={onSearchClick}
           aria-label="Search"
-          className="p-1.5 text-white/90 hover:text-white transition-transform active:scale-95"
+          className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border border-white/10 transition-all active:scale-95 shadow-sm"
           title="Search Movies"
         >
-          <Search className="w-5 h-5 stroke-[2.2]" />
+          <Search className="w-4 h-4 stroke-[2.4]" />
         </button>
 
         {/* Settings Option with OTA Update indicator */}
@@ -100,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
           title="Settings (Audio Language, Resolution, Updates)"
         >
           <Settings className="w-4 h-4 text-white stroke-[2.2]" />
-          <span className="text-[11px] font-bold">Settings</span>
+          <span className="text-xs font-bold">Settings</span>
           {hasUpdate && (
             <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />

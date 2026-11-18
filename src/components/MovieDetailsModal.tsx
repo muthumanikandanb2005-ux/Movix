@@ -91,7 +91,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto bg-[#0E1118] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl relative flex flex-col pb-safe no-scrollbar">
+      <div className="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto bg-[#0E121D]/98 border-t sm:border border-white/15 rounded-t-3xl sm:rounded-3xl shadow-2xl relative flex flex-col pb-safe no-scrollbar">
         
         {/* Close Button */}
         <button
@@ -176,7 +176,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               {/* 1. WATCH NOW BUTTON (Primary) */}
               <button
                 onClick={() => onPlay(movie)}
-                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#FF4154] to-[#E50914] hover:from-[#ff5565] hover:to-[#f0101b] text-white font-bold text-sm flex items-center justify-center space-x-2 shadow-lg shadow-red-900/40 active:scale-95 transition-all"
+                className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-[#E50914] to-[#FF4154] hover:from-[#f0101b] hover:to-[#ff5565] text-white font-black text-sm flex items-center justify-center space-x-2 shadow-xl shadow-red-950/60 active:scale-95 transition-all"
               >
                 <Play className="w-4 h-4 fill-white" />
                 <span>Watch Now</span>
@@ -185,7 +185,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               {/* 2. STREAM BUTTON (Server Switcher) */}
               <button
                 onClick={() => setShowServerPicker(!showServerPicker)}
-                className="flex-1 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-sm flex items-center justify-center space-x-2 shadow-md active:scale-95 transition-all"
+                className="flex-1 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-sm flex items-center justify-center space-x-2 shadow-md active:scale-95 transition-all backdrop-blur-md"
               >
                 <Server className="w-4 h-4 text-emerald-400" />
                 <span>Stream Servers</span>
@@ -194,7 +194,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               {/* My List Toggle */}
               <button
                 onClick={() => onToggleList(movie)}
-                className={`p-3.5 rounded-xl border transition-all active:scale-95 flex items-center justify-center ${
+                className={`p-3.5 rounded-2xl border transition-all active:scale-95 flex items-center justify-center ${
                   isInList
                     ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
                     : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'
@@ -207,7 +207,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               {/* Download */}
               <button
                 onClick={() => onDownload(movie)}
-                className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all active:scale-95 flex items-center justify-center"
+                className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all active:scale-95 flex items-center justify-center"
                 title="Download"
               >
                 <Download className="w-5 h-5" />
@@ -216,7 +216,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               {/* Share */}
               <button
                 onClick={handleShare}
-                className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all active:scale-95 flex items-center justify-center"
+                className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all active:scale-95 flex items-center justify-center"
                 title="Share"
               >
                 <Share2 className="w-5 h-5" />

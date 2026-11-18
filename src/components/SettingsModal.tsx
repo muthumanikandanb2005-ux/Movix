@@ -117,7 +117,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-200">
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md bg-[#0F131D] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden pb-safe text-white"
+        className="w-full sm:max-w-md bg-[#0E121D]/98 border-t sm:border border-white/15 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden pb-safe text-white backdrop-blur-2xl"
       >
         {/* Header Bar */}
         <div className="px-5 pt-5 pb-3 border-b border-white/[0.08] flex items-center justify-between">
