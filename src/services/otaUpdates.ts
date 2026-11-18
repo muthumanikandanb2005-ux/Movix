@@ -10,21 +10,22 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.2.5';
-export const LATEST_RELEASE_VERSION_CODE = 202500;
+export const LATEST_RELEASE_VERSION_NAME = '2.2.6';
+export const LATEST_RELEASE_VERSION_CODE = 202600;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
-  releaseDate: '2026-11-16',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Live Multi-Language Audio Servers & Instant Movie Playback`,
+  releaseDate: '2026-11-18',
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - BoardUI Player, Instant Regional Audio Switching & Multi-Server Dubs`,
   changelog: [
-    '100% Live Streaming Servers: Upgraded all Server mirrors (AutoEmbed, VidLink, VidSrc Pro, SuperEmbed, 2Embed, CineSrc, Direct CDN 4K) with verified 200 OK stream availability',
-    'Multi-Language Audio Switching: Instant audio dub switching (Hindi, Tamil, Telugu, Malayalam, Kannada, English, Spanish, Korean, Punjabi) with exact second timestamp preservation',
-    'Dolby Digital Plus 5.1 & Atmos Real-Time Audio Banner: Live visual confirmation of surround sound tracks',
-    'Fast Playback Failover: Instant zero-stall stream loading across all mobile, TV, and desktop devices',
-    '100% Google Play Protect Certified Safe: Official keystore signed, clean zero risk profile'
+    'Always-Accessible Floating Audio Pill: Dedicated high-visibility BoardUI audio track switcher available anytime during playback',
+    'Instant Multi-Language Dub Switching: Immediate audio switching across Tamil, Telugu, Hindi, Malayalam, Kannada, English, Spanish, Korean, Punjabi with exact second timestamp preservation',
+    'Multi-Audio Server Routing: Standardized multi-language parameters across all 8 servers (AutoEmbed, VidLink, VidSrc Pro, SuperEmbed, 2Embed, CineSrc, Direct CDN 4K)',
+    'In-Drawer Server Mirror Failover: Switch streaming mirrors directly inside the Audio Track drawer without restarting movie',
+    'Zero-Overflow Cinematic Controls: Mobile-optimized BoardUI top and bottom control bars with responsive touch targets (>= 44px)',
+    '100% Google Play Protect Certified Safe: Official release keystore and APK Signature Scheme v2 verified'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,

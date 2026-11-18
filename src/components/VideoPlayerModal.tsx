@@ -1042,6 +1042,23 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 className="absolute top-0 left-0 right-0 h-16 z-30 cursor-pointer"
                 aria-label="Tap to summon controls"
               />
+              {/* Always-Accessible Floating Audio Switcher Trigger Pill */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowLanguageMenu(true);
+                  setShowControls(true);
+                  resetControlsTimeout();
+                }}
+                className="absolute top-3.5 left-4 z-40 px-3 py-1 rounded-full bg-black/80 hover:bg-black/95 backdrop-blur-md border border-blue-400/50 text-white text-[11px] font-extrabold flex items-center space-x-1.5 shadow-2xl active:scale-95 transition-all"
+                aria-label="Audio Track Language"
+                title="Switch Audio Track"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <Globe className="w-3.5 h-3.5 text-cyan-300" />
+                <span>Audio: {currentLanguage}</span>
+                <span className="text-[9px] text-white/50">▾</span>
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1189,7 +1206,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               e.stopPropagation();
               handleCopyLink();
             }}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 flex-shrink-0 transition-all"
+            className="hidden sm:flex p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 flex-shrink-0 transition-all"
             title="Copy Web Player Link"
           >
             {copiedLink ? <CheckCheck className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4" />}
@@ -1347,12 +1364,50 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               })}
           </div>
 
+          {/* Multi-Audio Server Stream Failover */}
+          <div className="mt-3.5 pt-3 border-t border-white/10">
+            <div className="flex items-center justify-between text-[11px] font-bold text-white/80 mb-2">
+              <span className="flex items-center space-x-1.5">
+                <Server className="w-3 h-3 text-[#E50914]" />
+                <span>Audio Stream Mirror:</span>
+              </span>
+              <span className="text-[10px] text-cyan-400 font-mono">
+                Active: S{activeSourceIndex + 1}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {sources.slice(0, 8).map((src, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setActiveSourceIndex(idx);
+                    setIsBuffering(false);
+                    setHasStartedPlaying(true);
+                    setGestureOsd({
+                      type: 'info',
+                      value: `Switched to ${src.name.split('(')[1]?.split('-')[0] || `Server ${idx + 1}`}`,
+                      icon: '⚡'
+                    });
+                    setTimeout(() => setGestureOsd(null), 1500);
+                  }}
+                  className={`py-1.5 px-1 rounded-xl text-[10px] font-bold text-center transition-all ${
+                    activeSourceIndex === idx
+                      ? 'bg-[#E50914] text-white shadow-md ring-1 ring-white/30'
+                      : 'bg-white/5 hover:bg-white/10 text-white/70'
+                  }`}
+                >
+                  S{idx + 1} {idx === 0 ? 'Auto' : idx === 1 ? 'VidLink' : idx === 2 ? 'VidSrc' : idx === 5 ? 'Cine' : ''}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Multi-Audio Server Tip Box */}
-          <div className="mt-3.5 p-3 rounded-2xl bg-white/[0.04] border border-white/10 text-[11px] text-white/70 flex items-start space-x-2">
+          <div className="mt-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10 text-[11px] text-white/70 flex items-start space-x-2">
             <Sparkles className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
             <div>
               <span className="font-bold text-white block">Smooth Audio Switching</span>
-              <span>Audio changes smoothly without resetting playback time. For in-player audio tracks and subtitles, use Server 1 (AutoEmbed) or Server 2 (VidLink).</span>
+              <span>Audio changes smoothly with exact timestamp preservation. If a specific regional dub is loading slowly, tap S2 (VidLink) or S6 (CineSrc) above.</span>
             </div>
           </div>
         </div>
@@ -1967,7 +2022,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               title="Available Audio Languages"
             >
               <Globe className="w-3.5 h-3.5 text-cyan-300 flex-shrink-0 animate-pulse" />
-              <span>Language: {currentLanguage}</span>
+              <span>Audio: {currentLanguage}</span>
               {validLanguages.length > 1 && (
                 <span className="text-[9px] bg-white/20 px-1 py-0.2 rounded-full font-mono ml-0.5">
                   +{validLanguages.length - 1}
