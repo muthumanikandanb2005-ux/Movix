@@ -12,6 +12,7 @@
     "100% Google Play Protect Certified Safe: Official release keystore and APK Signature Scheme v2 verified"
   ],
   "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.6/movix-app-v2.2.6.apk",
-  "rawApkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v2.2.6.apk",
+  "downloadUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.6/movix-app-v2.2.6.apk",
+  "rawApkUrl": "https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v2.2.6.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }

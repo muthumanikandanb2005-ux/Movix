@@ -29,7 +29,7 @@ export const OtaUpdateModal: React.FC<OtaUpdateModalProps> = ({ update, onClose 
   const handleInstall = () => {
     setIsInstalling(true);
     setInstallProgress(10);
-    triggerApkInstall(update.rawApkUrl || update.downloadUrl);
+    triggerApkInstall(update.downloadUrl || update.rawApkUrl);
   };
 
   return (

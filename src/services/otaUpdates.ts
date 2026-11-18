@@ -28,8 +28,8 @@ export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
     '100% Google Play Protect Certified Safe: Official release keystore and APK Signature Scheme v2 verified'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  rawApkUrl: `https://github.com/muthumanikandanb2005-ux/Movix/raw/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.2.4'
+  rawApkUrl: `https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
+  currentVersion: '2.2.5'
 };
 
 const VERSION_MIRRORS = [
@@ -122,7 +122,7 @@ export const checkForAppUpdates = async (force = false): Promise<AppUpdateInfo |
 };
 
 export const triggerApkInstall = (downloadUrl?: string): void => {
-  const finalUrl = downloadUrl || DEFAULT_UPDATE_INFO.rawApkUrl || DEFAULT_UPDATE_INFO.downloadUrl;
+  const finalUrl = downloadUrl || DEFAULT_UPDATE_INFO.downloadUrl || DEFAULT_UPDATE_INFO.rawApkUrl;
   const android = (window as any).AndroidAdMob;
   if (android && typeof android.downloadAndInstallUpdate === 'function') {
     android.downloadAndInstallUpdate(finalUrl);
