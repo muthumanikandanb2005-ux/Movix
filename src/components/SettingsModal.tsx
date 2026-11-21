@@ -53,7 +53,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(DEFAULT_UPDATE_INFO);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<string | null>(`Movix v${DEFAULT_UPDATE_INFO.versionName} OTA update is ready`);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadPercent, setDownloadPercent] = useState(0);
   const currentApp = getCurrentAppVersion();
+
+  useEffect(() => {
+    (window as any).onOtaProgress = (percent: number) => {
+      if (percent < 0) {
+        setIsDownloading(false);
+        setUpdateStatus('Download interrupted. Retrying in browser...');
+        return;
+      }
+      setIsDownloading(true);
+      setDownloadPercent(percent);
+      if (percent >= 100) {
+        setUpdateStatus('✨ Download complete! Opening Android Package Installer...');
+      } else {
+        setUpdateStatus(`Downloading update package... ${percent}%`);
+      }
+    };
+
+    return () => {
+      delete (window as any).onOtaProgress;
+    };
+  }, []);
 
   const handleCheckUpdates = async (force = false) => {
     setIsCheckingUpdate(true);
@@ -394,12 +417,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       ))}
                     </ul>
 
+                    {isDownloading && (
+                      <div className="space-y-1.5 animate-in fade-in pt-1">
+                        <div className="flex items-center justify-between text-[10px] text-white/70 font-semibold">
+                          <span>{downloadPercent >= 100 ? 'Launching Installer...' : 'Downloading OTA Package...'}</span>
+                          <span className="text-emerald-400 font-mono">{downloadPercent}%</span>
+                        </div>
+                        <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-gradient-to-r from-[#E50914] to-emerald-400 h-full transition-all duration-150"
+                            style={{ width: `${downloadPercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
                     <button
-                      onClick={() => triggerApkInstall(updateInfo.downloadUrl || updateInfo.rawApkUrl)}
-                      className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-lg shadow-red-900/40 active:scale-95 transition-all mt-1"
+                      onClick={() => {
+                        setIsDownloading(true);
+                        setDownloadPercent(5);
+                        triggerApkInstall(updateInfo.downloadUrl || updateInfo.rawApkUrl);
+                      }}
+                      disabled={isDownloading && downloadPercent < 100}
+                      className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#E50914] to-[#FF4154] text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-lg shadow-red-900/40 active:scale-95 transition-all mt-1 disabled:opacity-75"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Download & Install APK Directly In App</span>
+                      <span>{isDownloading ? (downloadPercent >= 100 ? 'Opening Installer...' : `Downloading... ${downloadPercent}%`) : 'Download & Install APK Directly In App'}</span>
                     </button>
                   </div>
                 )}

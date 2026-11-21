@@ -19,6 +19,11 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
+import android.widget.Toast;
+import android.provider.Settings;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import androidx.annotation.NonNull;
 
 import java.io.File;
@@ -26,6 +31,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
+import java.util.zip.ZipFile;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
@@ -317,11 +324,86 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    private File pendingInstallApk = null;
+
+    private void launchApkInstaller(final File apkFile) {
+        try {
+            if (apkFile == null || !apkFile.exists()) {
+                Toast.makeText(MainActivity.this, "Update package not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Unknown sources permission on Android 8.0+ (Oreo, API 26+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!getPackageManager().canRequestPackageInstalls()) {
+                    pendingInstallApk = apkFile;
+                    try {
+                        Intent manageIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                        manageIntent.setData(Uri.parse("package:" + getPackageName()));
+                        manageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(manageIntent);
+                        Toast.makeText(
+                            MainActivity.this,
+                            "Please allow 'Install unknown apps' to complete Movix update",
+                            Toast.LENGTH_LONG
+                        ).show();
+                        return;
+                    } catch (Exception ignored) {
+                        // If manage settings not available on this device, proceed to standard install intent
+                    }
+                }
+            }
+
+            Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
+                MainActivity.this,
+                getPackageName() + ".fileprovider",
+                apkFile
+            );
+
+            Intent install = new Intent(Intent.ACTION_VIEW);
+            install.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            install.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            install.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
+
+            // Explicitly grant URI permission to all potential package installers
+            List<ResolveInfo> resolveInfoList = getPackageManager().queryIntentActivities(
+                install,
+                PackageManager.MATCH_DEFAULT_ONLY
+            );
+            if (resolveInfoList != null) {
+                for (ResolveInfo resolveInfo : resolveInfoList) {
+                    if (resolveInfo.activityInfo != null && resolveInfo.activityInfo.packageName != null) {
+                        grantUriPermission(resolveInfo.activityInfo.packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    }
+                }
+            }
+
+            startActivity(install);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            try {
+                Toast.makeText(MainActivity.this, "Could not open installer: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+            } catch (Exception ignored) {}
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
         if (mAdView != null) {
             mAdView.resume();
+        }
+        if (pendingInstallApk != null && pendingInstallApk.exists()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (getPackageManager().canRequestPackageInstalls()) {
+                    File apkToInstall = pendingInstallApk;
+                    pendingInstallApk = null;
+                    launchApkInstaller(apkToInstall);
+                }
+            }
         }
     }
 
@@ -643,22 +725,36 @@ public class MainActivity extends BridgeActivity {
                 File targetFile = null;
                 try {
                     postOtaProgress(5, 0, 100);
-                    File cacheDir = getCacheDir();
-                    targetFile = new File(cacheDir, "movix-update-" + System.currentTimeMillis() + ".apk");
+
+                    // Prefer external downloads/cache dir, fallback to internal cache
+                    File updateDir = getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS);
+                    if (updateDir == null) {
+                        updateDir = getExternalCacheDir();
+                    }
+                    if (updateDir == null) {
+                        updateDir = getCacheDir();
+                    }
+                    if (!updateDir.exists()) {
+                        updateDir.mkdirs();
+                    }
+
+                    targetFile = new File(updateDir, "movix-update-" + System.currentTimeMillis() + ".apk");
                     if (targetFile.exists()) {
                         targetFile.delete();
                     }
 
-                    // Clean up any stale update apks in cache
-                    File[] oldFiles = cacheDir.listFiles((d, name) -> name.startsWith("movix-update") && name.endsWith(".apk"));
-                    if (oldFiles != null) {
-                        for (File f : oldFiles) {
-                            try { f.delete(); } catch (Exception ignored) {}
+                    // Clean up any stale update apks in updateDir
+                    try {
+                        File[] oldFiles = updateDir.listFiles((d, name) -> name.startsWith("movix-update") && name.endsWith(".apk"));
+                        if (oldFiles != null) {
+                            for (File f : oldFiles) {
+                                try { f.delete(); } catch (Exception ignored) {}
+                            }
                         }
-                    }
+                    } catch (Exception ignored) {}
 
                     String currentUrl = urlString;
-                    // Support following redirects (HTTP 301, 302, 303, 307) commonly used by GitHub releases & CDNs
+                    // Support following redirects (HTTP 301, 302, 303, 307, 308) commonly used by GitHub releases & CDNs
                     for (int redirectCount = 0; redirectCount < 8; redirectCount++) {
                         java.net.URL url = new java.net.URL(currentUrl);
                         conn = (java.net.HttpURLConnection) url.openConnection();
@@ -697,41 +793,61 @@ public class MainActivity extends BridgeActivity {
                         out.write(buffer, 0, bytesRead);
                         downloadedBytes += bytesRead;
                         long now = System.currentTimeMillis();
-                        if (now - lastProgressUpdate > 150) {
+                        if (now - lastProgressUpdate > 120) {
                             lastProgressUpdate = now;
                             int percent = totalBytes > 0 ? (int) ((downloadedBytes * 100) / totalBytes) : 50;
-                            postOtaProgress(Math.min(98, percent), downloadedBytes, totalBytes > 0 ? totalBytes : downloadedBytes);
+                            postOtaProgress(Math.min(99, percent), downloadedBytes, totalBytes > 0 ? totalBytes : downloadedBytes);
                         }
                     }
                     out.flush();
 
-                    // Verify APK integrity: size must be at least 10 MB and valid package
-                    if (targetFile.exists() && targetFile.length() > 10000000) {
-                        android.content.pm.PackageInfo info = getPackageManager().getPackageArchiveInfo(targetFile.getAbsolutePath(), 0);
-                        if (info != null) {
-                            postOtaProgress(100, targetFile.length(), targetFile.length());
+                    // CRUCIAL: Close streams immediately to release file lock
+                    try { out.close(); } catch (Exception ignored) {}
+                    out = null;
+                    try { in.close(); } catch (Exception ignored) {}
+                    in = null;
+                    try { conn.disconnect(); } catch (Exception ignored) {}
+                    conn = null;
 
-                            // Launch native Package Installer via FileProvider
-                            final File finalFile = targetFile;
-                            new Handler(Looper.getMainLooper()).post(() -> {
-                                try {
-                                    Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
-                                        MainActivity.this,
-                                        getPackageName() + ".fileprovider",
-                                        finalFile
-                                    );
-                                    Intent install = new Intent(Intent.ACTION_VIEW);
-                                    install.setDataAndType(apkUri, "application/vnd.android.package-archive");
-                                    install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                    install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(install);
-                                } catch (Exception ex) {
-                                    ex.printStackTrace();
-                                    fallbackBrowserDownload(urlString);
+                    // Ensure target file is world readable for system package installer
+                    targetFile.setReadable(true, false);
+
+                    // Verify APK integrity: size must be at least 5 MB and valid package
+                    boolean isValidApk = false;
+                    if (targetFile.exists() && targetFile.length() > 5000000) {
+                        try {
+                            PackageInfo info = getPackageManager().getPackageArchiveInfo(targetFile.getAbsolutePath(), 0);
+                            if (info != null) {
+                                isValidApk = true;
+                            }
+                        } catch (Exception ignored) {}
+
+                        // Fallback verification via ZipFile (works for all signing schemes & modern Android platforms)
+                        if (!isValidApk) {
+                            ZipFile zip = null;
+                            try {
+                                zip = new ZipFile(targetFile);
+                                if (zip.getEntry("AndroidManifest.xml") != null) {
+                                    isValidApk = true;
                                 }
-                            });
-                            return;
+                            } catch (Exception ignored) {
+                            } finally {
+                                if (zip != null) {
+                                    try { zip.close(); } catch (Exception ignored) {}
+                                }
+                            }
                         }
+                    }
+
+                    if (isValidApk) {
+                        postOtaProgress(100, targetFile.length(), targetFile.length());
+
+                        // Launch native Package Installer via FileProvider
+                        final File finalFile = targetFile;
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            launchApkInstaller(finalFile);
+                        });
+                        return;
                     }
 
                     // If file was corrupt or incomplete, fallback to browser
@@ -754,7 +870,7 @@ public class MainActivity extends BridgeActivity {
                     browser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(browser);
                 } catch (Exception ignored) {}
-                postOtaProgress(100, 100, 100);
+                postOtaProgress(-1, 0, 0);
             });
         }
 
