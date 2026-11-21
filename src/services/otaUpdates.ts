@@ -10,26 +10,26 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.2.6';
-export const LATEST_RELEASE_VERSION_CODE = 202600;
+export const LATEST_RELEASE_VERSION_NAME = '2.2.7';
+export const LATEST_RELEASE_VERSION_CODE = 202700;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-21',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Multi-Audio Dub Playback & 120Hz Smoothness Overhaul`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Direct In-App OTA Installer & Multi-Audio Dub Overhaul`,
   changelog: [
+    'Fixed In-App OTA Update Installation: Resolved package installer permission (REQUEST_INSTALL_PACKAGES), eliminated file locks, and added seamless unknown sources permission recovery',
     'Fixed Multi-Language Audio Dub Playback: Complete multi-audio streaming routing with in-player track switching (Tamil, Telugu, Hindi, Malayalam, Kannada, English) across VidLink, SuperEmbed, 2Embed, and 123Embed',
     '120Hz Ultra Butter-Smooth Refresh: Enabled native Android 120Hz display refresh mode (preferredDisplayModeId) & window hardware acceleration for fluid 120fps scrolling',
     'Zero-Stutter Performance: Optimized card rendering, isolated layout containment, and async GPU rasterization across all carousels',
-    'Seamless Audio Switching: Eliminated iframe teardown lag on audio track change with real-time postMessage and exact second timestamp sync',
-    'Verified Live Streaming Mirrors: Replaced failing servers with 100% online, unblocked mirrors (123Embed, SuperEmbed, VidLink, AutoEmbed, 2Embed)',
+    'Live In-App Download Progress: Added real-time percent progress bar and package installer launching status in Settings and OTA modal',
     '100% Google Play Protect Certified Safe: Official release keystore and APK Signature Scheme v2 verified'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.2.5'
+  currentVersion: '2.2.6'
 };
 
 const VERSION_MIRRORS = [

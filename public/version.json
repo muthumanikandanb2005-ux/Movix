@@ -1,18 +1,18 @@
 {
-  "versionName": "2.2.6",
-  "versionCode": 202600,
-  "releaseDate": "2026-11-18",
-  "title": "Movix v2.2.6 - BoardUI Player, Instant Regional Audio Switching & Multi-Server Dubs",
+  "versionName": "2.2.7",
+  "versionCode": 202700,
+  "releaseDate": "2026-11-21",
+  "title": "Movix v2.2.7 - Direct In-App OTA Installer & Multi-Audio Dub Overhaul",
   "changelog": [
+    "Fixed In-App OTA Update Installation: Resolved package installer permission (REQUEST_INSTALL_PACKAGES), eliminated file locks, and added seamless unknown sources permission recovery",
     "Fixed Multi-Language Audio Dub Playback: Complete multi-audio streaming routing with in-player track switching (Tamil, Telugu, Hindi, Malayalam, Kannada, English) across VidLink, SuperEmbed, 2Embed, and 123Embed",
     "120Hz Ultra Butter-Smooth Refresh: Enabled native Android 120Hz display refresh mode (preferredDisplayModeId) & window hardware acceleration for fluid 120fps scrolling",
     "Zero-Stutter Performance: Optimized card rendering, isolated layout containment, and async GPU rasterization across all carousels",
-    "Seamless Audio Switching: Eliminated iframe teardown lag on audio track change with real-time postMessage and exact second timestamp sync",
-    "Verified Live Streaming Mirrors: Replaced failing servers with 100% online, unblocked mirrors (123Embed, SuperEmbed, VidLink, AutoEmbed, 2Embed)",
+    "Live In-App Download Progress: Added real-time percent progress bar and package installer launching status in Settings and OTA modal",
     "100% Google Play Protect Certified Safe: Official release keystore and APK Signature Scheme v2 verified"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.6/movix-app-v2.2.6.apk",
-  "downloadUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.6/movix-app-v2.2.6.apk",
-  "rawApkUrl": "https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v2.2.6.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.7/movix-app-v2.2.7.apk",
+  "downloadUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.7/movix-app-v2.2.7.apk",
+  "rawApkUrl": "https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v2.2.7.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }
