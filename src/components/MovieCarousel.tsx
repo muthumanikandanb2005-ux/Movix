@@ -50,7 +50,7 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = memo(({
           <div
             key={movie.id}
             onClick={() => onSelectMovie(movie)}
-            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+            style={{ transform: 'translate3d(0,0,0)', willChange: 'transform', contain: 'content' }}
             className={`flex-shrink-0 aspect-[2/3] rounded-2xl overflow-hidden relative cursor-pointer group bg-[#121622] transition-transform duration-150 active:scale-95 shadow-lg border border-white/10 group-hover:border-white/25 ${
               showRank ? 'w-[105px] sm:w-[125px]' : 'w-[132px] sm:w-[155px]'
             }`}
@@ -87,12 +87,12 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = memo(({
             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
             
             {/* Quality badge on Top-Left */}
-            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-black/80 backdrop-blur-md text-white shadow-md border border-white/20">
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-black/90 text-white shadow-md border border-white/20">
               4K UHD
             </div>
 
             {/* Rating badge on Top-Right */}
-            <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-md text-[9px] font-bold text-amber-400 border border-white/10">
+            <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/90 text-[9px] font-bold text-amber-400 border border-white/10 shadow-md">
               ★ {movie.rating.toFixed(1)}
             </div>
 

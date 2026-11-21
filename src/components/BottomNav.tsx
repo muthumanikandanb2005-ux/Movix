@@ -14,7 +14,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   myListCount 
 }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#080A0F]/95 border-t border-white/[0.08] backdrop-blur-2xl px-6 pt-2 pb-2 safe-bottom select-none shadow-[0_-4px_24px_rgba(0,0,0,0.6)]">
+    <nav style={{ transform: 'translateZ(0)' }} className="fixed bottom-0 left-0 right-0 z-40 bg-[#080A0F]/95 border-t border-white/[0.08] backdrop-blur-2xl px-6 pt-2 pb-2 safe-bottom select-none shadow-[0_-4px_24px_rgba(0,0,0,0.6)]">
       <div className="flex items-center justify-between max-w-md mx-auto">
         {/* Home Tab */}
         <button

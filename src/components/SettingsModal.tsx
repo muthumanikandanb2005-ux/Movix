@@ -294,7 +294,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.03] border border-white/10">
                   <div className="pr-3">
                     <span className="text-xs font-bold block text-white">Hardware GPU Acceleration</span>
-                    <span className="text-[10px] text-white/50">60 FPS smooth video decoding & rendering</span>
+                    <span className="text-[10px] text-white/50">120 FPS fluid video decoding & 90/120Hz refresh</span>
                   </div>
                   <button
                     onClick={handleToggleHw}

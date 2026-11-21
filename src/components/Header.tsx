@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between safe-header pb-3 pt-2.5 px-4 sm:px-6 bg-[#080A0F]/90 backdrop-blur-xl border-b border-white/[0.08] transition-all">
+    <header style={{ transform: 'translateZ(0)' }} className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between safe-header pb-3 pt-2.5 px-4 sm:px-6 bg-[#080A0F]/90 backdrop-blur-xl border-b border-white/[0.08] transition-all">
       {/* Brand Logo with 3D M Icon */}
       <div 
         onClick={handleLogoTap}

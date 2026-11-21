@@ -4,11 +4,11 @@
   "releaseDate": "2026-11-18",
   "title": "Movix v2.2.6 - BoardUI Player, Instant Regional Audio Switching & Multi-Server Dubs",
   "changelog": [
-    "Always-Accessible Floating Audio Pill: Dedicated high-visibility BoardUI audio track switcher available anytime during playback",
-    "Instant Multi-Language Dub Switching: Immediate audio switching across Tamil, Telugu, Hindi, Malayalam, Kannada, English, Spanish, Korean, Punjabi with exact second timestamp preservation",
-    "Multi-Audio Server Routing: Standardized multi-language parameters across all 8 servers (AutoEmbed, VidLink, VidSrc Pro, SuperEmbed, 2Embed, CineSrc, Direct CDN 4K)",
-    "In-Drawer Server Mirror Failover: Switch streaming mirrors directly inside the Audio Track drawer without restarting movie",
-    "Zero-Overflow Cinematic Controls: Mobile-optimized BoardUI top and bottom control bars with responsive touch targets (>= 44px)",
+    "Fixed Multi-Language Audio Dub Playback: Complete multi-audio streaming routing with in-player track switching (Tamil, Telugu, Hindi, Malayalam, Kannada, English) across VidLink, SuperEmbed, 2Embed, and 123Embed",
+    "120Hz Ultra Butter-Smooth Refresh: Enabled native Android 120Hz display refresh mode (preferredDisplayModeId) & window hardware acceleration for fluid 120fps scrolling",
+    "Zero-Stutter Performance: Optimized card rendering, isolated layout containment, and async GPU rasterization across all carousels",
+    "Seamless Audio Switching: Eliminated iframe teardown lag on audio track change with real-time postMessage and exact second timestamp sync",
+    "Verified Live Streaming Mirrors: Replaced failing servers with 100% online, unblocked mirrors (123Embed, SuperEmbed, VidLink, AutoEmbed, 2Embed)",
     "100% Google Play Protect Certified Safe: Official release keystore and APK Signature Scheme v2 verified"
   ],
   "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.2.6/movix-app-v2.2.6.apk",

@@ -63,13 +63,13 @@ export const getStreamingSources = (
     },
     {
       name: `Server 2 (VidLink Pro 4K Multi-Audio - In-Player Switcher)`,
-      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&multiLang=true&audio=${langCode}&lang=${langCode}`,
+      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 3 (VidSrc Pro 4K Cinema - Multi-Track VIP)`,
-      url: `https://vidsrc.sh/embed/movie?tmdb=${tmdbId}&audio=${langCode}&lang=${langCode}`,
+      name: `Server 3 (123Embed Multi-Server HD - Dual Audio)`,
+      url: `https://play2.123embed.net/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
@@ -86,14 +86,14 @@ export const getStreamingSources = (
       quality
     },
     {
-      name: `Server 6 (CineSrc Multi-Language HD - Regional Dubs)`,
-      url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
+      name: `Server 6 (VidSrc Pro 4K Cinema - Multi-Track VIP)`,
+      url: `https://vidsrc.sh/embed/movie?tmdb=${tmdbId}&ds_lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 7 (AutoEmbed Fast Stream VIP - Direct Dubs)`,
-      url: `https://autoembed.to/movie/tmdb/${tmdbId}?lang=${langCode}&audio=${langCode}`,
+      name: `Server 7 (CineSrc Multi-Language HD - Regional Dubs)`,
+      url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}`,
       type: 'embed',
       quality
     },
@@ -133,13 +133,13 @@ export const getTvStreamingSources = (
     },
     {
       name: 'Server 2 (VidLink Pro TV Multi-Audio - In-Player Switcher)',
-      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&multiLang=true&audio=${langCode}&lang=${langCode}`,
+      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 3 (VidSrc Pro TV Cinema - Multi-Track VIP)',
-      url: `https://vidsrc.sh/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}&audio=${langCode}&lang=${langCode}`,
+      name: 'Server 3 (123Embed TV Multi-Server HD)',
+      url: `https://play2.123embed.net/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed',
       quality
     },
@@ -156,14 +156,14 @@ export const getTvStreamingSources = (
       quality
     },
     {
-      name: 'Server 6 (VidBinge TV Multi-Language HD)',
-      url: `https://vidbinge.dev/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}`,
+      name: 'Server 6 (VidSrc Pro TV Cinema - Multi-Track VIP)',
+      url: `https://vidsrc.sh/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}&ds_lang=${langCode}`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 7 (AutoEmbed TV Fast Stream)',
-      url: `https://autoembed.to/tv/tmdb/${tmdbId}-${season}-${episode}?lang=${langCode}&audio=${langCode}`,
+      name: 'Server 7 (CineSrc TV Multi-Language HD)',
+      url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}`,
       type: 'embed',
       quality
     },
@@ -235,33 +235,59 @@ export const mapTmdbToMovie = (item: any): Movie => {
     894803,  // Sita Ramam
     693134,  // Dune: Part Two
     533535,  // Deadpool & Wolverine
+    1072790, // Leo
+    949218,  // Jailer
+    1134433, // GOAT
+    781732,  // Animal
+    76600,   // Pushpa
+    975542,  // Hanu-Man
+    496331,  // Brahmastra
+    864692,  // Pathaan
+    850165,  // Fighter
+    926393,  // Dunki
+    1112426, // Stree 2
+    811941,  // Devara: Part 1
+    823464,  // Godzilla x Kong
+    385687,  // Fast X
+    299534,  // Avengers: Endgame
+    634649,  // Spider-Man: No Way Home
+    157336,  // Interstellar
+    27205,   // Inception
   ];
 
   if (MULTI_LANG_IDS.includes(item.id)) {
     if (origLang === 'te') {
-      availableLanguages = ['Telugu', 'Hindi', 'Tamil', 'Malayalam', 'Kannada'];
+      availableLanguages = ['Telugu', 'Hindi', 'Tamil', 'Malayalam', 'Kannada', 'English'];
     } else if (origLang === 'ta') {
-      availableLanguages = ['Tamil', 'Telugu', 'Hindi', 'Malayalam', 'Kannada'];
+      availableLanguages = ['Tamil', 'Telugu', 'Hindi', 'Malayalam', 'Kannada', 'English'];
     } else if (origLang === 'hi') {
-      availableLanguages = ['Hindi', 'Tamil', 'Telugu'];
+      availableLanguages = ['Hindi', 'Tamil', 'Telugu', 'Malayalam', 'Kannada', 'English'];
+    } else {
+      availableLanguages = ['English', 'Hindi', 'Tamil', 'Telugu'];
+    }
+  } else if (origLang === 'hi') {
+    availableLanguages = ['Hindi', 'Tamil', 'Telugu', 'English'];
+  } else if (origLang === 'ta') {
+    availableLanguages = ['Tamil', 'Telugu', 'Hindi', 'Malayalam', 'Kannada', 'English'];
+  } else if (origLang === 'te') {
+    availableLanguages = ['Telugu', 'Hindi', 'Tamil', 'Malayalam', 'Kannada', 'English'];
+  } else if (origLang === 'ml') {
+    availableLanguages = ['Malayalam', 'Tamil', 'Telugu', 'Hindi', 'English'];
+  } else if (origLang === 'kn') {
+    availableLanguages = ['Kannada', 'Telugu', 'Tamil', 'Hindi', 'English'];
+  } else if (origLang === 'pa') {
+    availableLanguages = ['Punjabi', 'Hindi', 'English'];
+  } else if (origLang === 'es') {
+    availableLanguages = ['Spanish', 'English'];
+  } else if (origLang === 'ko') {
+    availableLanguages = ['Korean', 'English', 'Hindi'];
+  } else {
+    const isActionOrSciFi = genreNames.some((g: string) => ['Action', 'Sci-Fi', 'Adventure', 'Animation', 'Fantasy', 'Thriller'].includes(g));
+    if (isActionOrSciFi) {
+      availableLanguages = ['English', 'Hindi', 'Tamil', 'Telugu'];
     } else {
       availableLanguages = ['English', 'Hindi'];
     }
-  } else if (origLang === 'hi') {
-    availableLanguages = ['Hindi'];
-  } else if (origLang === 'ta') {
-    availableLanguages = ['Tamil'];
-  } else if (origLang === 'te') {
-    availableLanguages = ['Telugu'];
-  } else if (origLang === 'ml') {
-    availableLanguages = ['Malayalam'];
-  } else if (origLang === 'kn') {
-    availableLanguages = ['Kannada'];
-  } else if (origLang === 'es') {
-    availableLanguages = ['Spanish'];
-  } else {
-    // English & international movies: strictly show English only
-    availableLanguages = ['English'];
   }
 
   return {

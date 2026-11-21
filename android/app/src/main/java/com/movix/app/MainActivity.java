@@ -68,6 +68,35 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Hardware accelerated window flags for butter-smooth 120fps rendering
+        try {
+            getWindow().setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+            );
+        } catch (Exception ignored) {}
+
+        // Enable maximum display refresh rate (90Hz / 120Hz / 144Hz) for ultra butter-smooth fluid animations
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            try {
+                android.view.Display display = getDisplay();
+                if (display != null) {
+                    android.view.Display.Mode[] modes = display.getSupportedModes();
+                    android.view.Display.Mode maxMode = null;
+                    for (android.view.Display.Mode mode : modes) {
+                        if (maxMode == null || mode.getRefreshRate() > maxMode.getRefreshRate()) {
+                            maxMode = mode;
+                        }
+                    }
+                    if (maxMode != null && maxMode.getRefreshRate() >= 60.0f) {
+                        android.view.WindowManager.LayoutParams params = getWindow().getAttributes();
+                        params.preferredDisplayModeId = maxMode.getModeId();
+                        getWindow().setAttributes(params);
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
         // Enable complete display cutout adaptation (flat, curved, dynamic island, mini capsule, drop notch, punch hole)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             try {
@@ -96,6 +125,10 @@ public class MainActivity extends BridgeActivity {
             webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
             webSettings.setJavaScriptCanOpenWindowsAutomatically(false);
             webSettings.setSupportMultipleWindows(false);
+            try {
+                webSettings.setRenderPriority(WebSettings.RenderPriority.HIGH);
+                webSettings.setEnableSmoothTransition(true);
+            } catch (Exception ignored) {}
 
             // Enable third-party cookies for cross-origin media streaming tokens & iframes
             try {
@@ -104,8 +137,10 @@ public class MainActivity extends BridgeActivity {
                 cookieManager.setAcceptThirdPartyCookies(webView, true);
             } catch (Exception ignored) {}
             
-            // Enable hardware acceleration for butter-smooth 60fps video streaming
+            // Enable hardware acceleration for butter-smooth 60fps/120fps video streaming & smooth scrolling
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+            webView.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
             
             // Expose JavaScript bridge for web layer
             webView.addJavascriptInterface(new AdMobBridge(), "AndroidAdMob");

@@ -984,6 +984,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const getIframeSrc = (baseUrl: string, startTime: number = 0) => {
     if (startTime <= 5) return baseUrl;
     const sep = baseUrl.includes('?') ? '&' : '?';
+    if (baseUrl.includes('vidlink.pro')) {
+      return `${baseUrl}${sep}startAt=${Math.floor(startTime)}`;
+    }
     return `${baseUrl}${sep}start=${Math.floor(startTime)}&t=${Math.floor(startTime)}`;
   };
 
@@ -1369,7 +1372,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <div className="flex items-center justify-between text-[11px] font-bold text-white/80 mb-2">
               <span className="flex items-center space-x-1.5">
                 <Server className="w-3 h-3 text-[#E50914]" />
-                <span>Audio Stream Mirror:</span>
+                <span>Multi-Audio Server Switcher:</span>
               </span>
               <span className="text-[10px] text-cyan-400 font-mono">
                 Active: S{activeSourceIndex + 1}
@@ -1390,13 +1393,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                     });
                     setTimeout(() => setGestureOsd(null), 1500);
                   }}
-                  className={`py-1.5 px-1 rounded-xl text-[10px] font-bold text-center transition-all ${
+                  className={`py-2 px-1 rounded-xl text-[10px] font-bold text-center transition-all ${
                     activeSourceIndex === idx
-                      ? 'bg-[#E50914] text-white shadow-md ring-1 ring-white/30'
-                      : 'bg-white/5 hover:bg-white/10 text-white/70'
+                      ? 'bg-gradient-to-r from-[#E50914] to-[#FF2E43] text-white shadow-md ring-2 ring-white/30'
+                      : 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/10'
                   }`}
                 >
-                  S{idx + 1} {idx === 0 ? 'Auto' : idx === 1 ? 'VidLink' : idx === 2 ? 'VidSrc' : idx === 5 ? 'Cine' : ''}
+                  S{idx + 1} {idx === 0 ? 'Auto' : idx === 1 ? 'VidLink' : idx === 2 ? '123' : idx === 3 ? 'Super' : idx === 4 ? '2Embed' : idx === 5 ? 'VidSrc' : idx === 6 ? 'Cine' : 'CDN'}
                 </button>
               ))}
             </div>
@@ -1406,8 +1409,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           <div className="mt-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10 text-[11px] text-white/70 flex items-start space-x-2">
             <Sparkles className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-white block">Smooth Audio Switching</span>
-              <span>Audio changes smoothly with exact timestamp preservation. If a specific regional dub is loading slowly, tap S2 (VidLink) or S6 (CineSrc) above.</span>
+              <span className="font-bold text-white block">Multi-Audio & Dubbed Streams</span>
+              <span>For movies with regional audio dubs (Tamil, Telugu, Hindi, Malayalam), Server 2 (VidLink) & Server 4 (SuperEmbed) support instant in-player audio track switching via the player's ⚙️ gear icon.</span>
             </div>
           </div>
         </div>
@@ -1905,7 +1908,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
             ref={iframeRef}
-            key={`player-embed-${activeSourceIndex}-${mid}-${currentLanguage}`}
+            key={`player-embed-${activeSourceIndex}-${mid}`}
             src={getIframeSrc(currentSource.url, savedPlaybackTimeRef.current)}
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
