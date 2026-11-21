@@ -228,11 +228,31 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               onClick={() => {
                 const androidAdMob = (window as any).AndroidAdMob;
                 if (androidAdMob && typeof androidAdMob.showRewardedAd === 'function') {
+                  const launchPlay = () => {
+                    window.removeEventListener('admob:dismissed', launchPlay);
+                    window.removeEventListener('admob:rewarded', launchPlay);
+                    onPlay({ ...movie, videoUrl: sources[0].url });
+                  };
+                  window.addEventListener('admob:dismissed', launchPlay, { once: true });
+                  window.addEventListener('admob:rewarded', launchPlay, { once: true });
                   androidAdMob.showRewardedAd();
+                  setTimeout(() => {
+                    window.removeEventListener('admob:dismissed', launchPlay);
+                    window.removeEventListener('admob:rewarded', launchPlay);
+                  }, 12000);
                 } else if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
+                  const launchPlay = () => {
+                    window.removeEventListener('admob:dismissed', launchPlay);
+                    onPlay({ ...movie, videoUrl: sources[0].url });
+                  };
+                  window.addEventListener('admob:dismissed', launchPlay, { once: true });
                   androidAdMob.showInterstitialAd();
+                  setTimeout(() => {
+                    window.removeEventListener('admob:dismissed', launchPlay);
+                  }, 12000);
+                } else {
+                  onPlay({ ...movie, videoUrl: sources[0].url });
                 }
-                onPlay({ ...movie, videoUrl: sources[0].url });
               }}
               className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-red-500/20 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/30 border border-amber-500/40 text-white font-bold text-xs flex items-center justify-between shadow-lg active:scale-95 transition-all group"
             >

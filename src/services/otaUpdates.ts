@@ -10,26 +10,26 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.2.7';
-export const LATEST_RELEASE_VERSION_CODE = 202700;
+export const LATEST_RELEASE_VERSION_NAME = '2.2.8';
+export const LATEST_RELEASE_VERSION_CODE = 202800;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-21',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Direct In-App OTA Installer & Multi-Audio Dub Overhaul`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Fullscreen Custom View, Zero Lag & Clean Ad Playback`,
   changelog: [
-    'Fixed In-App OTA Update Installation: Resolved package installer permission (REQUEST_INSTALL_PACKAGES), eliminated file locks, and added seamless unknown sources permission recovery',
-    'Fixed Multi-Language Audio Dub Playback: Complete multi-audio streaming routing with in-player track switching (Tamil, Telugu, Hindi, Malayalam, Kannada, English) across VidLink, SuperEmbed, 2Embed, and 123Embed',
-    '120Hz Ultra Butter-Smooth Refresh: Enabled native Android 120Hz display refresh mode (preferredDisplayModeId) & window hardware acceleration for fluid 120fps scrolling',
-    'Zero-Stutter Performance: Optimized card rendering, isolated layout containment, and async GPU rasterization across all carousels',
-    'Live In-App Download Progress: Added real-time percent progress bar and package installer launching status in Settings and OTA modal',
-    '100% Google Play Protect Certified Safe: Official release keystore and APK Signature Scheme v2 verified'
+    'Fixed Fullscreen Playback in WebView: Added native WebChromeClient custom view handling (onShowCustomView/onHideCustomView) with seamless landscape rotation and immersive sticky mode for AutoEmbed, VidLink, SuperEmbed, 123Embed, and direct video',
+    'Eliminated All App Lag: Optimized AdMob banner loop to 60s single-timer cadence, canceled background refresh on pause and player open, and eliminated layout thrashing',
+    'Proper Advertisement Playback: Completely separated Google AdMob native interstitial ads from web video playback, eliminating dual audio tracks and freezing',
+    'Bottom Control Bar & 1-Tap Rotate on All Streams: Fullscreen, Screen Rotate, Aspect Ratio, and Audio Track buttons are now accessible on all stream sources (embeds and direct video)',
+    'Direct In-App OTA Update Installer: 1-tap in-app package installer launch with real-time download percentage progress',
+    '100% Google Play Protect Certified Safe: Scheme v2 verified signature with instant launch performance'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.2.6'
+  currentVersion: '2.2.7'
 };
 
 const VERSION_MIRRORS = [

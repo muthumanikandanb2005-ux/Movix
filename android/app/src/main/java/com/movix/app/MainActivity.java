@@ -15,6 +15,7 @@ import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -59,14 +60,18 @@ public class MainActivity extends BridgeActivity {
     private AdView mAdView;
     private boolean isAdLoading = false;
     private boolean isVideoPlayerOpen = false;
+    private View mCustomView;
+    private WebChromeClient.CustomViewCallback mCustomViewCallback;
+    private FrameLayout mFullscreenContainer;
     private final Handler mBannerRefreshHandler = new Handler(Looper.getMainLooper());
     private final Runnable mBannerRefreshRunnable = new Runnable() {
         @Override
         public void run() {
-            if (mAdView != null && !isVideoPlayerOpen && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (mAdView != null && !isVideoPlayerOpen && mCustomView == null
+                    && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                 mAdView.loadAd(new AdRequest.Builder().build());
             }
-            mBannerRefreshHandler.postDelayed(this, 30000);
+            mBannerRefreshHandler.postDelayed(this, 60000);
         }
     };
 
@@ -116,6 +121,19 @@ public class MainActivity extends BridgeActivity {
             getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
         } catch (Exception ignored) {}
 
+        // Set up dedicated fullscreen container for HTML5 & iframe fullscreen video playback
+        try {
+            mFullscreenContainer = new FrameLayout(this);
+            mFullscreenContainer.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ));
+            mFullscreenContainer.setBackgroundColor(android.graphics.Color.BLACK);
+            mFullscreenContainer.setVisibility(View.GONE);
+            ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+            decor.addView(mFullscreenContainer);
+        } catch (Exception ignored) {}
+
         // Configure WebView for butter-smooth streaming & flawless landscape orientation
         if (getBridge() != null && getBridge().getWebView() != null) {
             WebView webView = getBridge().getWebView();
@@ -153,11 +171,22 @@ public class MainActivity extends BridgeActivity {
             webView.addJavascriptInterface(new AdMobBridge(), "AndroidAdMob");
 
             // Strictly intercept & block rogue ad popups/new windows from escaping to Google Chrome
+            // AND enable native Android fullscreen custom view for AutoEmbed, VidLink, SuperEmbed, etc.
             webView.setWebChromeClient(new BridgeWebChromeClient(getBridge()) {
                 @Override
                 public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
                     // Strictly block popup windows from opening Chrome or spawning extra WebViews in memory
                     return false;
+                }
+
+                @Override
+                public void onShowCustomView(View view, CustomViewCallback callback) {
+                    showCustomView(view, callback);
+                }
+
+                @Override
+                public void onHideCustomView() {
+                    hideCustomView();
                 }
             });
 
@@ -266,6 +295,87 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
+    private void showCustomView(View view, WebChromeClient.CustomViewCallback callback) {
+        if (mCustomView != null) {
+            callback.onCustomViewHidden();
+            return;
+        }
+
+        runOnUiThread(() -> {
+            mCustomView = view;
+            mCustomViewCallback = callback;
+
+            if (mBannerRefreshHandler != null) {
+                mBannerRefreshHandler.removeCallbacksAndMessages(null);
+            }
+            if (mAdView != null) {
+                mAdView.setVisibility(View.GONE);
+            }
+
+            WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+            if (webView != null) {
+                webView.setVisibility(View.INVISIBLE);
+            }
+
+            if (mFullscreenContainer != null) {
+                mFullscreenContainer.removeAllViews();
+                mFullscreenContainer.addView(view, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                ));
+                mFullscreenContainer.setVisibility(View.VISIBLE);
+            }
+
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            enableImmersiveMode();
+        });
+    }
+
+    private void hideCustomView() {
+        if (mCustomView == null) return;
+
+        runOnUiThread(() -> {
+            if (mFullscreenContainer != null) {
+                mFullscreenContainer.removeAllViews();
+                mFullscreenContainer.setVisibility(View.GONE);
+            }
+            mCustomView = null;
+
+            if (mCustomViewCallback != null) {
+                try {
+                    mCustomViewCallback.onCustomViewHidden();
+                } catch (Exception ignored) {}
+                mCustomViewCallback = null;
+            }
+
+            WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+            if (webView != null) {
+                webView.setVisibility(View.VISIBLE);
+            }
+
+            if (!isVideoPlayerOpen) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                disableImmersiveMode();
+                if (mAdView != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    mAdView.setVisibility(View.VISIBLE);
+                    mBannerRefreshHandler.removeCallbacksAndMessages(null);
+                    mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 60000);
+                }
+            } else {
+                enableImmersiveMode();
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mCustomView != null) {
+            hideCustomView();
+            return;
+        }
+        super.onBackPressed();
+    }
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -319,6 +429,9 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onPause() {
         super.onPause();
+        if (mBannerRefreshHandler != null) {
+            mBannerRefreshHandler.removeCallbacksAndMessages(null);
+        }
         if (mAdView != null) {
             mAdView.pause();
         }
@@ -396,6 +509,10 @@ public class MainActivity extends BridgeActivity {
         if (mAdView != null) {
             mAdView.resume();
         }
+        if (!isVideoPlayerOpen && mCustomView == null && mBannerRefreshHandler != null) {
+            mBannerRefreshHandler.removeCallbacksAndMessages(null);
+            mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 60000);
+        }
         if (pendingInstallApk != null && pendingInstallApk.exists()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (getPackageManager().canRequestPackageInstalls()) {
@@ -409,6 +526,12 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onDestroy() {
+        if (mBannerRefreshHandler != null) {
+            mBannerRefreshHandler.removeCallbacksAndMessages(null);
+        }
+        if (mCustomView != null) {
+            hideCustomView();
+        }
         if (mAdView != null) {
             mAdView.destroy();
             mAdView = null;
@@ -522,7 +645,8 @@ public class MainActivity extends BridgeActivity {
                     @Override
                     public void onAdLoaded() {
                         super.onAdLoaded();
-                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT && !isVideoPlayerOpen) {
+                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT 
+                                && !isVideoPlayerOpen && mCustomView == null) {
                             mAdView.setVisibility(View.VISIBLE);
                         } else {
                             mAdView.setVisibility(View.GONE);
@@ -532,11 +656,7 @@ public class MainActivity extends BridgeActivity {
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError error) {
                         super.onAdFailedToLoad(error);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (mAdView != null && !isVideoPlayerOpen) {
-                                mAdView.loadAd(new AdRequest.Builder().build());
-                            }
-                        }, 30000);
+                        // Handled smoothly by recurring mBannerRefreshRunnable without spawning runaway threads
                     }
                 });
 
@@ -547,8 +667,8 @@ public class MainActivity extends BridgeActivity {
 
                 AdRequest adRequest = new AdRequest.Builder().build();
                 mAdView.loadAd(adRequest);
-                mBannerRefreshHandler.removeCallbacks(mBannerRefreshRunnable);
-                mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 30000);
+                mBannerRefreshHandler.removeCallbacksAndMessages(null);
+                mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 60000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -570,8 +690,11 @@ public class MainActivity extends BridgeActivity {
                 if (mInterstitialAd != null) {
                     mInterstitialAd.show(MainActivity.this);
                 } else if (mRewardedAd != null) {
-                    mRewardedAd.show(MainActivity.this, rewardItem -> {});
+                    mRewardedAd.show(MainActivity.this, rewardItem -> {
+                        notifyWebAdDismissed();
+                    });
                 } else {
+                    notifyWebAdDismissed();
                     loadInterstitialAd();
                     loadRewardedAd();
                 }
@@ -604,6 +727,9 @@ public class MainActivity extends BridgeActivity {
             new Handler(Looper.getMainLooper()).post(() -> {
                 isVideoPlayerOpen = active;
                 if (active) {
+                    if (mBannerRefreshHandler != null) {
+                        mBannerRefreshHandler.removeCallbacksAndMessages(null);
+                    }
                     if (mAdView != null) {
                         mAdView.setVisibility(View.GONE);
                     }
@@ -621,7 +747,24 @@ public class MainActivity extends BridgeActivity {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                     if (mAdView != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                         mAdView.setVisibility(View.VISIBLE);
+                        if (mBannerRefreshHandler != null) {
+                            mBannerRefreshHandler.removeCallbacksAndMessages(null);
+                            mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 60000);
+                        }
                     }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void toggleFullscreen() {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    disableImmersiveMode();
+                } else {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                    enableImmersiveMode();
                 }
             });
         }
@@ -892,7 +1035,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.2.7";
+                return "2.2.8";
             }
         }
 
@@ -901,7 +1044,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 202700;
+                return 202800;
             }
         }
     }

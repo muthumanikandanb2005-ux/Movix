@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  X, Play, Pause, Volume2, VolumeX, Volume1, Maximize, RotateCcw, RotateCw, 
+  X, Play, Pause, Volume2, VolumeX, Volume1, Maximize, RotateCcw, RotateCw, RefreshCw,
   Server, Lock, Unlock, Sun, SunMedium, Gauge, Scan, Check, Languages, Globe, AlertCircle, Smartphone,
   SlidersHorizontal, Clock, Sparkles, Tv, Keyboard, Share2, CheckCheck
 } from 'lucide-react';
@@ -769,17 +769,33 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   const toggleFullScreen = () => {
     const androidAdMob = (window as any).AndroidAdMob;
-    if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
-      toggleOrientation();
-      return;
-    }
     const el = containerRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
+
+    if (isLandscape || document.fullscreenElement) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+      if (androidAdMob && typeof androidAdMob.setPortrait === 'function') {
+        androidAdMob.setPortrait();
+      } else if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        try { screen.orientation.unlock(); } catch {}
+      }
+      setIsLandscape(false);
+      setGestureOsd({ type: 'info', value: 'Portrait View', icon: '📱' });
     } else {
-      el.requestFullscreen().catch(() => {});
+      if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
+        androidAdMob.setLandscape();
+      } else if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
+        try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
+      }
+      if (el && el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {});
+      }
+      setIsLandscape(true);
+      setGestureOsd({ type: 'info', value: 'Cinema Fullscreen', icon: '⛶' });
     }
+    setTimeout(() => setGestureOsd(null), 1200);
+    resetControlsTimeout();
   };
 
   // Desktop Web Player Mouse Movement & Auto-Hide Cursor
@@ -1155,16 +1171,28 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <span>{currentQuality}</span>
           </button>
 
-          {/* 3. 1-Tap Screen Rotate (Desktop/Tablet) */}
+          {/* 3. 1-Tap Screen Rotate (Mobile + Tablet/Desktop) */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               toggleOrientation();
             }}
-            className="hidden sm:flex p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 flex-shrink-0"
+            className="flex p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 flex-shrink-0"
             title={isLandscape ? "Switch to Portrait" : "Rotate to Landscape"}
           >
             <RotateCw className="w-4 h-4 text-white" />
+          </button>
+
+          {/* 3.0 1-Tap Fullscreen (Mobile + Tablet/Desktop) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFullScreen();
+            }}
+            className="flex p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 flex-shrink-0"
+            title="Toggle Fullscreen"
+          >
+            <Maximize className="w-4 h-4 text-white" />
           </button>
 
           {/* 3.1 Desktop Theater Mode Toggle (Windows & Mac) */}
@@ -2079,11 +2107,33 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                if (videoRef.current && !videoRef.current.paused) {
+                  try { videoRef.current.pause(); } catch {}
+                }
                 const androidAdMob = (window as any).AndroidAdMob;
                 if (androidAdMob && typeof androidAdMob.showRewardedAd === 'function') {
+                  const onAdFinished = () => {
+                    window.removeEventListener('admob:dismissed', onAdFinished);
+                    window.removeEventListener('admob:rewarded', onAdFinished);
+                    if (videoRef.current) videoRef.current.play().catch(() => {});
+                  };
+                  window.addEventListener('admob:dismissed', onAdFinished, { once: true });
+                  window.addEventListener('admob:rewarded', onAdFinished, { once: true });
                   androidAdMob.showRewardedAd();
+                  setTimeout(() => {
+                    window.removeEventListener('admob:dismissed', onAdFinished);
+                    window.removeEventListener('admob:rewarded', onAdFinished);
+                  }, 12000);
                 } else if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
+                  const onAdFinished = () => {
+                    window.removeEventListener('admob:dismissed', onAdFinished);
+                    if (videoRef.current) videoRef.current.play().catch(() => {});
+                  };
+                  window.addEventListener('admob:dismissed', onAdFinished, { once: true });
                   androidAdMob.showInterstitialAd();
+                  setTimeout(() => {
+                    window.removeEventListener('admob:dismissed', onAdFinished);
+                  }, 12000);
                 }
                 setGestureOsd({ type: 'info', value: '⭐ VIP 4K Server Unlocked!', icon: '👑' });
                 setTimeout(() => setGestureOsd(null), 2000);
@@ -2101,11 +2151,11 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       )}
 
       {/* 11. BOTTOM CONTROL BAR (XPLAYER SIGNATURE CONTROLS) */}
-      {currentSource.type === 'video' && (
-        <div className={`absolute bottom-0 left-0 right-0 z-40 ${isLandscape ? 'px-6 pb-3 pt-8' : 'px-5 pb-5 pt-10'} bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2 transition-opacity duration-300 pointer-events-auto ${
-          showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}>
-          {/* Progress Timeline Scrubber */}
+      <div className={`absolute bottom-0 left-0 right-0 z-40 ${isLandscape ? 'px-6 pb-3 pt-8' : 'px-4 sm:px-5 pb-4 sm:pb-5 pt-8'} bg-gradient-to-t from-black/95 via-black/85 to-transparent flex flex-col space-y-2 transition-opacity duration-300 pointer-events-auto ${
+        showControls && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}>
+        {/* Progress Timeline Scrubber (for direct video streams) */}
+        {currentSource.type === 'video' && (
           <div className="flex items-center space-x-3 text-xs text-white/70 font-mono">
             <span className="w-10 text-right">{currentTime}</span>
             <input
@@ -2119,11 +2169,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             />
             <span className="w-10">{duration}</span>
           </div>
+        )}
 
-          {/* Action Controls Row */}
-          <div className="flex items-center justify-between pt-0.5">
-            {/* Left: Play/Pause, Rewind, Fast Forward, Mute */}
-            <div className="flex items-center space-x-3 sm:space-x-4">
+        {/* Action Controls Row */}
+        <div className="flex items-center justify-between pt-0.5">
+          {/* Left: Play/Pause/Seek for video OR Server Stream Status & Reload for embed */}
+          {currentSource.type === 'video' ? (
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -2169,35 +2221,55 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
               </button>
             </div>
-
-            {/* Right: Aspect Ratio, Languages, Quality, Speed, Rotate, Fullscreen */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              {/* Aspect Ratio Button */}
+          ) : (
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 px-2 py-1 rounded-lg bg-red-600/20 border border-red-500/30 text-[10px] sm:text-[11px] font-bold text-red-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{currentSource.name.split('(')[1]?.split('-')[0] || `Server ${activeSourceIndex + 1}`}</span>
+              </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  cycleAspectRatio();
+                  handleReloadStream();
                 }}
-                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
-                title="Change Aspect Ratio"
+                className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] sm:text-[11px] font-semibold text-white/90 flex items-center space-x-1 transition-all active:scale-95"
+                title="Reload Stream"
               >
-                <Scan className="w-3.5 h-3.5" />
-                <span className="uppercase text-[9px]">{aspectMode}</span>
+                <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden xs:inline">Reload</span>
               </button>
+            </div>
+          )}
 
-              {/* Screen Rotate Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleOrientation();
-                }}
-                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
-                title="Rotate Screen"
-              >
-                <RotateCw className="w-3.5 h-3.5" />
-              </button>
+          {/* Right: Aspect Ratio, Languages, Speed (if video), Rotate, Theater, Fullscreen */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2.5">
+            {/* Aspect Ratio Button (Works for both iframe & video) */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                cycleAspectRatio();
+              }}
+              className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] sm:text-[11px] font-bold text-white flex items-center space-x-1"
+              title="Change Aspect Ratio"
+            >
+              <Scan className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="uppercase text-[9px]">{aspectMode}</span>
+            </button>
 
-              {/* Playback Speed Button */}
+            {/* Screen Rotate Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleOrientation();
+              }}
+              className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] sm:text-[11px] font-bold text-white flex items-center space-x-1"
+              title="Rotate Screen"
+            >
+              <RotateCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            </button>
+
+            {/* Playback Speed Button (only when HTML5 direct video) */}
+            {currentSource.type === 'video' && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -2207,92 +2279,92 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   setShowLanguageMenu(false);
                   setShowPlayerOptionsMenu(false);
                 }}
-                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white flex items-center space-x-1"
+                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] sm:text-[11px] font-bold text-white flex items-center space-x-1"
               >
-                <Gauge className="w-3.5 h-3.5" />
+                <Gauge className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>{playbackSpeed}x</span>
               </button>
+            )}
 
-              {/* Audio Language Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowLanguageMenu(!showLanguageMenu);
-                  setShowSpeedMenu(false);
-                  setShowPlayerOptionsMenu(false);
-                  resetControlsTimeout();
-                }}
-                className="px-2.5 py-1 rounded-md bg-blue-600/90 hover:bg-blue-600 text-[11px] font-bold text-white flex items-center space-x-1 shadow active:scale-95"
-                title="Change Audio Language"
-              >
-                <Globe className="w-3.5 h-3.5 text-cyan-300" />
-                <span>{currentLanguage}</span>
-              </button>
+            {/* Audio Language Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLanguageMenu(!showLanguageMenu);
+                setShowSpeedMenu(false);
+                setShowPlayerOptionsMenu(false);
+                resetControlsTimeout();
+              }}
+              className="px-2 sm:px-2.5 py-1 rounded-md bg-blue-600/90 hover:bg-blue-600 text-[10px] sm:text-[11px] font-bold text-white flex items-center space-x-1 shadow active:scale-95"
+              title="Change Audio Language"
+            >
+              <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
+              <span>{currentLanguage}</span>
+            </button>
 
-              {/* XPlayer Options Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPlayerOptionsMenu(!showPlayerOptionsMenu);
-                  setShowSpeedMenu(false);
-                  setShowServerMenu(false);
-                  setShowQualityMenu(false);
-                  setShowLanguageMenu(false);
-                  resetControlsTimeout();
-                }}
-                className="px-2 py-1 rounded-md bg-gradient-to-r from-red-600 to-[#E50914] text-[11px] font-bold text-white flex items-center space-x-1 shadow-md active:scale-95"
-                title="XPlayer Options"
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                <span>Options</span>
-              </button>
+            {/* XPlayer Options Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPlayerOptionsMenu(!showPlayerOptionsMenu);
+                setShowSpeedMenu(false);
+                setShowServerMenu(false);
+                setShowQualityMenu(false);
+                setShowLanguageMenu(false);
+                resetControlsTimeout();
+              }}
+              className="px-2 py-1 rounded-md bg-gradient-to-r from-red-600 to-[#E50914] text-[10px] sm:text-[11px] font-bold text-white flex items-center space-x-1 shadow-md active:scale-95"
+              title="XPlayer Options"
+            >
+              <SlidersHorizontal className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden xs:inline">Options</span>
+            </button>
 
-              {/* Desktop Theater Mode Toggle (Windows & Mac) */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsTheaterMode(!isTheaterMode);
-                  resetControlsTimeout();
-                }}
-                className={`hidden sm:flex px-2 py-1 rounded-md text-[11px] font-bold items-center space-x-1 border active:scale-95 transition-all ${
-                  isTheaterMode 
-                    ? 'bg-red-600 border-red-500 text-white shadow-md' 
-                    : 'bg-white/10 hover:bg-white/20 border-white/10 text-white'
-                }`}
-                title="Toggle Theater Mode (T)"
-              >
-                <Tv className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Theater</span>
-              </button>
+            {/* Desktop Theater Mode Toggle (Windows & Mac) */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsTheaterMode(!isTheaterMode);
+                resetControlsTimeout();
+              }}
+              className={`hidden sm:flex px-2 py-1 rounded-md text-[11px] font-bold items-center space-x-1 border active:scale-95 transition-all ${
+                isTheaterMode 
+                  ? 'bg-red-600 border-red-500 text-white shadow-md' 
+                  : 'bg-white/10 hover:bg-white/20 border-white/10 text-white'
+              }`}
+              title="Toggle Theater Mode (T)"
+            >
+              <Tv className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Theater</span>
+            </button>
 
-              {/* Desktop Shortcuts Guide Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowShortcutsModal(true);
-                  resetControlsTimeout();
-                }}
-                className="hidden sm:flex text-white/80 hover:text-white transition-colors p-1"
-                title="Keyboard Shortcuts (?)"
-              >
-                <Keyboard className="w-4 h-4 text-amber-300" />
-              </button>
+            {/* Desktop Shortcuts Guide Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowShortcutsModal(true);
+                resetControlsTimeout();
+              }}
+              className="hidden sm:flex text-white/80 hover:text-white transition-colors p-1"
+              title="Keyboard Shortcuts (?)"
+            >
+              <Keyboard className="w-4 h-4 text-amber-300" />
+            </button>
 
-              {/* Fullscreen Toggle */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFullScreen();
-                }}
-                className="text-white/80 hover:text-white transition-colors p-1"
-                title="Fullscreen (F)"
-              >
-                <Maximize className="w-4 h-4" />
-              </button>
-            </div>
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFullScreen();
+              }}
+              className="text-white hover:text-[#E50914] transition-colors p-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 active:scale-95 flex-shrink-0"
+              title="Fullscreen (F)"
+            >
+              <Maximize className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Desktop Web Player Shortcuts Modal */}
       {showShortcutsModal && (

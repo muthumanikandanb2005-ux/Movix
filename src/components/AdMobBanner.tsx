@@ -16,9 +16,9 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
       androidAdMob.showBannerAd();
     }
 
-    // Initialize Web AdSense container
+    // Initialize Web AdSense container only on standard web browser
     try {
-      if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
+      if (!androidAdMob && typeof window !== 'undefined' && (window as any).adsbygoogle) {
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
       }
     } catch {}

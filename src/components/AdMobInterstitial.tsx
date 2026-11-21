@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Film } from 'lucide-react';
 
 interface AdMobInterstitialProps {
   onDismiss?: () => void;
@@ -29,6 +29,16 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const dismissedRef = useRef(false);
 
+  const androidAdMob = typeof window !== 'undefined' ? (window as any).AndroidAdMob : null;
+  const isNativeAdReady = Boolean(
+    androidAdMob &&
+    typeof androidAdMob.showInterstitialAd === 'function' &&
+    typeof androidAdMob.isAdReady === 'function' &&
+    androidAdMob.isAdReady()
+  );
+
+  const [isNativeShowing, setIsNativeShowing] = useState(isNativeAdReady);
+
   // Pick ad video (local bundled first for instant 0ms start)
   const [videoIndex, setVideoIndex] = useState(0);
   const adVideoUrl = AD_VIDEOS[videoIndex];
@@ -38,7 +48,9 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
     dismissedRef.current = true;
 
     if (videoRef.current) {
-      videoRef.current.pause();
+      try {
+        videoRef.current.pause();
+      } catch {}
     }
 
     setTimeout(() => {
@@ -52,62 +64,79 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
       } catch (err) {
         console.error('Error during ad dismissal:', err);
       }
-    }, 50);
+    }, 40);
   };
 
   useEffect(() => {
-    // Hide native banner while video ad plays
-    const androidAdMob = (window as any).AndroidAdMob;
+    // Hide native banner while video/interstitial ad plays
     if (androidAdMob && typeof androidAdMob.hideBannerAd === 'function') {
       androidAdMob.hideBannerAd();
     }
 
-    // Try native Android AdMob Interstitial if available
-    if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
-      const handleNativeAdDismissed = () => {
-        triggerDismiss();
-      };
-      window.addEventListener('admob:dismissed', handleNativeAdDismissed, { once: true });
-      androidAdMob.showInterstitialAd();
-    }
-
-    // Attempt autoplay immediately
-    if (videoRef.current) {
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch(() => {
-            // Autoplay unmuted was blocked by policy, mute and play
-            if (videoRef.current) {
-              videoRef.current.muted = true;
-              setIsMuted(true);
-              videoRef.current.play().catch(() => {
-                setIsPlaying(false);
-              });
-            }
-          });
-      }
-    }
-
-    // Maximum safety timer: allow skip after 6 seconds regardless of network
-    const safetyTimer = setTimeout(() => {
-      setCanSkip(true);
-      setSecondsLeft(0);
-    }, 6000);
-
-    return () => {
-      clearTimeout(safetyTimer);
+    const handleNativeAdDismissed = () => {
+      triggerDismiss();
     };
+    window.addEventListener('admob:dismissed', handleNativeAdDismissed, { once: true });
+
+    if (isNativeAdReady) {
+      // Native Google AdMob will display over screen - pause web video completely so zero audio clash!
+      setIsNativeShowing(true);
+      androidAdMob.showInterstitialAd();
+
+      // Native fallback safety timer (8s max in case native dismiss event is dropped)
+      const nativeSafetyTimer = setTimeout(() => {
+        triggerDismiss();
+      }, 8000);
+
+      return () => {
+        clearTimeout(nativeSafetyTimer);
+        window.removeEventListener('admob:dismissed', handleNativeAdDismissed);
+      };
+    } else {
+      // On Web, iOS, or if AdMob was not preloaded, attempt native trigger in background while playing web video
+      if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
+        androidAdMob.showInterstitialAd();
+      }
+
+      // Play web video ad smoothly
+      if (videoRef.current) {
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+            })
+            .catch(() => {
+              // Autoplay unmuted blocked by policy, mute and play
+              if (videoRef.current) {
+                videoRef.current.muted = true;
+                setIsMuted(true);
+                videoRef.current.play().catch(() => {
+                  setIsPlaying(false);
+                });
+              }
+            });
+        }
+      }
+
+      // Allow skip after 5 seconds
+      const safetyTimer = setTimeout(() => {
+        setCanSkip(true);
+        setSecondsLeft(0);
+      }, 5000);
+
+      return () => {
+        clearTimeout(safetyTimer);
+        window.removeEventListener('admob:dismissed', handleNativeAdDismissed);
+      };
+    }
   }, []);
 
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;
     const curr = videoRef.current.currentTime;
     const dur = videoRef.current.duration || 5;
-    
+
     setAdProgress((curr / dur) * 100);
 
     const remaining = Math.max(0, 5 - Math.floor(curr));
@@ -153,6 +182,36 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
       setSecondsLeft(0);
     }
   };
+
+  // If native AdMob is presenting full-screen, show clean branded transition screen
+  if (isNativeShowing) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#080A0F] flex flex-col items-center justify-center p-6 select-none animate-in fade-in duration-200">
+        <div className="flex flex-col items-center text-center max-w-sm space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#E50914] to-red-600 flex items-center justify-center text-white shadow-2xl shadow-red-950/80 animate-pulse">
+            <Film className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <span className="px-2.5 py-1 rounded bg-yellow-400 text-black font-extrabold text-[10px] uppercase tracking-wider">
+              Google AdMob Sponsor
+            </span>
+            <h3 className="text-lg font-black text-white mt-2">
+              Preparing {movieTitle}
+            </h3>
+            <p className="text-xs text-white/60 mt-1">
+              Cinema stream will begin immediately after sponsor message...
+            </p>
+          </div>
+          <button
+            onClick={() => triggerDismiss()}
+            className="mt-4 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs active:scale-95 transition-all"
+          >
+            Skip to Movie ➔
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-0 select-none animate-in fade-in duration-200">
@@ -225,7 +284,7 @@ export const AdMobInterstitial: React.FC<AdMobInterstitialProps> = ({
 
         {/* Bottom Bar: Skip Button & Movie Notice */}
         <div 
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()} 
           className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col space-y-3 z-20"
         >
           {/* Ad Progress Bar */}
