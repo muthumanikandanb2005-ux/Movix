@@ -18,9 +18,11 @@ export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
   releaseDate: '2026-11-22',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Instant Multi-Audio Dub Switching & Clean Ad-Free Player Controls`,
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Instant Multi-Audio Dub Switching, Smooth Rotation & 100% Play Protect Safe`,
   changelog: [
-    'Instant Audio Dub Switching: Immediate on-the-fly audio language switching across Tamil, Telugu, Hindi, Malayalam, Kannada, and English with exact-second playback continuity without restarting from 0:00',
+    'Instant Multi-Audio Dub Switching: Immediate on-the-fly audio language switching across Tamil, Telugu, Hindi, Malayalam, Kannada, and English with exact-second playback continuity without restarting from 0:00',
+    'Butter-Smooth Portrait to Horizontal (Landscape) Rotation: Hardware-accelerated seamless rotation (ROTATION_ANIMATION_SEAMLESS) with zero layout thrashing, eliminating black screen flickers, aspect ratio distortion, and system bar flashes',
+    '100% Clean Google Play Protect Security: Completely eliminated "Harmful App" warnings by removing high-risk dropper permissions (REQUEST_INSTALL_PACKAGES)',
     'Ad-Free Player Controls: Completely removed ads when interacting with player controls (close button, VIP button, server switcher, audio track switcher, orientation rotate); ads strictly play only before starting movie playback',
     'Strengthened Anti-Ad Redirection in WebView: Strictly blocked rogue third-party iframe ad popups and top-level redirects from hijacking the app',
     'VidLink Pro & AutoEmbed Multi-Audio Integration: Enhanced multi-audio parameter propagation and in-player audio switcher guidance for all regional dubs',
