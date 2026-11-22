@@ -132,6 +132,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showPlayerOptionsMenu, setShowPlayerOptionsMenu] = useState(false);
+  const [iframeReloadKey, setIframeReloadKey] = useState(0);
   const [sleepTimer, setSleepTimer] = useState<number | null>(null);
   const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -240,16 +241,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     if (androidAdMob && typeof androidAdMob.setPlayerActive === 'function') {
       androidAdMob.setPlayerActive(false);
     }
-    // High-eCPM post-roll interstitial monetization:
-    // When closing the player after watching for at least 10 seconds or starting playback, show interstitial
-    const elapsedSec = (Date.now() - startTimeRef.current) / 1000;
-    if (elapsedSec >= 10 || hasStartedPlaying) {
-      if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
-        androidAdMob.showInterstitialAd();
-      }
-    }
+    // Ad-free control interactions: ads only trigger when starting movie playback, never on close button
     onClose();
-  }, [hasStartedPlaying, onClose]);
+  }, [onClose]);
 
   // Listen for PvrPlay player postMessage events (pvr:close, pvr:resume) & embed progress
   useEffect(() => {
@@ -490,7 +484,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const resumeSeconds = Math.max(0, Math.floor(currentSecondsRef.current || (videoRef.current ? videoRef.current.currentTime : 0)));
     savedPlaybackTimeRef.current = resumeSeconds;
 
-    // 2. For HTML5 video: smoothly preserve playback time without reloading
+    // 2. Force immediate iframe remount with new language parameters & exact playback second
+    setIframeReloadKey((prev) => prev + 1);
+
+    // 3. For HTML5 video: smoothly preserve playback time without reloading
     if (videoRef.current && currentSource.type === 'video') {
       videoRef.current.currentTime = resumeSeconds;
       if (videoRef.current.paused) {
@@ -498,7 +495,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       }
     }
 
-    // 3. For embed player: dispatch real-time audio change command to iframe
+    // 4. For embed player: dispatch real-time audio change command to iframe
     try {
       const langCode = (LANG_CODE_MAP && LANG_CODE_MAP[lang]) || 'hi';
       if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -518,7 +515,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       }
     } catch {}
 
-    // 4. Trigger Netflix-Style Smooth Audio Switching HUD
+    // 5. Trigger Netflix-Style Smooth Audio Switching HUD
     if (audioNoticeTimeoutRef.current) clearTimeout(audioNoticeTimeoutRef.current);
     setNetflixAudioNotice({
       language: lang,
@@ -529,17 +526,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
     audioNoticeTimeoutRef.current = setTimeout(() => {
       setNetflixAudioNotice(null);
-    }, 3800);
+    }, 4500);
 
     // Gesture OSD confirmation
     setGestureOsd({
       type: 'info',
-      value: `Audio: ${langInfo.label} (${langInfo.native})`,
+      value: `Audio: ${langInfo.label} (${langInfo.native}) • Resumed at ${formatTime(resumeSeconds)}`,
       icon: '🔊'
     });
     setTimeout(() => {
       setGestureOsd(null);
-    }, 2000);
+    }, 2500);
 
     setIsBuffering(false);
     setHasStartedPlaying(true);
@@ -997,13 +994,37 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     return 'none';
   };
 
-  const getIframeSrc = (baseUrl: string, startTime: number = 0) => {
-    if (startTime <= 5) return baseUrl;
-    const sep = baseUrl.includes('?') ? '&' : '?';
-    if (baseUrl.includes('vidlink.pro')) {
-      return `${baseUrl}${sep}startAt=${Math.floor(startTime)}`;
+  const getIframeSrc = (baseUrl: string, startTime: number = 0, lang?: AudioLanguage) => {
+    let url = baseUrl;
+    const targetLang = lang || currentLanguage;
+    const langCode = (LANG_CODE_MAP && LANG_CODE_MAP[targetLang]) || 'hi';
+
+    try {
+      const parsed = new URL(url);
+      parsed.searchParams.set('lang', langCode);
+      parsed.searchParams.set('audio', langCode);
+      parsed.searchParams.set('dub', langCode);
+      if (startTime > 5) {
+        if (url.includes('vidlink.pro')) {
+          parsed.searchParams.set('startAt', Math.floor(startTime).toString());
+        } else {
+          parsed.searchParams.set('start', Math.floor(startTime).toString());
+          parsed.searchParams.set('t', Math.floor(startTime).toString());
+        }
+      }
+      return parsed.toString();
+    } catch {
+      const sep = url.includes('?') ? '&' : '?';
+      let res = `${url}${sep}lang=${langCode}&audio=${langCode}&dub=${langCode}`;
+      if (startTime > 5) {
+        if (url.includes('vidlink.pro')) {
+          res += `&startAt=${Math.floor(startTime)}`;
+        } else {
+          res += `&start=${Math.floor(startTime)}&t=${Math.floor(startTime)}`;
+        }
+      }
+      return res;
     }
-    return `${baseUrl}${sep}start=${Math.floor(startTime)}&t=${Math.floor(startTime)}`;
   };
 
   const playerContent = (
@@ -1936,8 +1957,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
             ref={iframeRef}
-            key={`player-embed-${activeSourceIndex}-${mid}`}
-            src={getIframeSrc(currentSource.url, savedPlaybackTimeRef.current)}
+            key={`player-embed-${activeSourceIndex}-${mid}-${currentLanguage}-${iframeReloadKey}`}
+            src={getIframeSrc(currentSource.url, savedPlaybackTimeRef.current, currentLanguage)}
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
@@ -2103,48 +2124,20 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               </button>
             ))}
 
-            {/* Rewarded Ad VIP Server Booster Button */}
+            {/* VIP Server Booster Button (Ad-Free In-Player Control) */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (videoRef.current && !videoRef.current.paused) {
-                  try { videoRef.current.pause(); } catch {}
-                }
-                const androidAdMob = (window as any).AndroidAdMob;
-                if (androidAdMob && typeof androidAdMob.showRewardedAd === 'function') {
-                  const onAdFinished = () => {
-                    window.removeEventListener('admob:dismissed', onAdFinished);
-                    window.removeEventListener('admob:rewarded', onAdFinished);
-                    if (videoRef.current) videoRef.current.play().catch(() => {});
-                  };
-                  window.addEventListener('admob:dismissed', onAdFinished, { once: true });
-                  window.addEventListener('admob:rewarded', onAdFinished, { once: true });
-                  androidAdMob.showRewardedAd();
-                  setTimeout(() => {
-                    window.removeEventListener('admob:dismissed', onAdFinished);
-                    window.removeEventListener('admob:rewarded', onAdFinished);
-                  }, 12000);
-                } else if (androidAdMob && typeof androidAdMob.showInterstitialAd === 'function') {
-                  const onAdFinished = () => {
-                    window.removeEventListener('admob:dismissed', onAdFinished);
-                    if (videoRef.current) videoRef.current.play().catch(() => {});
-                  };
-                  window.addEventListener('admob:dismissed', onAdFinished, { once: true });
-                  androidAdMob.showInterstitialAd();
-                  setTimeout(() => {
-                    window.removeEventListener('admob:dismissed', onAdFinished);
-                  }, 12000);
-                }
-                setGestureOsd({ type: 'info', value: '⭐ VIP 4K Server Unlocked!', icon: '👑' });
+                setGestureOsd({ type: 'info', value: '⭐ VIP 4K Fast Server Active!', icon: '👑' });
                 setTimeout(() => setGestureOsd(null), 2000);
-                setActiveSourceIndex(0); // Switch to ultra-fast Server 1 (VidLink Pro 4K)
+                setActiveSourceIndex(0); // Switch to ultra-fast Server 1 (AutoEmbed Fast 4K VIP)
                 resetControlsTimeout();
               }}
               className="px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-md flex items-center space-x-1 active:scale-95 transition-all flex-shrink-0"
-              title="Watch Ad for 4K VIP Pass"
+              title="Activate VIP 4K Fast Server"
             >
-              <span>⭐</span>
-              <span className="hidden xs:inline">VIP 4K</span>
+              <span className="text-xs">👑</span>
+              <span>VIP 4K</span>
             </button>
           </div>
         </div>

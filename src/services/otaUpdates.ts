@@ -10,26 +10,26 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.2.8';
-export const LATEST_RELEASE_VERSION_CODE = 202800;
+export const LATEST_RELEASE_VERSION_NAME = '2.2.9';
+export const LATEST_RELEASE_VERSION_CODE = 202900;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
-  releaseDate: '2026-11-21',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Fullscreen Custom View, Zero Lag & Clean Ad Playback`,
+  releaseDate: '2026-11-22',
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Instant Multi-Audio Dub Switching & Clean Ad-Free Player Controls`,
   changelog: [
-    'Fixed Fullscreen Playback in WebView: Added native WebChromeClient custom view handling (onShowCustomView/onHideCustomView) with seamless landscape rotation and immersive sticky mode for AutoEmbed, VidLink, SuperEmbed, 123Embed, and direct video',
-    'Eliminated All App Lag: Optimized AdMob banner loop to 60s single-timer cadence, canceled background refresh on pause and player open, and eliminated layout thrashing',
-    'Proper Advertisement Playback: Completely separated Google AdMob native interstitial ads from web video playback, eliminating dual audio tracks and freezing',
-    'Bottom Control Bar & 1-Tap Rotate on All Streams: Fullscreen, Screen Rotate, Aspect Ratio, and Audio Track buttons are now accessible on all stream sources (embeds and direct video)',
+    'Instant Audio Dub Switching: Immediate on-the-fly audio language switching across Tamil, Telugu, Hindi, Malayalam, Kannada, and English with exact-second playback continuity without restarting from 0:00',
+    'Ad-Free Player Controls: Completely removed ads when interacting with player controls (close button, VIP button, server switcher, audio track switcher, orientation rotate); ads strictly play only before starting movie playback',
+    'Strengthened Anti-Ad Redirection in WebView: Strictly blocked rogue third-party iframe ad popups and top-level redirects from hijacking the app',
+    'VidLink Pro & AutoEmbed Multi-Audio Integration: Enhanced multi-audio parameter propagation and in-player audio switcher guidance for all regional dubs',
     'Direct In-App OTA Update Installer: 1-tap in-app package installer launch with real-time download percentage progress',
     '100% Google Play Protect Certified Safe: Scheme v2 verified signature with instant launch performance'
   ],
   downloadUrl: `https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v${LATEST_RELEASE_VERSION_NAME}/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
   rawApkUrl: `https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v${LATEST_RELEASE_VERSION_NAME}.apk`,
-  currentVersion: '2.2.7'
+  currentVersion: '2.2.8'
 };
 
 const VERSION_MIRRORS = [

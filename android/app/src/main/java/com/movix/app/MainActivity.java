@@ -228,8 +228,13 @@ public class MainActivity extends BridgeActivity {
                         return true;
                     }
 
-                    // Allow video streaming streams and iframe redirects to load smoothly
-                    return false;
+                    String host = uri.getHost();
+                    if (("https".equalsIgnoreCase(scheme) || "http".equalsIgnoreCase(scheme)) && "localhost".equalsIgnoreCase(host)) {
+                        return false;
+                    }
+
+                    // Block rogue ad networks & popups from hijacking the main app and launching external Chrome
+                    return true;
                 }
             });
         }
@@ -1035,7 +1040,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             } catch (Exception e) {
-                return "2.2.8";
+                return "2.2.9";
             }
         }
 
@@ -1044,7 +1049,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             } catch (Exception e) {
-                return 202800;
+                return 202900;
             }
         }
     }
