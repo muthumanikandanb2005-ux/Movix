@@ -47,5 +47,4 @@
     <!-- Essential Permissions: 100% Safe, Strict Zero-Risk Profile for Google Play Protect -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

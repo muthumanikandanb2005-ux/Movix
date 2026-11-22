@@ -194,18 +194,35 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     };
   }, [resetControlsTimeout]);
 
-  // Manage orientation changes and ensure banner is hidden during cinema player
+  // Manage orientation changes with 0ms matchMedia listener and instant layout adaptation
   useEffect(() => {
     const checkOrientation = () => {
-      const isLand = window.innerWidth > window.innerHeight || (window.screen?.orientation?.type?.includes('landscape') ?? false);
+      const isLand = window.innerWidth > window.innerHeight || 
+        (window.screen?.orientation?.type?.includes('landscape') ?? false);
       setIsLandscape(isLand);
     };
     checkOrientation();
 
+    // Fast reactive media query listener for zero-delay orientation adaptation
+    const mql = window.matchMedia('(orientation: landscape)');
+    const handleMql = (e: MediaQueryListEvent) => {
+      setIsLandscape(e.matches);
+    };
+
+    try {
+      mql.addEventListener('change', handleMql);
+    } catch {
+      try { (mql as any).addListener(handleMql); } catch {}
+    }
+
+    if (window.screen?.orientation) {
+      try {
+        window.screen.orientation.addEventListener('change', checkOrientation);
+      } catch {}
+    }
+
     const handleOrientation = () => {
       checkOrientation();
-      setTimeout(checkOrientation, 150);
-      setTimeout(checkOrientation, 350);
     };
 
     window.addEventListener('resize', handleOrientation);
@@ -219,6 +236,16 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
 
     return () => {
+      try {
+        mql.removeEventListener('change', handleMql);
+      } catch {
+        try { (mql as any).removeListener(handleMql); } catch {}
+      }
+      if (window.screen?.orientation) {
+        try {
+          window.screen.orientation.removeEventListener('change', checkOrientation);
+        } catch {}
+      }
       window.removeEventListener('resize', handleOrientation);
       window.removeEventListener('orientationchange', handleOrientation);
       if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
@@ -620,31 +647,36 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     resetControlsTimeout();
   };
 
-  // 1-Tap Landscape / Portrait Screen Rotation (Signature XPlayer Feature)
+  // 1-Tap Landscape / Portrait Screen Rotation (Butter-smooth Hardware Rotation)
   const toggleOrientation = () => {
     const androidAdMob = (window as any).AndroidAdMob;
-    if (isLandscape) {
-      if (androidAdMob && typeof androidAdMob.setPortrait === 'function') {
-        androidAdMob.setPortrait();
-      } else if (screen.orientation && typeof screen.orientation.unlock === 'function') {
-        try { screen.orientation.unlock(); } catch {}
-      }
-      if (document.fullscreenElement) {
-        try { document.exitFullscreen(); } catch {}
-      }
-      setIsLandscape(false);
-      setGestureOsd({ type: 'info', value: 'Portrait View', icon: '📱' });
-    } else {
+    const nextIsLandscape = !isLandscape;
+    setIsLandscape(nextIsLandscape);
+
+    if (nextIsLandscape) {
       if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
         androidAdMob.setLandscape();
-      } else if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
-        try { (screen.orientation as any).lock('landscape'); } catch {}
+      } else {
+        if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
+          try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
+        }
+        if (containerRef.current && !document.fullscreenElement) {
+          try { containerRef.current.requestFullscreen().catch(() => {}); } catch {}
+        }
       }
-      if (containerRef.current && !document.fullscreenElement) {
-        try { containerRef.current.requestFullscreen(); } catch {}
+      setGestureOsd({ type: 'info', value: 'Cinema Horizontal (Landscape)', icon: '🔄' });
+    } else {
+      if (androidAdMob && typeof androidAdMob.setPortrait === 'function') {
+        androidAdMob.setPortrait();
+      } else {
+        if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+          try { screen.orientation.unlock(); } catch {}
+        }
+        if (document.fullscreenElement) {
+          try { document.exitFullscreen().catch(() => {}); } catch {}
+        }
       }
-      setIsLandscape(true);
-      setGestureOsd({ type: 'info', value: 'Cinema Landscape (16:9)', icon: '🔄' });
+      setGestureOsd({ type: 'info', value: 'Portrait View', icon: '📱' });
     }
     setTimeout(() => setGestureOsd(null), 1500);
     resetControlsTimeout();
@@ -769,24 +801,28 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const el = containerRef.current;
 
     if (isLandscape || document.fullscreenElement) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
       if (androidAdMob && typeof androidAdMob.setPortrait === 'function') {
         androidAdMob.setPortrait();
-      } else if (screen.orientation && typeof screen.orientation.unlock === 'function') {
-        try { screen.orientation.unlock(); } catch {}
+      } else {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+          try { screen.orientation.unlock(); } catch {}
+        }
       }
       setIsLandscape(false);
       setGestureOsd({ type: 'info', value: 'Portrait View', icon: '📱' });
     } else {
       if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
         androidAdMob.setLandscape();
-      } else if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
-        try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
-      }
-      if (el && el.requestFullscreen) {
-        el.requestFullscreen().catch(() => {});
+      } else {
+        if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
+          try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
+        }
+        if (el && el.requestFullscreen) {
+          el.requestFullscreen().catch(() => {});
+        }
       }
       setIsLandscape(true);
       setGestureOsd({ type: 'info', value: 'Cinema Fullscreen', icon: '⛶' });
@@ -1035,7 +1071,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           setIsTheaterMode(false);
         }
       }}
-      className={`fixed inset-0 z-50 select-none overflow-hidden transition-all duration-300 ${
+      className={`fixed inset-0 z-50 select-none overflow-hidden transition-opacity duration-300 ${
         isCursorHidden && !showControls ? 'cursor-none' : 'cursor-default'
       } ${
         isTheaterMode 
@@ -1048,7 +1084,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         id="movix-xplayer-container" 
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className={`relative select-none overflow-hidden transition-all duration-300 ${
+        className={`relative select-none overflow-hidden transition-opacity duration-300 will-change-transform ${
           isTheaterMode 
             ? 'w-full max-w-6xl aspect-video rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.9)] border border-white/20 bg-black' 
             : 'w-full h-full bg-black'
@@ -1972,7 +2008,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               transformOrigin: 'center center',
               transition: 'transform 0.25s ease-out'
             }}
-            className="w-full h-full border-0 absolute inset-0 z-10"
+            className="w-full h-full border-0 absolute inset-0 z-10 will-change-transform"
           />
         ) : (
           <video
@@ -1995,7 +2031,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               setIsBuffering(false);
             }}
             onClick={togglePlay}
-            className={`w-full h-full cursor-pointer ${getObjectFitClass()}`}
+            className={`w-full h-full cursor-pointer will-change-transform ${getObjectFitClass()}`}
           />
         )}
 

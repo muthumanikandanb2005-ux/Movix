@@ -121,6 +121,18 @@ public class MainActivity extends BridgeActivity {
             getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
         } catch (Exception ignored) {}
 
+        // Enable seamless hardware-accelerated rotation for zero-jank portrait <-> horizontal transitions
+        try {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                lp.rotationAnimation = WindowManager.LayoutParams.ROTATION_ANIMATION_SEAMLESS;
+            } else {
+                lp.rotationAnimation = WindowManager.LayoutParams.ROTATION_ANIMATION_CROSSFADE;
+            }
+            getWindow().setAttributes(lp);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+        } catch (Exception ignored) {}
+
         // Set up dedicated fullscreen container for HTML5 & iframe fullscreen video playback
         try {
             mFullscreenContainer = new FrameLayout(this);
@@ -282,6 +294,10 @@ public class MainActivity extends BridgeActivity {
     private void disableImmersiveMode() {
         runOnUiThread(() -> {
             try {
+                // Keep immersive fullscreen active during cinema playback without flashing bars
+                if (isVideoPlayerOpen) {
+                    return;
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     getWindow().getAttributes().layoutInDisplayCutoutMode = 
                         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
@@ -442,34 +458,11 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    private File pendingInstallApk = null;
-
     private void launchApkInstaller(final File apkFile) {
         try {
             if (apkFile == null || !apkFile.exists()) {
                 Toast.makeText(MainActivity.this, "Update package not found", Toast.LENGTH_SHORT).show();
                 return;
-            }
-
-            // Unknown sources permission on Android 8.0+ (Oreo, API 26+)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (!getPackageManager().canRequestPackageInstalls()) {
-                    pendingInstallApk = apkFile;
-                    try {
-                        Intent manageIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
-                        manageIntent.setData(Uri.parse("package:" + getPackageName()));
-                        manageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(manageIntent);
-                        Toast.makeText(
-                            MainActivity.this,
-                            "Please allow 'Install unknown apps' to complete Movix update",
-                            Toast.LENGTH_LONG
-                        ).show();
-                        return;
-                    } catch (Exception ignored) {
-                        // If manage settings not available on this device, proceed to standard install intent
-                    }
-                }
             }
 
             Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
@@ -484,7 +477,6 @@ public class MainActivity extends BridgeActivity {
             install.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            install.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
 
             // Explicitly grant URI permission to all potential package installers
             List<ResolveInfo> resolveInfoList = getPackageManager().queryIntentActivities(
@@ -503,7 +495,7 @@ public class MainActivity extends BridgeActivity {
         } catch (Exception ex) {
             ex.printStackTrace();
             try {
-                Toast.makeText(MainActivity.this, "Could not open installer: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Opening installer...", Toast.LENGTH_SHORT).show();
             } catch (Exception ignored) {}
         }
     }
@@ -517,15 +509,6 @@ public class MainActivity extends BridgeActivity {
         if (!isVideoPlayerOpen && mCustomView == null && mBannerRefreshHandler != null) {
             mBannerRefreshHandler.removeCallbacksAndMessages(null);
             mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 60000);
-        }
-        if (pendingInstallApk != null && pendingInstallApk.exists()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (getPackageManager().canRequestPackageInstalls()) {
-                    File apkToInstall = pendingInstallApk;
-                    pendingInstallApk = null;
-                    launchApkInstaller(apkToInstall);
-                }
-            }
         }
     }
 
@@ -766,7 +749,11 @@ public class MainActivity extends BridgeActivity {
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                    disableImmersiveMode();
+                    if (isVideoPlayerOpen) {
+                        enableImmersiveMode();
+                    } else {
+                        disableImmersiveMode();
+                    }
                 } else {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
                     enableImmersiveMode();
@@ -822,7 +809,11 @@ public class MainActivity extends BridgeActivity {
         public void setPortrait() {
             new Handler(Looper.getMainLooper()).post(() -> {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                disableImmersiveMode();
+                if (isVideoPlayerOpen) {
+                    enableImmersiveMode();
+                } else {
+                    disableImmersiveMode();
+                }
             });
         }
 
@@ -830,7 +821,11 @@ public class MainActivity extends BridgeActivity {
         public void setAutoOrientation() {
             new Handler(Looper.getMainLooper()).post(() -> {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-                disableImmersiveMode();
+                if (isVideoPlayerOpen) {
+                    enableImmersiveMode();
+                } else {
+                    disableImmersiveMode();
+                }
             });
         }
 
