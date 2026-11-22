@@ -377,10 +377,8 @@ public class MainActivity extends BridgeActivity {
             if (!isVideoPlayerOpen) {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 disableImmersiveMode();
-                if (mAdView != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    mAdView.setVisibility(View.VISIBLE);
-                    mBannerRefreshHandler.removeCallbacksAndMessages(null);
-                    mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 60000);
+                if (mAdView != null) {
+                    mAdView.setVisibility(View.GONE);
                 }
             } else {
                 enableImmersiveMode();
@@ -414,7 +412,7 @@ public class MainActivity extends BridgeActivity {
                 enableImmersiveMode();
                 if (mAdView != null) mAdView.setVisibility(View.GONE);
             } else if (mAdView != null) {
-                mAdView.setVisibility(View.VISIBLE);
+                mAdView.setVisibility(View.GONE);
             }
         }
     }
@@ -618,25 +616,24 @@ public class MainActivity extends BridgeActivity {
                 mAdView = new AdView(this);
                 mAdView.setAdUnitId(AD_UNIT_ID_2);
                 mAdView.setAdSize(AdSize.BANNER);
+                mAdView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
+                float density = getResources().getDisplayMetrics().density;
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
+                        (int) (50 * density)
                 );
                 params.gravity = Gravity.BOTTOM;
                 // Keep 65dp clearance from bottom so BottomNav is not covered
-                float density = getResources().getDisplayMetrics().density;
                 params.bottomMargin = (int) (65 * density);
                 mAdView.setLayoutParams(params);
+                mAdView.setVisibility(View.GONE);
 
                 mAdView.setAdListener(new com.google.android.gms.ads.AdListener() {
                     @Override
                     public void onAdLoaded() {
                         super.onAdLoaded();
-                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT 
-                                && !isVideoPlayerOpen && mCustomView == null) {
-                            mAdView.setVisibility(View.VISIBLE);
-                        } else {
+                        if (mAdView != null) {
                             mAdView.setVisibility(View.GONE);
                         }
                     }
@@ -644,7 +641,9 @@ public class MainActivity extends BridgeActivity {
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError error) {
                         super.onAdFailedToLoad(error);
-                        // Handled smoothly by recurring mBannerRefreshRunnable without spawning runaway threads
+                        if (mAdView != null) {
+                            mAdView.setVisibility(View.GONE);
+                        }
                     }
                 });
 
@@ -653,10 +652,7 @@ public class MainActivity extends BridgeActivity {
                     root.addView(mAdView);
                 }
 
-                AdRequest adRequest = new AdRequest.Builder().build();
-                mAdView.loadAd(adRequest);
-                mBannerRefreshHandler.removeCallbacksAndMessages(null);
-                mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 60000);
+                mAdView.setVisibility(View.GONE);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -733,12 +729,8 @@ public class MainActivity extends BridgeActivity {
                 } else {
                     disableImmersiveMode();
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-                    if (mAdView != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-                        mAdView.setVisibility(View.VISIBLE);
-                        if (mBannerRefreshHandler != null) {
-                            mBannerRefreshHandler.removeCallbacksAndMessages(null);
-                            mBannerRefreshHandler.postDelayed(mBannerRefreshRunnable, 60000);
-                        }
+                    if (mAdView != null) {
+                        mAdView.setVisibility(View.GONE);
                     }
                 }
             });
@@ -765,11 +757,7 @@ public class MainActivity extends BridgeActivity {
         public void setModalOpen(boolean open) {
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (mAdView != null) {
-                    if (open) {
-                        mAdView.setVisibility(View.GONE);
-                    } else if (!isVideoPlayerOpen && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-                        mAdView.setVisibility(View.VISIBLE);
-                    }
+                    mAdView.setVisibility(View.GONE);
                 }
             });
         }
@@ -777,8 +765,8 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public void showBannerAd() {
             new Handler(Looper.getMainLooper()).post(() -> {
-                if (mAdView != null && !isVideoPlayerOpen && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    mAdView.setVisibility(View.VISIBLE);
+                if (mAdView != null) {
+                    mAdView.setVisibility(View.GONE);
                 }
             });
         }

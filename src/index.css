@@ -92,3 +92,20 @@ img {
   position: absolute !important;
   inset: 0 !important;
 }
+
+/* Bulletproof suppression of rogue white ad banners and auto-ad overlays */
+.google-auto-placed,
+ins.adsbygoogle,
+iframe[id^="aswift_"],
+iframe[name^="aswift_"],
+div[id^="google_ads_iframe"],
+div[aria-label="Advertisement"] {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  background: transparent !important;
+}

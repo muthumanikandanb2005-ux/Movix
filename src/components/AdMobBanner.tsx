@@ -10,19 +10,6 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
   const [rewardClaimed, setRewardClaimed] = useState(false);
 
   useEffect(() => {
-    // Tell Android to display native banner
-    const androidAdMob = (window as any).AndroidAdMob;
-    if (androidAdMob && typeof androidAdMob.showBannerAd === 'function') {
-      androidAdMob.showBannerAd();
-    }
-
-    // Initialize Web AdSense container only on standard web browser
-    try {
-      if (!androidAdMob && typeof window !== 'undefined' && (window as any).adsbygoogle) {
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-      }
-    } catch {}
-
     const handleRewarded = () => {
       setRewardClaimed(true);
     };
@@ -112,18 +99,6 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
               </>
             )}
           </button>
-        </div>
-
-        {/* Web Google AdSense Display Slot */}
-        <div className="mt-3 overflow-hidden rounded-xl bg-black/40 border border-white/5 flex items-center justify-center min-h-[50px]">
-          <ins
-            className="adsbygoogle"
-            style={{ display: 'block', textAlign: 'center' }}
-            data-ad-layout="in-article"
-            data-ad-format="fluid"
-            data-ad-client="ca-pub-5684555136963044"
-            data-ad-slot="2645561704"
-          />
         </div>
       </div>
     </div>

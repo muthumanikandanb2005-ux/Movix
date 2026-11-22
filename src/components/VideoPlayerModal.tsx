@@ -164,10 +164,12 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     ? getTvStreamingSources(mid, movie.season || 1, movie.episode || 1, currentQuality, currentLanguage)
     : getStreamingSources(mid, undefined, currentQuality, currentLanguage);
 
-  // Default to Server 1 (AutoEmbed Fast 4K VIP) for verified instant video playback
+  // Default to Server 1 (AutoEmbed Fast 4K VIP) for verified instant video playback, or Server 2 (VidLink Pro Multi-Audio) if dub language is requested
   const defaultServerIndex = 0;
 
-  const [activeSourceIndex, setActiveSourceIndex] = useState(defaultServerIndex);
+  const [activeSourceIndex, setActiveSourceIndex] = useState<number>(() => {
+    return (initialLanguage && initialLanguage !== 'English') ? 1 : defaultServerIndex;
+  });
   const currentSource = sources[activeSourceIndex] || sources[defaultServerIndex] || sources[0];
 
 
@@ -511,10 +513,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const resumeSeconds = Math.max(0, Math.floor(currentSecondsRef.current || (videoRef.current ? videoRef.current.currentTime : 0)));
     savedPlaybackTimeRef.current = resumeSeconds;
 
-    // 2. Force immediate iframe remount with new language parameters & exact playback second
+    // 2. Auto-switch to Server 2 (VidLink Pro Multi-Audio) or Server 3 (CineSrc) if switching to a dubbed language
+    if (lang !== 'English' && activeSourceIndex === 0) {
+      setActiveSourceIndex(1); // Auto-connect to VidLink Pro 4K Multi-Audio with verified dubs
+    }
+
+    // 3. Force immediate iframe remount with new language parameters & exact playback second
     setIframeReloadKey((prev) => prev + 1);
 
-    // 3. For HTML5 video: smoothly preserve playback time without reloading
+    // 4. For HTML5 video: smoothly preserve playback time without reloading
     if (videoRef.current && currentSource.type === 'video') {
       videoRef.current.currentTime = resumeSeconds;
       if (videoRef.current.paused) {
@@ -522,7 +529,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       }
     }
 
-    // 4. For embed player: dispatch real-time audio change command to iframe
+    // 5. For embed player: dispatch real-time audio change command to iframe
     try {
       const langCode = (LANG_CODE_MAP && LANG_CODE_MAP[lang]) || 'hi';
       if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -539,6 +546,14 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           lang: langCode,
           audio: langCode
         }), '*');
+        iframeRef.current.contentWindow.postMessage({
+          action: 'setLanguage',
+          language: langCode
+        }, '*');
+        iframeRef.current.contentWindow.postMessage({
+          type: 'CHANGE_AUDIO',
+          audio: langCode
+        }, '*');
       }
     } catch {}
 
@@ -1040,6 +1055,12 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       parsed.searchParams.set('lang', langCode);
       parsed.searchParams.set('audio', langCode);
       parsed.searchParams.set('dub', langCode);
+      if (url.includes('vidlink.pro')) {
+        parsed.searchParams.set('multiLang', 'true');
+        parsed.searchParams.set('primaryColor', 'E50914');
+      } else if (url.includes('autoembed.cc')) {
+        parsed.searchParams.set('multi', '1');
+      }
       if (startTime > 5) {
         if (url.includes('vidlink.pro')) {
           parsed.searchParams.set('startAt', Math.floor(startTime).toString());
@@ -1052,6 +1073,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     } catch {
       const sep = url.includes('?') ? '&' : '?';
       let res = `${url}${sep}lang=${langCode}&audio=${langCode}&dub=${langCode}`;
+      if (url.includes('vidlink.pro')) {
+        res += '&multiLang=true&primaryColor=E50914';
+      }
       if (startTime > 5) {
         if (url.includes('vidlink.pro')) {
           res += `&startAt=${Math.floor(startTime)}`;
