@@ -458,10 +458,13 @@ public class MainActivity extends BridgeActivity {
 
     private void launchApkInstaller(final File apkFile) {
         try {
-            if (apkFile == null || !apkFile.exists()) {
-                Toast.makeText(MainActivity.this, "Update package not found", Toast.LENGTH_SHORT).show();
+            if (apkFile == null || !apkFile.exists() || apkFile.length() < 1000000) {
+                Toast.makeText(MainActivity.this, "Update package invalid or incomplete", Toast.LENGTH_SHORT).show();
                 return;
             }
+
+            // Ensure world readable
+            apkFile.setReadable(true, false);
 
             Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
                 MainActivity.this,
@@ -472,22 +475,38 @@ public class MainActivity extends BridgeActivity {
             Intent install = new Intent(Intent.ACTION_VIEW);
             install.setDataAndType(apkUri, "application/vnd.android.package-archive");
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            install.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-            // Explicitly grant URI permission to all potential package installers
-            List<ResolveInfo> resolveInfoList = getPackageManager().queryIntentActivities(
-                install,
-                PackageManager.MATCH_DEFAULT_ONLY
-            );
-            if (resolveInfoList != null) {
-                for (ResolveInfo resolveInfo : resolveInfoList) {
-                    if (resolveInfo.activityInfo != null && resolveInfo.activityInfo.packageName != null) {
-                        grantUriPermission(resolveInfo.activityInfo.packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            // Explicitly grant URI read permission to known system package installers
+            String[] knownInstallers = new String[] {
+                "com.google.android.packageinstaller",
+                "com.android.packageinstaller",
+                "com.google.android.permissioncontroller",
+                "com.android.permissioncontroller",
+                "com.miui.packageinstaller",
+                "com.samsung.android.packageinstaller",
+                "com.coloros.packageinstaller"
+            };
+            for (String installerPkg : knownInstallers) {
+                try {
+                    grantUriPermission(installerPkg, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (Exception ignored) {}
+            }
+
+            try {
+                List<ResolveInfo> resolveInfoList = getPackageManager().queryIntentActivities(
+                    install,
+                    PackageManager.MATCH_DEFAULT_ONLY
+                );
+                if (resolveInfoList != null) {
+                    for (ResolveInfo resolveInfo : resolveInfoList) {
+                        if (resolveInfo.activityInfo != null && resolveInfo.activityInfo.packageName != null) {
+                            grantUriPermission(resolveInfo.activityInfo.packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        }
                     }
                 }
-            }
+            } catch (Exception ignored) {}
 
             startActivity(install);
         } catch (Exception ex) {
@@ -857,19 +876,13 @@ public class MainActivity extends BridgeActivity {
                 try {
                     postOtaProgress(5, 0, 100);
 
-                    // Prefer external downloads/cache dir, fallback to internal cache
-                    File updateDir = getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS);
-                    if (updateDir == null) {
-                        updateDir = getExternalCacheDir();
-                    }
-                    if (updateDir == null) {
-                        updateDir = getCacheDir();
-                    }
+                    // Store update APK in internal cache/updates for guaranteed FileProvider read access without Scoped Storage restrictions
+                    File updateDir = new File(getCacheDir(), "updates");
                     if (!updateDir.exists()) {
                         updateDir.mkdirs();
                     }
 
-                    targetFile = new File(updateDir, "movix-update-" + System.currentTimeMillis() + ".apk");
+                    targetFile = new File(updateDir, "movix-update.apk");
                     if (targetFile.exists()) {
                         targetFile.delete();
                     }
@@ -909,6 +922,11 @@ public class MainActivity extends BridgeActivity {
                             }
                         }
                         break;
+                    }
+
+                    int responseCode = conn.getResponseCode();
+                    if (responseCode < 200 || responseCode >= 300) {
+                        throw new java.io.IOException("HTTP download error: " + responseCode);
                     }
 
                     int totalBytes = conn.getContentLength();
