@@ -85,6 +85,27 @@ img {
   content-visibility: auto;
 }
 
+#movix-xplayer-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 99999 !important;
+  background-color: #000000 !important;
+  overflow: hidden !important;
+}
+
+#movix-xplayer-container {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
 #movix-xplayer-container iframe {
   width: 100% !important;
   height: 100% !important;
@@ -93,13 +114,12 @@ img {
   inset: 0 !important;
 }
 
-/* Bulletproof suppression of rogue white ad banners and auto-ad overlays */
+/* Bulletproof suppression of rogue white auto-ad overlays without hiding legitimate in-app ads */
 .google-auto-placed,
 ins.adsbygoogle,
 iframe[id^="aswift_"],
 iframe[name^="aswift_"],
-div[id^="google_ads_iframe"],
-div[aria-label="Advertisement"] {
+div[id^="google_ads_iframe"] {
   display: none !important;
   visibility: hidden !important;
   width: 0 !important;

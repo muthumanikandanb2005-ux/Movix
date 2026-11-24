@@ -237,6 +237,19 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       androidAdMob.hideBannerAd();
     }
 
+    // Auto-enter cinema landscape fullscreen on mobile devices
+    const isMobileDevice = typeof window !== 'undefined' && (
+      window.innerWidth <= 768 ||
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    );
+    if (isMobileDevice) {
+      setIsLandscape(true);
+      setAspectMode('cover'); // Automatic full-screen 100% zoom fill without black borders on mobile
+      if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
+        androidAdMob.setLandscape();
+      }
+    }
+
     return () => {
       try {
         mql.removeEventListener('change', handleMql);
@@ -787,17 +800,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     touchStartRef.current.mode = 'none';
   };
 
-  // Aspect ratio toggler (Contain 16:9, Cover Crop, Fill Stretch)
+  // Aspect ratio toggler (Contain 16:9, Cover Crop 100% Zoom, Fill Stretch)
   const cycleAspectRatio = () => {
     if (aspectMode === 'contain') {
       setAspectMode('cover');
-      setGestureOsd({ type: 'seek', value: 'Crop / Zoom (100% Fill)', icon: '🔍' });
+      setGestureOsd({ type: 'seek', value: '100% Fullscreen Fill (Zoom)', icon: '🔍' });
     } else if (aspectMode === 'cover') {
       setAspectMode('fill');
-      setGestureOsd({ type: 'seek', value: 'Stretch', icon: '↔️' });
+      setGestureOsd({ type: 'seek', value: 'Full Stretch', icon: '↔️' });
     } else {
       setAspectMode('contain');
-      setGestureOsd({ type: 'seek', value: 'Fit Screen (16:9)', icon: '📱' });
+      setGestureOsd({ type: 'seek', value: 'Original Ratio (16:9)', icon: '📱' });
     }
     setTimeout(() => setGestureOsd(null), 1200);
     resetControlsTimeout();
@@ -813,34 +826,47 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   const toggleFullScreen = () => {
     const androidAdMob = (window as any).AndroidAdMob;
-    const el = containerRef.current;
+    const el = containerRef.current || document.documentElement;
 
-    if (isLandscape || document.fullscreenElement) {
+    // If currently in portrait, entering fullscreen rotates to landscape & expands to 100% cover fill
+    if (!isLandscape && !document.fullscreenElement) {
+      if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
+        androidAdMob.setLandscape();
+      }
+      if (el && el.requestFullscreen) {
+        try { el.requestFullscreen().catch(() => {}); } catch {}
+      }
+      if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
+        try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
+      }
+      setIsLandscape(true);
+      setAspectMode('cover');
+      setGestureOsd({ type: 'info', value: 'Cinema Fullscreen (100% Fill)', icon: '⛶' });
+    } else if (document.fullscreenElement) {
+      // If already in HTML5 fullscreen, exit
+      try { document.exitFullscreen().catch(() => {}); } catch {}
       if (androidAdMob && typeof androidAdMob.setPortrait === 'function') {
         androidAdMob.setPortrait();
-      } else {
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch(() => {});
-        }
-        if (screen.orientation && typeof screen.orientation.unlock === 'function') {
-          try { screen.orientation.unlock(); } catch {}
-        }
+      }
+      if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        try { screen.orientation.unlock(); } catch {}
       }
       setIsLandscape(false);
       setGestureOsd({ type: 'info', value: 'Portrait View', icon: '📱' });
     } else {
-      if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
-        androidAdMob.setLandscape();
+      // In landscape already: ensure 100% edge-to-edge fill without black bars
+      if (aspectMode !== 'cover') {
+        setAspectMode('cover');
+        setGestureOsd({ type: 'info', value: '100% Screen Zoom (No Bars)', icon: '🔍' });
       } else {
-        if (screen.orientation && typeof (screen.orientation as any).lock === 'function') {
-          try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
+        if (androidAdMob && typeof androidAdMob.setLandscape === 'function') {
+          androidAdMob.setLandscape();
         }
         if (el && el.requestFullscreen) {
-          el.requestFullscreen().catch(() => {});
+          try { el.requestFullscreen().catch(() => {}); } catch {}
         }
+        setGestureOsd({ type: 'info', value: 'Cinema Fullscreen', icon: '⛶' });
       }
-      setIsLandscape(true);
-      setGestureOsd({ type: 'info', value: 'Cinema Fullscreen', icon: '⛶' });
     }
     setTimeout(() => setGestureOsd(null), 1200);
     resetControlsTimeout();
@@ -1037,10 +1063,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   const getIframeTransform = () => {
     if (aspectMode === 'cover') {
-      return isLandscape ? 'scale(1.34)' : 'scale(1.18)';
+      return isLandscape ? 'scale(1.36)' : 'scale(1.20)';
     }
     if (aspectMode === 'fill') {
-      return isLandscape ? 'scaleX(1.34) scaleY(1.06)' : 'scaleX(1.18) scaleY(1.06)';
+      return isLandscape ? 'scaleX(1.36) scaleY(1.08)' : 'scaleX(1.20) scaleY(1.06)';
     }
     return 'none';
   };

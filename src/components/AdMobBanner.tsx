@@ -40,17 +40,23 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
 
   return (
     <div className="w-full px-5 my-4 animate-in fade-in duration-300">
-      <div className="relative w-full rounded-2xl bg-[#141824] border border-white/10 p-4 shadow-xl overflow-hidden group">
+      <div className="relative w-full rounded-2xl bg-[#141824] border border-white/15 p-4 shadow-xl overflow-hidden group">
         {/* Subtle accent glow */}
-        <div className="absolute -right-8 -top-8 w-32 h-32 bg-[#E50914]/8 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -right-8 -top-8 w-32 h-32 bg-[#E50914]/10 rounded-full blur-2xl pointer-events-none" />
 
         {/* Ad Header */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center space-x-2">
-            <span className="px-2 py-0.5 rounded bg-white/10 text-white/70 font-extrabold text-[9px] uppercase tracking-wider border border-white/10">
+            <span className="px-2 py-0.5 rounded bg-yellow-400 text-black font-black text-[9px] uppercase tracking-wider shadow">
               SPONSORED
             </span>
-            <span className="text-white/50 text-[10px] font-mono">Google AdMob</span>
+            <div className="flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="text-white/80 text-[11px] font-bold tracking-wide ml-1">Google AdMob</span>
+            </div>
           </div>
 
           <button 
@@ -64,7 +70,7 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
 
         {/* Ad Content */}
         <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#E50914] flex items-center justify-center text-white shadow-lg shadow-red-950/40 flex-shrink-0 animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#E50914] to-red-600 flex items-center justify-center text-white shadow-lg shadow-red-950/40 flex-shrink-0 animate-pulse">
             <Gift className="w-6 h-6 text-white" />
           </div>
 
@@ -72,7 +78,7 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
             <h4 className="text-sm font-black text-white truncate leading-tight">
               {rewardClaimed ? '🎉 VIP 4K Pass Active!' : 'Watch 1 Ad • Unlock VIP 4K'}
             </h4>
-            <p className="text-[11px] text-white/60 line-clamp-1 mt-0.5">
+            <p className="text-[11px] text-white/70 line-clamp-1 mt-0.5 font-medium">
               {rewardClaimed 
                 ? 'Unlimited ad-free high-speed streaming enabled for 24h.' 
                 : 'Support Movix & get instant 4K HDR playback.'}
@@ -84,7 +90,7 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ onWatchAd }) => {
             className={`flex-shrink-0 px-3.5 py-2.5 rounded-xl font-black text-xs shadow-md transition-all active:scale-95 flex items-center space-x-1.5 ${
               rewardClaimed
                 ? 'bg-emerald-600 text-white'
-                : 'bg-[#E50914] hover:brightness-110 text-white'
+                : 'bg-gradient-to-r from-[#E50914] to-red-600 hover:brightness-110 text-white shadow-red-950/40'
             }`}
           >
             {rewardClaimed ? (

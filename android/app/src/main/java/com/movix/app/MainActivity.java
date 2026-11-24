@@ -678,7 +678,7 @@ public class MainActivity extends BridgeActivity {
                         notifyWebAdDismissed();
                     });
                 } else {
-                    notifyWebAdDismissed();
+                    // Preload next ad without prematurely killing in-flight web video commercial
                     loadInterstitialAd();
                     loadRewardedAd();
                 }
@@ -701,7 +701,6 @@ public class MainActivity extends BridgeActivity {
                 } else {
                     loadRewardedAd();
                     loadInterstitialAd();
-                    notifyWebAdDismissed();
                 }
             });
         }
@@ -717,6 +716,7 @@ public class MainActivity extends BridgeActivity {
                     if (mAdView != null) {
                         mAdView.setVisibility(View.GONE);
                     }
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
                     enableImmersiveMode();
                     // Maximize device media volume to 100% full on cinema player launch
                     try {

@@ -1,20 +1,18 @@
 {
-  "versionName": "2.3.0",
-  "versionCode": 203000,
-  "releaseDate": "2026-11-22",
-  "title": "Movix v2.3.0 - Working Multi-Audio Dubs & 100% White Banner Elimination",
+  "versionName": "2.3.1",
+  "versionCode": 203001,
+  "releaseDate": "2026-11-24",
+  "title": "Movix v2.3.1 - Mobile True Fullscreen & High-Fidelity AdMob Fix",
   "changelog": [
-    "100% Elimination of White Banners: Permanently fixed the white banner covering the home screen by removing rogue AdSense auto-ads and keeping native AdMob overlays transparent and non-intrusive",
-    "Working Multi-Language Dubbed Playback: Resolved audio language switching across Tamil, Telugu, Hindi, Malayalam, Kannada, and English powered by VidLink Pro 4K Multi-Audio and CineSrc Regional Dubs with automatic dub server routing",
-    "Exact-Second Audio Switch Continuity: Switching audio language preserves exact playback timestamp without resetting movie to 0:00",
-    "Butter-Smooth Portrait to Horizontal (Landscape) Rotation: Hardware-accelerated seamless rotation (ROTATION_ANIMATION_SEAMLESS) with zero layout thrashing, eliminating black screen flickers, aspect ratio distortion, and system bar flashes",
-    "100% Clean Google Play Protect Security: Completely eliminated 'Harmful App' warnings by removing high-risk dropper permissions (REQUEST_INSTALL_PACKAGES)",
-    "Ad-Free Player Controls: Completely removed ads when interacting with player controls (close button, VIP button, server switcher, audio track switcher, orientation rotate); ads strictly play only before starting movie playback",
-    "Strengthened Anti-Ad Redirection in WebView: Strictly blocked rogue third-party iframe ad popups and top-level redirects from hijacking the app",
-    "Direct In-App OTA Update Installer: 1-tap in-app package installer launch with real-time download percentage progress"
+    "True Edge-to-Edge Fullscreen on Mobile: Automatic rotation to horizontal landscape on cinema player launch with display cutout / notch edge-to-edge immersion and zero black letterbox bars (100% Zoom to Fill)",
+    "Enhanced Fullscreen Toggle: Fullscreen maximize button seamlessly expands view to 100% display width and height without exiting or glitching",
+    "High-Fidelity AdMob Visibility: Fixed advertisement premature dismissal bug; advertisements now render cleanly with prominent Google AdMob branding, unclipped safe-area header, visible 5-second countdown timer, and glowing Skip Ad button",
+    "Guaranteed Pre-roll Commercials: Ensured pre-roll video ads play smoothly before movie starts without blank screen or instant 40ms auto-skip",
+    "Sponsored In-App Banners: Enhanced VIP 4K Pass sponsored card with official Google AdMob branding and instant rewarded ad trigger",
+    "Continuous Multi-Audio Dub Switching: Smooth audio language switching across Tamil, Telugu, Hindi, Malayalam, and English preserved at exact timestamp"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.3.0/movix-app-v2.3.0.apk",
-  "downloadUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.3.0/movix-app-v2.3.0.apk",
-  "rawApkUrl": "https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v2.3.0.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.3.1/movix-app-v2.3.1.apk",
+  "downloadUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.3.1/movix-app-v2.3.1.apk",
+  "rawApkUrl": "https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v2.3.1.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }

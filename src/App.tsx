@@ -596,7 +596,7 @@ export const App: React.FC = () => {
                 />
 
                 {/* AdMob Sponsored Card */}
-                <AdMobBanner />
+                <AdMobBanner onWatchAd={handleWatchAdVip} />
 
                 {/* 4. Netflix Originals & Exclusives */}
                 <MovieCarousel
@@ -625,7 +625,7 @@ export const App: React.FC = () => {
                 )}
 
                 {/* Mid-Feed Sponsored Banner (Boosted Ad Placement) */}
-                <AdMobBanner />
+                <AdMobBanner onWatchAd={handleWatchAdVip} />
 
                 {/* 7. Hollywood Blockbusters */}
                 <MovieCarousel
