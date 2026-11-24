@@ -164,11 +164,11 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     ? getTvStreamingSources(mid, movie.season || 1, movie.episode || 1, currentQuality, currentLanguage)
     : getStreamingSources(mid, undefined, currentQuality, currentLanguage);
 
-  // Default to Server 1 (AutoEmbed Fast 4K VIP) for verified instant video playback, or Server 2 (VidLink Pro Multi-Audio) if dub language is requested
+  // Default to Server 1 (VidLink Pro 4K Multi-Audio) for verified instant multi-audio playback with native player language switcher
   const defaultServerIndex = 0;
 
   const [activeSourceIndex, setActiveSourceIndex] = useState<number>(() => {
-    return (initialLanguage && initialLanguage !== 'English') ? 1 : defaultServerIndex;
+    return defaultServerIndex;
   });
   const currentSource = sources[activeSourceIndex] || sources[defaultServerIndex] || sources[0];
 
@@ -508,7 +508,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     resetControlsTimeout();
   };
 
-  // Change audio language on the fly (Netflix-Grade Smooth Switching with exact second preservation)
+  // Change audio language on the fly (Preserving playback without reload - use server default controls)
   const handleLanguageChange = (lang: AudioLanguage) => {
     const langInfo = AVAILABLE_LANGUAGES.find((l) => l.id === lang) || {
       id: lang,
@@ -526,15 +526,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const resumeSeconds = Math.max(0, Math.floor(currentSecondsRef.current || (videoRef.current ? videoRef.current.currentTime : 0)));
     savedPlaybackTimeRef.current = resumeSeconds;
 
-    // 2. Auto-switch to Server 2 (VidLink Pro Multi-Audio) or Server 3 (CineSrc) if switching to a dubbed language
-    if (lang !== 'English' && activeSourceIndex === 0) {
-      setActiveSourceIndex(1); // Auto-connect to VidLink Pro 4K Multi-Audio with verified dubs
-    }
-
-    // 3. Force immediate iframe remount with new language parameters & exact playback second
-    setIframeReloadKey((prev) => prev + 1);
-
-    // 4. For HTML5 video: smoothly preserve playback time without reloading
+    // 2. For HTML5 video: smoothly preserve playback time without reloading
     if (videoRef.current && currentSource.type === 'video') {
       videoRef.current.currentTime = resumeSeconds;
       if (videoRef.current.paused) {
@@ -542,35 +534,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       }
     }
 
-    // 5. For embed player: dispatch real-time audio change command to iframe
-    try {
-      const langCode = (LANG_CODE_MAP && LANG_CODE_MAP[lang]) || 'hi';
-      if (iframeRef.current && iframeRef.current.contentWindow) {
-        iframeRef.current.contentWindow.postMessage({
-          type: 'SET_AUDIO',
-          language: lang,
-          langCode: langCode,
-          audio: langCode,
-          audioTrack: langCode,
-          currentTime: resumeSeconds
-        }, '*');
-        iframeRef.current.contentWindow.postMessage(JSON.stringify({
-          event: 'setAudio',
-          lang: langCode,
-          audio: langCode
-        }), '*');
-        iframeRef.current.contentWindow.postMessage({
-          action: 'setLanguage',
-          language: langCode
-        }, '*');
-        iframeRef.current.contentWindow.postMessage({
-          type: 'CHANGE_AUDIO',
-          audio: langCode
-        }, '*');
-      }
-    } catch {}
+    // 3. For embed streaming servers: inform user that server default in-player switcher (⚙️ or 🎵) controls audio
+    setGestureOsd({
+      type: 'info',
+      value: `Audio: ${lang} • Use player ⚙️ / 🎵 button to switch Audio`,
+      icon: '🎧'
+    });
+    setTimeout(() => {
+      setGestureOsd(null);
+    }, 3500);
 
-    // 5. Trigger Netflix-Style Smooth Audio Switching HUD
+    // 4. Trigger Netflix-Style Smooth Audio Switching HUD
     if (audioNoticeTimeoutRef.current) clearTimeout(audioNoticeTimeoutRef.current);
     setNetflixAudioNotice({
       language: lang,
@@ -581,17 +555,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
     audioNoticeTimeoutRef.current = setTimeout(() => {
       setNetflixAudioNotice(null);
-    }, 4500);
-
-    // Gesture OSD confirmation
-    setGestureOsd({
-      type: 'info',
-      value: `Audio: ${langInfo.label} (${langInfo.native}) • Resumed at ${formatTime(resumeSeconds)}`,
-      icon: '🔊'
-    });
-    setTimeout(() => {
-      setGestureOsd(null);
-    }, 2500);
+    }, 3500);
 
     setIsBuffering(false);
     setHasStartedPlaying(true);
@@ -1071,16 +1035,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     return 'none';
   };
 
-  const getIframeSrc = (baseUrl: string, startTime: number = 0, lang?: AudioLanguage) => {
+  const getIframeSrc = (baseUrl: string, startTime: number = 0) => {
     let url = baseUrl;
-    const targetLang = lang || currentLanguage;
-    const langCode = (LANG_CODE_MAP && LANG_CODE_MAP[targetLang]) || 'hi';
-
     try {
       const parsed = new URL(url);
-      parsed.searchParams.set('lang', langCode);
-      parsed.searchParams.set('audio', langCode);
-      parsed.searchParams.set('dub', langCode);
       if (url.includes('vidlink.pro')) {
         parsed.searchParams.set('multiLang', 'true');
         parsed.searchParams.set('primaryColor', 'E50914');
@@ -1097,16 +1055,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       }
       return parsed.toString();
     } catch {
-      const sep = url.includes('?') ? '&' : '?';
-      let res = `${url}${sep}lang=${langCode}&audio=${langCode}&dub=${langCode}`;
-      if (url.includes('vidlink.pro')) {
-        res += '&multiLang=true&primaryColor=E50914';
+      let res = url;
+      if (url.includes('vidlink.pro') && !url.includes('multiLang=true')) {
+        const sep = res.includes('?') ? '&' : '?';
+        res += `${sep}multiLang=true&primaryColor=E50914`;
       }
       if (startTime > 5) {
+        const sep = res.includes('?') ? '&' : '?';
         if (url.includes('vidlink.pro')) {
-          res += `&startAt=${Math.floor(startTime)}`;
+          res += `${sep}startAt=${Math.floor(startTime)}`;
         } else {
-          res += `&start=${Math.floor(startTime)}&t=${Math.floor(startTime)}`;
+          res += `${sep}start=${Math.floor(startTime)}&t=${Math.floor(startTime)}`;
         }
       }
       return res;
@@ -1158,46 +1117,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               aria-label="Tap to summon controls"
             />
           ) : (
-            <>
-              <div 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowControls(true);
-                  resetControlsTimeout();
-                }}
-                className="absolute top-0 left-0 right-0 h-16 z-30 cursor-pointer"
-                aria-label="Tap to summon controls"
-              />
-              {/* Always-Accessible Floating Audio Switcher Trigger Pill */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowLanguageMenu(true);
-                  setShowControls(true);
-                  resetControlsTimeout();
-                }}
-                className="absolute top-3.5 left-4 z-40 px-3 py-1 rounded-full bg-black/80 hover:bg-black/95 backdrop-blur-md border border-blue-400/50 text-white text-[11px] font-extrabold flex items-center space-x-1.5 shadow-2xl active:scale-95 transition-all"
-                aria-label="Audio Track Language"
-                title="Switch Audio Track"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                <Globe className="w-3.5 h-3.5 text-cyan-300" />
-                <span>Audio: {currentLanguage}</span>
-                <span className="text-[9px] text-white/50">▾</span>
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowControls(true);
-                  resetControlsTimeout();
-                }}
-                className="absolute top-3.5 right-4 z-40 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white/80 hover:text-white text-[11px] font-bold flex items-center space-x-1 shadow-lg active:scale-95 transition-all"
-                aria-label="Show controls"
-              >
-                <span>⚙️</span>
-                <span>Controls</span>
-              </button>
-            </>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowControls(true);
+                resetControlsTimeout();
+              }}
+              className="absolute top-3.5 right-4 z-40 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white/80 hover:text-white text-[11px] font-bold flex items-center space-x-1 shadow-lg active:scale-95 transition-all"
+              aria-label="Show controls"
+            >
+              <span>⚙️</span>
+              <span>Controls</span>
+            </button>
           )}
         </>
       )}
@@ -1457,6 +1388,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             >
               <X className="w-4 h-4" />
             </button>
+          </div>
+
+          {/* Server Default In-Player Language Guidance */}
+          <div className="mb-3 p-3 rounded-2xl bg-blue-500/10 border border-blue-400/20 text-blue-200 text-xs">
+            <div className="font-bold flex items-center space-x-1.5 mb-1 text-cyan-300">
+              <span>⚙️</span>
+              <span>Server Default In-Player Switcher</span>
+            </div>
+            <p className="text-[11px] text-white/80 leading-relaxed">
+              Use the player's native ⚙️ (Settings) or 🎵 (Audio) icon inside the video frame to select your preferred audio track smoothly without restarting.
+            </p>
           </div>
 
           {/* List of STRICTLY AVAILABLE languages only */}
@@ -2043,8 +1985,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         {currentSource.type === 'embed' || currentSource.type === 'trailer' ? (
           <iframe
             ref={iframeRef}
-            key={`player-embed-${activeSourceIndex}-${mid}-${currentLanguage}-${iframeReloadKey}`}
-            src={getIframeSrc(currentSource.url, savedPlaybackTimeRef.current, currentLanguage)}
+            key={`player-embed-${activeSourceIndex}-${mid}`}
+            src={getIframeSrc(currentSource.url, savedPlaybackTimeRef.current)}
             title={movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen

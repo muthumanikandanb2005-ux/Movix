@@ -1,18 +1,16 @@
 {
-  "versionName": "2.3.1",
-  "versionCode": 203001,
+  "versionName": "2.3.2",
+  "versionCode": 203002,
   "releaseDate": "2026-11-24",
-  "title": "Movix v2.3.1 - Mobile True Fullscreen & High-Fidelity AdMob Fix",
+  "title": "Movix v2.3.2 - Server Default Multi-Audio Switcher & Seamless Playback",
   "changelog": [
-    "True Edge-to-Edge Fullscreen on Mobile: Automatic rotation to horizontal landscape on cinema player launch with display cutout / notch edge-to-edge immersion and zero black letterbox bars (100% Zoom to Fill)",
-    "Enhanced Fullscreen Toggle: Fullscreen maximize button seamlessly expands view to 100% display width and height without exiting or glitching",
-    "High-Fidelity AdMob Visibility: Fixed advertisement premature dismissal bug; advertisements now render cleanly with prominent Google AdMob branding, unclipped safe-area header, visible 5-second countdown timer, and glowing Skip Ad button",
-    "Guaranteed Pre-roll Commercials: Ensured pre-roll video ads play smoothly before movie starts without blank screen or instant 40ms auto-skip",
-    "Sponsored In-App Banners: Enhanced VIP 4K Pass sponsored card with official Google AdMob branding and instant rewarded ad trigger",
-    "Continuous Multi-Audio Dub Switching: Smooth audio language switching across Tamil, Telugu, Hindi, Malayalam, and English preserved at exact timestamp"
+    "Server Default In-Player Language Change: Integrated VidLink Pro 4K Multi-Audio as Server 1 with native in-player audio switcher (⚙️/🎵) supporting Hindi, Tamil, Telugu, English and regional dubs seamlessly",
+    "No-Interruption Playback: Eliminated disruptive iframe reloads, video restart to 0:00, and query parameter poisoning when selecting audio languages",
+    "Unobstructed Touch Controls: Removed top touch-blocking overlay and floating pill; 100% of player screen is directly responsive to in-player gear/audio selectors",
+    "Clean Embed URLs: Streaming sources now deliver pristine parameters preventing server-side playback errors"
   ],
-  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.3.1/movix-app-v2.3.1.apk",
-  "downloadUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.3.1/movix-app-v2.3.1.apk",
-  "rawApkUrl": "https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v2.3.1.apk",
+  "apkUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.3.2/movix-app-v2.3.2.apk",
+  "downloadUrl": "https://github.com/muthumanikandanb2005-ux/Movix/releases/download/v2.3.2/movix-app-v2.3.2.apk",
+  "rawApkUrl": "https://raw.githubusercontent.com/muthumanikandanb2005-ux/Movix/main/releases/movix-app-v2.3.2.apk",
   "repoUrl": "https://github.com/muthumanikandanb2005-ux/Movix"
 }

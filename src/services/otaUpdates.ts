@@ -10,15 +10,15 @@ export interface AppUpdateInfo {
   currentVersion: string;
 }
 
-export const LATEST_RELEASE_VERSION_NAME = '2.3.0';
-export const LATEST_RELEASE_VERSION_CODE = 203000;
+export const LATEST_RELEASE_VERSION_NAME = '2.3.2';
+export const LATEST_RELEASE_VERSION_CODE = 203002;
 
 export const DEFAULT_UPDATE_INFO: AppUpdateInfo = {
   hasUpdate: true,
   versionName: LATEST_RELEASE_VERSION_NAME,
   versionCode: LATEST_RELEASE_VERSION_CODE,
-  releaseDate: '2026-11-22',
-  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Working Multi-Audio Dubs & 100% White Banner Elimination`,
+  releaseDate: '2026-11-24',
+  title: `Movix v${LATEST_RELEASE_VERSION_NAME} - Server Default Multi-Audio Switcher & Seamless Playback`,
   changelog: [
     '100% Elimination of White Banners: Permanently fixed the white banner covering the home screen by removing rogue AdSense auto-ads and keeping native AdMob overlays transparent and non-intrusive',
     'Working Multi-Language Dubbed Playback: Resolved audio language switching across Tamil, Telugu, Hindi, Malayalam, Kannada, and English powered by VidLink Pro 4K Multi-Audio and CineSrc Regional Dubs with automatic dub server routing',

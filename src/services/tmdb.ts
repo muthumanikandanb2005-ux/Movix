@@ -53,47 +53,46 @@ export const getStreamingSources = (
   quality: VideoQuality = '1080p',
   language: AudioLanguage = 'Hindi'
 ): StreamSource[] => {
-  const langCode = LANG_CODE_MAP[language] || 'hi';
   const sources: StreamSource[] = [
     {
-      name: `Server 1 (AutoEmbed Fast 4K VIP - Multi-Audio Direct)`,
-      url: `https://player.autoembed.cc/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}&autoplay=true&multi=1`,
+      name: `Server 1 (VidLink Pro 4K Multi-Audio - In-Player Switcher)`,
+      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 2 (VidLink Pro 4K Multi-Audio - In-Player Switcher)`,
-      url: `https://vidlink.pro/movie/${tmdbId}?primaryColor=E50914&autoplay=true&multiLang=true&lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      name: `Server 2 (AutoEmbed Fast 4K VIP - Multi-Audio Direct)`,
+      url: `https://player.autoembed.cc/embed/movie/${tmdbId}?autoplay=true&multi=1`,
       type: 'embed',
       quality
     },
     {
       name: `Server 3 (CineSrc Multi-Language HD - Regional Dubs)`,
-      url: `https://cinesrc.st/embed/movie/${tmdbId}?lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      url: `https://cinesrc.st/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 4 (MultiEmbed Cinema - Indian & Global Dubs)`,
-      url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&lang=${langCode}`,
+      name: `Server 4 (SuperEmbed Multi-Server HD - Dubbed Cinema)`,
+      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1`,
       type: 'embed',
       quality
     },
     {
-      name: `Server 5 (SuperEmbed Multi-Server HD - Dubbed Cinema)`,
-      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      name: `Server 5 (MultiEmbed Cinema - Indian & Global Dubs)`,
+      url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`,
       type: 'embed',
       quality
     },
     {
       name: `Server 6 (2Embed VIP Cinema - Dual Audio)`,
-      url: `https://www.2embed.cc/embed/${tmdbId}?lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      url: `https://www.2embed.cc/embed/${tmdbId}`,
       type: 'embed',
       quality
     },
     {
       name: `Server 7 (VidSrc Pro 4K Cinema - Multi-Track VIP)`,
-      url: `https://vidsrc.sh/embed/movie?tmdb=${tmdbId}&ds_lang=${langCode}&lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      url: `https://vidsrc.to/embed/movie/${tmdbId}`,
       type: 'embed',
       quality
     },
@@ -123,23 +122,22 @@ export const getTvStreamingSources = (
   quality: VideoQuality = '1080p',
   language: AudioLanguage = 'Hindi'
 ): StreamSource[] => {
-  const langCode = LANG_CODE_MAP[language] || 'hi';
   return [
     {
-      name: 'Server 1 (AutoEmbed Fast 4K VIP - Multi-Audio TV)',
-      url: `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}&autoplay=true&multi=1`,
+      name: 'Server 1 (VidLink Pro TV Multi-Audio - In-Player Switcher)',
+      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&multiLang=true`,
       type: 'embed',
       quality
     },
     {
-      name: 'Server 2 (VidLink Pro TV Multi-Audio - In-Player Switcher)',
-      url: `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=E50914&autoplay=true&multiLang=true&lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      name: 'Server 2 (AutoEmbed Fast 4K VIP - Multi-Audio TV)',
+      url: `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}?autoplay=true&multi=1`,
       type: 'embed',
       quality
     },
     {
       name: 'Server 3 (CineSrc TV Regional Dubs HD)',
-      url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}?lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      url: `https://cinesrc.st/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed',
       quality
     },
@@ -151,19 +149,19 @@ export const getTvStreamingSources = (
     },
     {
       name: 'Server 5 (SuperEmbed TV Multi-Server HD)',
-      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}&lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      url: `https://superembed.stream/?video_id=${tmdbId}&tmdb=1&season=${season}&episode=${episode}`,
       type: 'embed',
       quality
     },
     {
       name: 'Server 6 (2Embed TV VIP Cinema - Dual Audio)',
-      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}&lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
       type: 'embed',
       quality
     },
     {
       name: 'Server 7 (VidSrc Pro TV Cinema - Multi-Track VIP)',
-      url: `https://vidsrc.sh/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}&ds_lang=${langCode}&lang=${langCode}&audio=${langCode}&dub=${langCode}`,
+      url: `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`,
       type: 'embed',
       quality
     },
